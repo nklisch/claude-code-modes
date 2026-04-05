@@ -32,7 +32,7 @@ Axis overrides:
 
 Modifiers:
   --readonly              Prevent file modifications
-  --no-context-pacing     Disable context pacing prompt
+  --context-pacing        Include context pacing prompt
   --print                 Print assembled prompt instead of launching claude
 
 Forwarded to claude:

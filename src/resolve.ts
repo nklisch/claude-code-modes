@@ -13,7 +13,7 @@ export function resolveConfig(parsed: ParsedArgs): ModeConfig {
       axes: null,
       modifiers: {
         readonly: parsed.modifiers.readonly,
-        contextPacing: !parsed.modifiers.noContextPacing,
+        contextPacing: parsed.modifiers.contextPacing,
       },
     };
   }
@@ -45,6 +45,6 @@ export function resolveConfig(parsed: ParsedArgs): ModeConfig {
 
   return {
     axes: { agency, quality, scope },
-    modifiers: { readonly, contextPacing: !parsed.modifiers.noContextPacing },
+    modifiers: { readonly, contextPacing: parsed.modifiers.contextPacing },
   };
 }

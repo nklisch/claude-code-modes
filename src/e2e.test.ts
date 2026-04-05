@@ -69,12 +69,13 @@ describe("claude-mode e2e", () => {
     expect(output).not.toContain("# Scope:");
   });
 
-  // All presets include universal sections
-  test("all presets include context pacing", () => {
-    for (const preset of PRESET_NAMES) {
-      const output = run(`${preset} --print`);
-      expect(output).toContain("# Context and pacing");
-    }
+  // Context pacing is opt-in
+  test("context pacing excluded by default, included with flag", () => {
+    const without = run("create --print");
+    expect(without).not.toContain("# Context and pacing");
+
+    const withPacing = run("create --context-pacing --print");
+    expect(withPacing).toContain("# Context and pacing");
   });
 
   test("all presets include environment section", () => {

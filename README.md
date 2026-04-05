@@ -52,6 +52,8 @@ Claude Code's default prompt tells Claude to:
 
 These defaults are sensible for some tasks but actively harmful for others. Rather than fighting Claude through your CLAUDE.md, `claude-mode` replaces the instructions that cause the behavior.
 
+There's also an optional `--context-pacing` flag that adds instructions telling Claude it's okay to pause at a natural stopping point instead of rushing as context fills up — see [Context pacing](#context-pacing) below.
+
 ## How it works
 
 Claude Code supports `--system-prompt-file` which replaces its entire system prompt. `claude-mode` uses this to swap in a prompt assembled from markdown fragments:
@@ -95,7 +97,7 @@ Add modifiers:
 
 ```bash
 claude-mode create --readonly              # Prevent file modifications
-claude-mode create --no-context-pacing     # Disable context pacing prompt
+claude-mode create --context-pacing        # Include context pacing prompt
 claude-mode create --append-system-prompt "Use Rust, not TypeScript"
 ```
 
@@ -130,7 +132,7 @@ claude-mode explore --print
 
 ## Context pacing
 
-All modes — including `none` — include a context pacing modifier that tells Claude it's okay to pause at a natural stopping point rather than rushing to finish as context fills up. This addresses a real failure pattern: as context gets long, Claude starts cutting corners, skipping error handling, and leaving broken code.
+Use `--context-pacing` to include a modifier that tells Claude it's okay to pause at a natural stopping point rather than rushing to finish as context fills up. This addresses a real failure pattern: as context gets long, Claude starts cutting corners, skipping error handling, and leaving broken code.
 
 ## Why this matters
 

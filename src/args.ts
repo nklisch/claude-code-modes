@@ -13,7 +13,7 @@ export interface ParsedArgs {
   modifiers: {
     readonly: boolean;
     print: boolean;
-    noContextPacing: boolean;
+    contextPacing: boolean;
   };
   forwarded: {
     appendSystemPrompt?: string;
@@ -49,7 +49,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
       scope: { type: "string" },
       readonly: { type: "boolean" },
       print: { type: "boolean" },
-      "no-context-pacing": { type: "boolean" },
+      "context-pacing": { type: "boolean" },
       "append-system-prompt": { type: "string" },
       "append-system-prompt-file": { type: "string" },
       "system-prompt": { type: "string" },
@@ -95,7 +95,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
   // parseArgs with strict:false puts unknown flags in values as booleans
   // and their intended values as positionals. We need to reconstruct them.
   const knownFlags = new Set([
-    "agency", "quality", "scope", "readonly", "print", "no-context-pacing",
+    "agency", "quality", "scope", "readonly", "print", "context-pacing",
     "append-system-prompt", "append-system-prompt-file",
     "system-prompt", "system-prompt-file", "help",
   ]);
@@ -122,7 +122,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
     modifiers: {
       readonly: values.readonly === true,
       print: values.print === true,
-      noContextPacing: values["no-context-pacing"] === true,
+      contextPacing: values["context-pacing"] === true,
     },
     forwarded: {
       appendSystemPrompt: values["append-system-prompt"] as string | undefined,

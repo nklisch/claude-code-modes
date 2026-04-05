@@ -279,7 +279,7 @@ describe("claude-mode e2e", () => {
 
 **Current State** (lines 93, 100, 148):
 ```typescript
-for (const preset of ["new-project", "vibe-extend", "safe-small", "refactor", "explore", "none"]) {
+for (const preset of ["create", "extend", "safe", "refactor", "explore", "none"]) {
 ```
 
 **Target State**:

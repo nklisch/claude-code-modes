@@ -23,15 +23,15 @@ export interface PresetDefinition {
 }
 
 const PRESETS: Record<PresetName, PresetDefinition> = {
-  "new-project": {
+  "create": {
     axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
     readonly: false,
   },
-  "vibe-extend": {
+  "extend": {
     axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
     readonly: false,
   },
-  "safe-small": {
+  "safe": {
     axes: { agency: "collaborative", quality: "minimal", scope: "narrow" },
     readonly: false,
   },
@@ -64,10 +64,10 @@ export function isPresetName(value: string): value is PresetName {
 - Need to import `PRESET_NAMES` from types.ts for the `isPresetName` guard.
 
 **Acceptance Criteria**:
-- [ ] `getPreset("new-project")` returns `{ axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" }, readonly: false }`
+- [ ] `getPreset("create")` returns `{ axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" }, readonly: false }`
 - [ ] `getPreset("explore")` returns `readonly: true`
 - [ ] `getPreset("none")` returns `{ axes: null, readonly: false }`
-- [ ] `isPresetName("new-project")` returns `true`
+- [ ] `isPresetName("create")` returns `true`
 - [ ] `isPresetName("invalid")` returns `false`
 - [ ] All 6 presets match the table in VISION.md
 
@@ -146,7 +146,7 @@ Execute precisely what was requested. Nothing more, nothing less.
 ```
 
 **Implementation Notes**:
-- This is the most restrictive agency level. Combined with `narrow` scope and `minimal` quality, it produces the `safe-small` preset.
+- This is the most restrictive agency level. Combined with `narrow` scope and `minimal` quality, it produces the `safe` preset.
 - "Mention them briefly" for adjacent issues is intentional — complete silence about visible problems is unhelpful, but acting on them defeats the purpose.
 
 **Acceptance Criteria**:
@@ -270,7 +270,7 @@ Make the smallest correct change. No refactoring, no new abstractions, no specul
 
 **Implementation Notes**:
 - This is essentially the default Claude Code behavioral instructions reassembled. It preserves the minimalism bias and output efficiency sections almost verbatim.
-- Combined with `surgical` agency and `narrow` scope, this produces the `safe-small` preset which should behave very similarly to stock Claude Code.
+- Combined with `surgical` agency and `narrow` scope, this produces the `safe` preset which should behave very similarly to stock Claude Code.
 
 **Acceptance Criteria**:
 - [ ] Contains "Don't add features, refactor code, or make 'improvements' beyond what was asked"
@@ -446,20 +446,20 @@ import { getPreset, isPresetName } from "./presets.js";
 import { PRESET_NAMES } from "./types.js";
 
 describe("getPreset", () => {
-  test("new-project has autonomous/architect/unrestricted", () => {
-    const p = getPreset("new-project");
+  test("create has autonomous/architect/unrestricted", () => {
+    const p = getPreset("create");
     expect(p.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
     expect(p.readonly).toBe(false);
   });
 
-  test("vibe-extend has autonomous/pragmatic/adjacent", () => {
-    const p = getPreset("vibe-extend");
+  test("extend has autonomous/pragmatic/adjacent", () => {
+    const p = getPreset("extend");
     expect(p.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "adjacent" });
     expect(p.readonly).toBe(false);
   });
 
-  test("safe-small has collaborative/minimal/narrow", () => {
-    const p = getPreset("safe-small");
+  test("safe has collaborative/minimal/narrow", () => {
+    const p = getPreset("safe");
     expect(p.axes).toEqual({ agency: "collaborative", quality: "minimal", scope: "narrow" });
     expect(p.readonly).toBe(false);
   });
@@ -491,9 +491,9 @@ describe("getPreset", () => {
 
 describe("isPresetName", () => {
   test("returns true for valid preset names", () => {
-    expect(isPresetName("new-project")).toBe(true);
-    expect(isPresetName("vibe-extend")).toBe(true);
-    expect(isPresetName("safe-small")).toBe(true);
+    expect(isPresetName("create")).toBe(true);
+    expect(isPresetName("extend")).toBe(true);
+    expect(isPresetName("safe")).toBe(true);
     expect(isPresetName("refactor")).toBe(true);
     expect(isPresetName("explore")).toBe(true);
     expect(isPresetName("none")).toBe(true);
@@ -502,7 +502,7 @@ describe("isPresetName", () => {
   test("returns false for invalid names", () => {
     expect(isPresetName("invalid")).toBe(false);
     expect(isPresetName("")).toBe(false);
-    expect(isPresetName("NEW-PROJECT")).toBe(false);
+    expect(isPresetName("CREATE")).toBe(false);
   });
 });
 ```
@@ -545,8 +545,8 @@ describe("preset assembly integration", () => {
     });
   }
 
-  test("new-project contains architect quality content", () => {
-    const preset = getPreset("new-project");
+  test("create contains architect quality content", () => {
+    const preset = getPreset("create");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Architect");
@@ -556,8 +556,8 @@ describe("preset assembly integration", () => {
     expect(result).not.toContain("# Quality: Pragmatic");
   });
 
-  test("safe-small contains minimal quality and cautious actions", () => {
-    const preset = getPreset("safe-small");
+  test("safe contains minimal quality and cautious actions", () => {
+    const preset = getPreset("safe");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Minimal");
@@ -567,8 +567,8 @@ describe("preset assembly integration", () => {
     expect(result).toContain("measure twice, cut once");
   });
 
-  test("new-project uses autonomous actions, not cautious", () => {
-    const preset = getPreset("new-project");
+  test("create uses autonomous actions, not cautious", () => {
+    const preset = getPreset("create");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("act freely without confirmation");
@@ -602,7 +602,7 @@ describe("preset assembly integration", () => {
   });
 
   test("axis override on preset works", () => {
-    const preset = getPreset("new-project");
+    const preset = getPreset("create");
     // Override quality from architect to pragmatic
     const mode: ModeConfig = {
       axes: { ...preset.axes!, quality: "pragmatic" },
@@ -611,7 +611,7 @@ describe("preset assembly integration", () => {
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Pragmatic");
     expect(result).not.toContain("# Quality: Architect");
-    // Agency and scope should still be from new-project
+    // Agency and scope should still be from create
     expect(result).toContain("# Agency: Autonomous");
     expect(result).toContain("# Scope: Unrestricted");
   });
@@ -621,7 +621,7 @@ describe("preset assembly integration", () => {
 **Acceptance Criteria**:
 - [ ] Every preset assembles without errors
 - [ ] Content-specific tests verify correct fragments are included
-- [ ] Mutual exclusion verified (new-project doesn't contain minimal quality content)
+- [ ] Mutual exclusion verified (create doesn't contain minimal quality content)
 - [ ] Axis override test proves composition works
 - [ ] All presets include context pacing
 - [ ] None mode verified to have no axis content
@@ -653,7 +653,7 @@ cd /home/nathan/dev/claude-mode && bun test
 # Verify all prompt fragments exist
 ls prompts/axis/agency/ prompts/axis/quality/ prompts/axis/scope/
 
-# Quick smoke test: assemble new-project preset
+# Quick smoke test: assemble create preset
 bun -e "
   import { assemblePrompt } from './src/assemble.ts';
   import { detectEnv, buildTemplateVars } from './src/env.ts';
@@ -661,7 +661,7 @@ bun -e "
   import { join } from 'path';
   const env = detectEnv();
   const vars = buildTemplateVars(env);
-  const p = getPreset('new-project');
+  const p = getPreset('create');
   const result = assemblePrompt({
     mode: { axes: p.axes, modifiers: { readonly: p.readonly } },
     templateVars: vars,

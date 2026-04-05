@@ -12,14 +12,14 @@ const baseParsed: ParsedArgs = {
 
 describe("resolveConfig", () => {
   test("preset with no overrides returns preset axes", () => {
-    const config = resolveConfig({ ...baseParsed, preset: "new-project" });
+    const config = resolveConfig({ ...baseParsed, preset: "create" });
     expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
   });
 
   test("preset with partial override merges", () => {
     const config = resolveConfig({
       ...baseParsed,
-      preset: "new-project",
+      preset: "create",
       overrides: { quality: "pragmatic" },
     });
     expect(config.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "unrestricted" });
@@ -48,7 +48,7 @@ describe("resolveConfig", () => {
   test("--readonly flag on any preset", () => {
     const config = resolveConfig({
       ...baseParsed,
-      preset: "new-project",
+      preset: "create",
       modifiers: { readonly: true, print: false },
     });
     expect(config.modifiers.readonly).toBe(true);

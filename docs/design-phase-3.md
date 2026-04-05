@@ -164,16 +164,16 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
 - Preset detection: first positional that matches a preset name. Others become passthrough.
 
 **Acceptance Criteria**:
-- [ ] `parseCliArgs(["new-project"])` returns `{ preset: "new-project", overrides: {}, ... }`
-- [ ] `parseCliArgs(["new-project", "--agency", "collaborative"])` returns correct preset + override
+- [ ] `parseCliArgs(["create"])` returns `{ preset: "create", overrides: {}, ... }`
+- [ ] `parseCliArgs(["create", "--agency", "collaborative"])` returns correct preset + override
 - [ ] `parseCliArgs(["--agency", "autonomous", "--quality", "architect", "--scope", "unrestricted"])` returns null preset + all overrides
-- [ ] `parseCliArgs(["new-project", "--", "--verbose", "--model", "sonnet"])` passes through args after `--`
-- [ ] `parseCliArgs(["new-project", "--verbose"])` passes `--verbose` through
-- [ ] `parseCliArgs(["new-project", "--system-prompt", "foo"])` throws error
-- [ ] `parseCliArgs(["new-project", "--agency", "invalid"])` throws error
-- [ ] `parseCliArgs(["new-project", "--readonly"])` sets `modifiers.readonly: true`
-- [ ] `parseCliArgs(["new-project", "--print"])` sets `modifiers.print: true`
-- [ ] `parseCliArgs(["new-project", "--append-system-prompt", "extra"])` captures in `forwarded`
+- [ ] `parseCliArgs(["create", "--", "--verbose", "--model", "sonnet"])` passes through args after `--`
+- [ ] `parseCliArgs(["create", "--verbose"])` passes `--verbose` through
+- [ ] `parseCliArgs(["create", "--system-prompt", "foo"])` throws error
+- [ ] `parseCliArgs(["create", "--agency", "invalid"])` throws error
+- [ ] `parseCliArgs(["create", "--readonly"])` sets `modifiers.readonly: true`
+- [ ] `parseCliArgs(["create", "--print"])` sets `modifiers.print: true`
+- [ ] `parseCliArgs(["create", "--append-system-prompt", "extra"])` captures in `forwarded`
 
 ---
 
@@ -283,9 +283,9 @@ function printUsage(): void {
   const usage = `Usage: claude-mode [preset] [options] [-- claude-args...]
 
 Presets:
-  new-project     autonomous / architect / unrestricted
-  vibe-extend     autonomous / pragmatic / adjacent
-  safe-small      collaborative / minimal / narrow
+  create     autonomous / architect / unrestricted
+  extend     autonomous / pragmatic / adjacent
+  safe      collaborative / minimal / narrow
   refactor        autonomous / pragmatic / unrestricted
   explore         collaborative / architect / narrow (readonly)
   none            no behavioral instructions
@@ -306,11 +306,11 @@ Forwarded to claude:
 Everything after -- is passed to claude verbatim.
 
 Examples:
-  claude-mode new-project
-  claude-mode new-project --quality pragmatic
+  claude-mode create
+  claude-mode create --quality pragmatic
   claude-mode --agency autonomous --quality architect --scope unrestricted
   claude-mode explore --print
-  claude-mode new-project -- --verbose --model sonnet`;
+  claude-mode create -- --verbose --model sonnet`;
 
   process.stdout.write(usage + "\n");
 }
@@ -400,10 +400,10 @@ function shellEscape(arg: string): string {
 **Acceptance Criteria**:
 - [ ] No args prints usage and exits 0
 - [ ] `--help` prints usage and exits 0
-- [ ] `new-project` outputs `claude --system-prompt-file /tmp/...`
-- [ ] `new-project --print` outputs the assembled prompt text (not a claude command)
-- [ ] `new-project --append-system-prompt "extra"` includes `--append-system-prompt 'extra'` in output
-- [ ] `new-project -- --verbose --model sonnet` includes `--verbose --model sonnet` in output
+- [ ] `create` outputs `claude --system-prompt-file /tmp/...`
+- [ ] `create --print` outputs the assembled prompt text (not a claude command)
+- [ ] `create --append-system-prompt "extra"` includes `--append-system-prompt 'extra'` in output
+- [ ] `create -- --verbose --model sonnet` includes `--verbose --model sonnet` in output
 - [ ] Invalid preset name exits with error
 - [ ] Invalid axis value exits with error
 - [ ] `--system-prompt foo` exits with error
@@ -430,7 +430,7 @@ No changes needed — the existing scripts already work. The bash wrapper (Phase
 
 **Acceptance Criteria**:
 - [ ] `bun run src/build-prompt.ts --help` prints usage
-- [ ] `bun run src/build-prompt.ts new-project --print` outputs prompt text
+- [ ] `bun run src/build-prompt.ts create --print` outputs prompt text
 
 ---
 
@@ -451,15 +451,15 @@ import { parseCliArgs } from "./args.js";
 
 describe("parseCliArgs", () => {
   test("parses preset only", () => {
-    const result = parseCliArgs(["new-project"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create"]);
+    expect(result.preset).toBe("create");
     expect(result.overrides).toEqual({});
     expect(result.passthroughArgs).toEqual([]);
   });
 
   test("parses preset with axis override", () => {
-    const result = parseCliArgs(["new-project", "--agency", "collaborative"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create", "--agency", "collaborative"]);
+    expect(result.preset).toBe("create");
     expect(result.overrides.agency).toBe("collaborative");
   });
 
@@ -470,22 +470,22 @@ describe("parseCliArgs", () => {
   });
 
   test("captures passthrough args after --", () => {
-    const result = parseCliArgs(["new-project", "--", "--verbose", "--model", "sonnet"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create", "--", "--verbose", "--model", "sonnet"]);
+    expect(result.preset).toBe("create");
     expect(result.passthroughArgs).toEqual(["--verbose", "--model", "sonnet"]);
   });
 
   test("passes through unknown boolean flags", () => {
-    const result = parseCliArgs(["new-project", "--verbose"]);
+    const result = parseCliArgs(["create", "--verbose"]);
     expect(result.passthroughArgs).toContain("--verbose");
   });
 
   test("throws on --system-prompt", () => {
-    expect(() => parseCliArgs(["new-project", "--system-prompt", "foo"])).toThrow("Cannot use --system-prompt");
+    expect(() => parseCliArgs(["create", "--system-prompt", "foo"])).toThrow("Cannot use --system-prompt");
   });
 
   test("throws on --system-prompt-file", () => {
-    expect(() => parseCliArgs(["new-project", "--system-prompt-file", "foo.md"])).toThrow("Cannot use --system-prompt");
+    expect(() => parseCliArgs(["create", "--system-prompt-file", "foo.md"])).toThrow("Cannot use --system-prompt");
   });
 
   test("throws on invalid agency", () => {
@@ -501,22 +501,22 @@ describe("parseCliArgs", () => {
   });
 
   test("parses --readonly modifier", () => {
-    const result = parseCliArgs(["new-project", "--readonly"]);
+    const result = parseCliArgs(["create", "--readonly"]);
     expect(result.modifiers.readonly).toBe(true);
   });
 
   test("parses --print modifier", () => {
-    const result = parseCliArgs(["new-project", "--print"]);
+    const result = parseCliArgs(["create", "--print"]);
     expect(result.modifiers.print).toBe(true);
   });
 
   test("captures --append-system-prompt", () => {
-    const result = parseCliArgs(["new-project", "--append-system-prompt", "extra stuff"]);
+    const result = parseCliArgs(["create", "--append-system-prompt", "extra stuff"]);
     expect(result.forwarded.appendSystemPrompt).toBe("extra stuff");
   });
 
   test("captures --append-system-prompt-file", () => {
-    const result = parseCliArgs(["new-project", "--append-system-prompt-file", "/path/to/file.md"]);
+    const result = parseCliArgs(["create", "--append-system-prompt-file", "/path/to/file.md"]);
     expect(result.forwarded.appendSystemPromptFile).toBe("/path/to/file.md");
   });
 
@@ -549,14 +549,14 @@ const baseParsed: ParsedArgs = {
 
 describe("resolveConfig", () => {
   test("preset with no overrides returns preset axes", () => {
-    const config = resolveConfig({ ...baseParsed, preset: "new-project" });
+    const config = resolveConfig({ ...baseParsed, preset: "create" });
     expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
   });
 
   test("preset with partial override merges", () => {
     const config = resolveConfig({
       ...baseParsed,
-      preset: "new-project",
+      preset: "create",
       overrides: { quality: "pragmatic" },
     });
     expect(config.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "unrestricted" });
@@ -585,7 +585,7 @@ describe("resolveConfig", () => {
   test("--readonly flag on any preset", () => {
     const config = resolveConfig({
       ...baseParsed,
-      preset: "new-project",
+      preset: "create",
       modifiers: { readonly: true, print: false },
     });
     expect(config.modifiers.readonly).toBe(true);
@@ -644,8 +644,8 @@ describe("build-prompt CLI", () => {
     expect(output).toContain("Usage: claude-mode");
   });
 
-  test("new-project outputs claude command with --system-prompt-file", () => {
-    const output = run("new-project");
+  test("create outputs claude command with --system-prompt-file", () => {
+    const output = run("create");
     expect(output).toMatch(/^claude --system-prompt-file /);
     // Extract temp file path and verify it exists
     const match = output.match(/--system-prompt-file ([^\s']+|'[^']+')/);
@@ -655,7 +655,7 @@ describe("build-prompt CLI", () => {
   });
 
   test("--print outputs prompt content", () => {
-    const output = run("new-project --print");
+    const output = run("create --print");
     expect(output).toContain("Claude Code");
     expect(output).toContain("# Agency: Autonomous");
     expect(output).toContain("# Quality: Architect");
@@ -663,19 +663,19 @@ describe("build-prompt CLI", () => {
   });
 
   test("passthrough args appear in output", () => {
-    const output = run("new-project -- --verbose --model sonnet");
+    const output = run("create -- --verbose --model sonnet");
     expect(output).toContain("--verbose");
     expect(output).toContain("--model");
     expect(output).toContain("sonnet");
   });
 
   test("--append-system-prompt forwarded", () => {
-    const output = run("new-project --append-system-prompt 'extra rules'");
+    const output = run("create --append-system-prompt 'extra rules'");
     expect(output).toContain("--append-system-prompt");
   });
 
   test("--system-prompt rejected", () => {
-    const errOutput = runExpectFail("new-project --system-prompt foo");
+    const errOutput = runExpectFail("create --system-prompt foo");
     expect(errOutput).toContain("Cannot use --system-prompt");
   });
 
@@ -685,7 +685,7 @@ describe("build-prompt CLI", () => {
   });
 
   test("all presets produce valid commands", () => {
-    for (const preset of ["new-project", "vibe-extend", "safe-small", "refactor", "explore", "none"]) {
+    for (const preset of ["create", "extend", "safe", "refactor", "explore", "none"]) {
       const output = run(preset);
       expect(output).toMatch(/^claude --system-prompt-file /);
     }
@@ -709,9 +709,9 @@ bun test
 
 # Manual smoke tests
 bun run src/build-prompt.ts --help
-bun run src/build-prompt.ts new-project --print | head -5
-bun run src/build-prompt.ts new-project
-bun run src/build-prompt.ts new-project -- --verbose --model sonnet
+bun run src/build-prompt.ts create --print | head -5
+bun run src/build-prompt.ts create
+bun run src/build-prompt.ts create -- --verbose --model sonnet
 bun run src/build-prompt.ts explore --print | grep -c "Read-only"
 bun run src/build-prompt.ts none --print | grep -c "# Agency:"
 ```

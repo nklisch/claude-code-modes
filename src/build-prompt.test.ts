@@ -19,8 +19,8 @@ describe("build-prompt CLI", () => {
     expect(output).toContain("Usage: claude-mode");
   });
 
-  test("new-project outputs claude command with --system-prompt-file", () => {
-    const output = run("new-project");
+  test("create outputs claude command with --system-prompt-file", () => {
+    const output = run("create");
     expect(output).toMatch(/^claude --system-prompt-file /);
     // Extract temp file path and verify it exists
     const match = output.match(/--system-prompt-file ([^\s']+|'[^']+')/);
@@ -30,7 +30,7 @@ describe("build-prompt CLI", () => {
   });
 
   test("--print outputs prompt content", () => {
-    const output = run("new-project --print");
+    const output = run("create --print");
     expect(output).toContain("Claude Code");
     expect(output).toContain("# Agency: Autonomous");
     expect(output).toContain("# Quality: Architect");
@@ -38,19 +38,19 @@ describe("build-prompt CLI", () => {
   });
 
   test("passthrough args appear in output", () => {
-    const output = run("new-project -- --verbose --model sonnet");
+    const output = run("create -- --verbose --model sonnet");
     expect(output).toContain("--verbose");
     expect(output).toContain("--model");
     expect(output).toContain("sonnet");
   });
 
   test("--append-system-prompt forwarded", () => {
-    const output = run("new-project --append-system-prompt 'extra rules'");
+    const output = run("create --append-system-prompt 'extra rules'");
     expect(output).toContain("--append-system-prompt");
   });
 
   test("--system-prompt rejected", () => {
-    const errOutput = runExpectFail("new-project --system-prompt foo");
+    const errOutput = runExpectFail("create --system-prompt foo");
     expect(errOutput).toContain("Cannot use --system-prompt");
   });
 
@@ -60,7 +60,7 @@ describe("build-prompt CLI", () => {
   });
 
   test("all presets produce valid commands", () => {
-    for (const preset of ["new-project", "vibe-extend", "safe-small", "refactor", "explore", "none"]) {
+    for (const preset of ["create", "extend", "safe", "refactor", "explore", "none"]) {
       const output = run(preset);
       expect(output).toMatch(/^claude --system-prompt-file /);
     }

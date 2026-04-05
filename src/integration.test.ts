@@ -65,8 +65,8 @@ describe("preset assembly integration", () => {
     });
   }
 
-  test("new-project contains architect quality content", () => {
-    const preset = getPreset("new-project");
+  test("create contains architect quality content", () => {
+    const preset = getPreset("create");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Architect");
@@ -76,8 +76,8 @@ describe("preset assembly integration", () => {
     expect(result).not.toContain("# Quality: Pragmatic");
   });
 
-  test("safe-small contains minimal quality and cautious actions", () => {
-    const preset = getPreset("safe-small");
+  test("safe contains minimal quality and cautious actions", () => {
+    const preset = getPreset("safe");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Minimal");
@@ -87,8 +87,8 @@ describe("preset assembly integration", () => {
     expect(result).toContain("measure twice, cut once");
   });
 
-  test("new-project uses autonomous actions, not cautious", () => {
-    const preset = getPreset("new-project");
+  test("create uses autonomous actions, not cautious", () => {
+    const preset = getPreset("create");
     const mode: ModeConfig = { axes: preset.axes, modifiers: { readonly: preset.readonly } };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("act freely without confirmation");
@@ -122,7 +122,7 @@ describe("preset assembly integration", () => {
   });
 
   test("axis override on preset works", () => {
-    const preset = getPreset("new-project");
+    const preset = getPreset("create");
     // Override quality from architect to pragmatic
     const mode: ModeConfig = {
       axes: { ...preset.axes!, quality: "pragmatic" },
@@ -131,7 +131,7 @@ describe("preset assembly integration", () => {
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Pragmatic");
     expect(result).not.toContain("# Quality: Architect");
-    // Agency and scope should still be from new-project
+    // Agency and scope should still be from create
     expect(result).toContain("# Agency: Autonomous");
     expect(result).toContain("# Scope: Unrestricted");
   });

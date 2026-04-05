@@ -75,9 +75,9 @@ export const SCOPE_VALUES = ["unrestricted", "adjacent", "narrow"] as const;
 export type Scope = (typeof SCOPE_VALUES)[number];
 
 export const PRESET_NAMES = [
-  "new-project",
-  "vibe-extend",
-  "safe-small",
+  "create",
+  "extend",
+  "safe",
   "refactor",
   "explore",
   "none",

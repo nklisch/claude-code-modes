@@ -3,20 +3,20 @@ import { getPreset, isPresetName } from "./presets.js";
 import { PRESET_NAMES } from "./types.js";
 
 describe("getPreset", () => {
-  test("new-project has autonomous/architect/unrestricted", () => {
-    const p = getPreset("new-project");
+  test("create has autonomous/architect/unrestricted", () => {
+    const p = getPreset("create");
     expect(p.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
     expect(p.readonly).toBe(false);
   });
 
-  test("vibe-extend has autonomous/pragmatic/adjacent", () => {
-    const p = getPreset("vibe-extend");
+  test("extend has autonomous/pragmatic/adjacent", () => {
+    const p = getPreset("extend");
     expect(p.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "adjacent" });
     expect(p.readonly).toBe(false);
   });
 
-  test("safe-small has collaborative/minimal/narrow", () => {
-    const p = getPreset("safe-small");
+  test("safe has collaborative/minimal/narrow", () => {
+    const p = getPreset("safe");
     expect(p.axes).toEqual({ agency: "collaborative", quality: "minimal", scope: "narrow" });
     expect(p.readonly).toBe(false);
   });
@@ -48,9 +48,9 @@ describe("getPreset", () => {
 
 describe("isPresetName", () => {
   test("returns true for valid preset names", () => {
-    expect(isPresetName("new-project")).toBe(true);
-    expect(isPresetName("vibe-extend")).toBe(true);
-    expect(isPresetName("safe-small")).toBe(true);
+    expect(isPresetName("create")).toBe(true);
+    expect(isPresetName("extend")).toBe(true);
+    expect(isPresetName("safe")).toBe(true);
     expect(isPresetName("refactor")).toBe(true);
     expect(isPresetName("explore")).toBe(true);
     expect(isPresetName("none")).toBe(true);
@@ -59,6 +59,6 @@ describe("isPresetName", () => {
   test("returns false for invalid names", () => {
     expect(isPresetName("invalid")).toBe(false);
     expect(isPresetName("")).toBe(false);
-    expect(isPresetName("NEW-PROJECT")).toBe(false);
+    expect(isPresetName("CREATE")).toBe(false);
   });
 });

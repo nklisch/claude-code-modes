@@ -7,15 +7,15 @@ export interface PresetDefinition {
 }
 
 const PRESETS: Record<PresetName, PresetDefinition> = {
-  "new-project": {
+  "create": {
     axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
     readonly: false,
   },
-  "vibe-extend": {
+  "extend": {
     axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
     readonly: false,
   },
-  "safe-small": {
+  "safe": {
     axes: { agency: "collaborative", quality: "minimal", scope: "narrow" },
     readonly: false,
   },

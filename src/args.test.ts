@@ -3,15 +3,15 @@ import { parseCliArgs } from "./args.js";
 
 describe("parseCliArgs", () => {
   test("parses preset only", () => {
-    const result = parseCliArgs(["new-project"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create"]);
+    expect(result.preset).toBe("create");
     expect(result.overrides).toEqual({});
     expect(result.passthroughArgs).toEqual([]);
   });
 
   test("parses preset with axis override", () => {
-    const result = parseCliArgs(["new-project", "--agency", "collaborative"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create", "--agency", "collaborative"]);
+    expect(result.preset).toBe("create");
     expect(result.overrides.agency).toBe("collaborative");
   });
 
@@ -22,22 +22,22 @@ describe("parseCliArgs", () => {
   });
 
   test("captures passthrough args after --", () => {
-    const result = parseCliArgs(["new-project", "--", "--verbose", "--model", "sonnet"]);
-    expect(result.preset).toBe("new-project");
+    const result = parseCliArgs(["create", "--", "--verbose", "--model", "sonnet"]);
+    expect(result.preset).toBe("create");
     expect(result.passthroughArgs).toEqual(["--verbose", "--model", "sonnet"]);
   });
 
   test("passes through unknown boolean flags", () => {
-    const result = parseCliArgs(["new-project", "--verbose"]);
+    const result = parseCliArgs(["create", "--verbose"]);
     expect(result.passthroughArgs).toContain("--verbose");
   });
 
   test("throws on --system-prompt", () => {
-    expect(() => parseCliArgs(["new-project", "--system-prompt", "foo"])).toThrow("Cannot use --system-prompt");
+    expect(() => parseCliArgs(["create", "--system-prompt", "foo"])).toThrow("Cannot use --system-prompt");
   });
 
   test("throws on --system-prompt-file", () => {
-    expect(() => parseCliArgs(["new-project", "--system-prompt-file", "foo.md"])).toThrow("Cannot use --system-prompt");
+    expect(() => parseCliArgs(["create", "--system-prompt-file", "foo.md"])).toThrow("Cannot use --system-prompt");
   });
 
   test("throws on invalid agency", () => {
@@ -53,22 +53,22 @@ describe("parseCliArgs", () => {
   });
 
   test("parses --readonly modifier", () => {
-    const result = parseCliArgs(["new-project", "--readonly"]);
+    const result = parseCliArgs(["create", "--readonly"]);
     expect(result.modifiers.readonly).toBe(true);
   });
 
   test("parses --print modifier", () => {
-    const result = parseCliArgs(["new-project", "--print"]);
+    const result = parseCliArgs(["create", "--print"]);
     expect(result.modifiers.print).toBe(true);
   });
 
   test("captures --append-system-prompt", () => {
-    const result = parseCliArgs(["new-project", "--append-system-prompt", "extra stuff"]);
+    const result = parseCliArgs(["create", "--append-system-prompt", "extra stuff"]);
     expect(result.forwarded.appendSystemPrompt).toBe("extra stuff");
   });
 
   test("captures --append-system-prompt-file", () => {
-    const result = parseCliArgs(["new-project", "--append-system-prompt-file", "/path/to/file.md"]);
+    const result = parseCliArgs(["create", "--append-system-prompt-file", "/path/to/file.md"]);
     expect(result.forwarded.appendSystemPromptFile).toBe("/path/to/file.md");
   });
 

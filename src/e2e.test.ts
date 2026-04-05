@@ -25,23 +25,23 @@ describe("claude-mode e2e", () => {
   });
 
   // --print mode for each preset
-  test("new-project --print contains correct axis headers", () => {
-    const output = run("new-project --print");
+  test("create --print contains correct axis headers", () => {
+    const output = run("create --print");
     expect(output).toContain("# Agency: Autonomous");
     expect(output).toContain("# Quality: Architect");
     expect(output).toContain("# Scope: Unrestricted");
     expect(output).not.toContain("# Read-only mode");
   });
 
-  test("vibe-extend --print contains correct axis headers", () => {
-    const output = run("vibe-extend --print");
+  test("extend --print contains correct axis headers", () => {
+    const output = run("extend --print");
     expect(output).toContain("# Agency: Autonomous");
     expect(output).toContain("# Quality: Pragmatic");
     expect(output).toContain("# Scope: Adjacent");
   });
 
-  test("safe-small --print contains correct axis headers", () => {
-    const output = run("safe-small --print");
+  test("safe --print contains correct axis headers", () => {
+    const output = run("safe --print");
     expect(output).toContain("# Agency: Collaborative");
     expect(output).toContain("# Quality: Minimal");
     expect(output).toContain("# Scope: Narrow");
@@ -87,7 +87,7 @@ describe("claude-mode e2e", () => {
 
   // Axis override through bash script
   test("preset with axis override works", () => {
-    const output = run("new-project --quality pragmatic --print");
+    const output = run("create --quality pragmatic --print");
     expect(output).toContain("# Quality: Pragmatic");
     expect(output).not.toContain("# Quality: Architect");
     expect(output).toContain("# Agency: Autonomous");
@@ -95,7 +95,7 @@ describe("claude-mode e2e", () => {
 
   // --readonly modifier
   test("--readonly adds readonly content", () => {
-    const output = run("new-project --readonly --print");
+    const output = run("create --readonly --print");
     expect(output).toContain("# Read-only mode");
   });
 
@@ -106,19 +106,19 @@ describe("claude-mode e2e", () => {
   });
 
   test("--system-prompt error propagates", () => {
-    const err = runExpectFail("new-project --system-prompt foo");
+    const err = runExpectFail("create --system-prompt foo");
     expect(err).toContain("Cannot use --system-prompt");
   });
 
   // Normal mode (non-print) produces claude command
   test("normal mode outputs claude command", () => {
-    const output = run("new-project");
+    const output = run("create");
     expect(output).toMatch(/^claude --system-prompt-file /);
   });
 
   // Passthrough args
   test("passthrough args via -- separator", () => {
-    const output = run("new-project -- --verbose --model sonnet");
+    const output = run("create -- --verbose --model sonnet");
     expect(output).toContain("--verbose");
     expect(output).toContain("--model");
     expect(output).toContain("sonnet");

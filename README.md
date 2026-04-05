@@ -25,9 +25,9 @@ Requires [Bun](https://bun.sh/) and [Claude Code](https://docs.anthropic.com/en/
 Pick a preset that matches your task:
 
 ```bash
-claude-mode new-project      # Build from scratch with proper architecture
-claude-mode vibe-extend      # Extend a fast-built project, improve incrementally
-claude-mode safe-small       # Surgical precision, minimal risk
+claude-mode create      # Build from scratch with proper architecture
+claude-mode extend      # Extend a fast-built project, improve incrementally
+claude-mode safe       # Surgical precision, minimal risk
 claude-mode refactor         # Restructure freely across the codebase
 claude-mode explore          # Read-only — understand code without changing it
 claude-mode none             # Strip all behavioral opinions, use your own CLAUDE.md
@@ -35,9 +35,9 @@ claude-mode none             # Strip all behavioral opinions, use your own CLAUD
 
 | Preset | Agency | Quality | Scope | Use when... |
 |---|---|---|---|---|
-| `new-project` | autonomous | architect | unrestricted | Building from scratch — proper structure and abstractions |
-| `vibe-extend` | autonomous | pragmatic | adjacent | Extending agent-coded projects — improve quality as you go |
-| `safe-small` | collaborative | minimal | narrow | Surgical changes to production code |
+| `create` | autonomous | architect | unrestricted | Building from scratch — proper structure and abstractions |
+| `extend` | autonomous | pragmatic | adjacent | Extending agent-coded projects — improve quality as you go |
+| `safe` | collaborative | minimal | narrow | Surgical changes to production code |
 | `refactor` | autonomous | pragmatic | unrestricted | Move files, consolidate modules, improve patterns |
 | `explore` | collaborative | architect | narrow | Read, explain, suggest — no file modifications |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
@@ -63,9 +63,11 @@ prompts/
   modifiers/    Optional additions (readonly, context pacing)
 ```
 
+The base infrastructure prompts (`prompts/base/`) are pulled directly from Claude Code's source — tool names, security instructions, environment detection, and session guidance all match the real system prompt. Only the behavioral instructions are replaced with the axis fragments.
+
 The behavioral layer is composed from three independent axes — **agency** (how much initiative), **quality** (what code standard), and **scope** (how far beyond the request). Presets are just named combinations of these three values.
 
-When you run `claude-mode new-project`, the tool:
+When you run `claude-mode create`, the tool:
 1. Resolves the preset to axis values (autonomous / architect / unrestricted)
 2. Reads the base infrastructure fragments + the matching axis fragments
 3. Detects your environment (git status, platform, shell)
@@ -79,8 +81,8 @@ The bash script `exec`s the final command so Claude Code gets direct TTY ownersh
 Override any axis from a preset:
 
 ```bash
-claude-mode new-project --quality pragmatic     # Architect structure, pragmatic code quality
-claude-mode safe-small --scope adjacent         # Cautious, but fix nearby issues
+claude-mode create --quality pragmatic     # Architect structure, pragmatic code quality
+claude-mode safe --scope adjacent         # Cautious, but fix nearby issues
 ```
 
 Compose from scratch (defaults to collaborative/pragmatic/adjacent for unspecified axes):
@@ -92,14 +94,14 @@ claude-mode --agency autonomous --quality architect --scope narrow
 Add modifiers:
 
 ```bash
-claude-mode new-project --readonly              # Prevent file modifications
-claude-mode new-project --append-system-prompt "Use Rust, not TypeScript"
+claude-mode create --readonly              # Prevent file modifications
+claude-mode create --append-system-prompt "Use Rust, not TypeScript"
 ```
 
 Pass flags through to Claude Code:
 
 ```bash
-claude-mode new-project -- --verbose --model sonnet
+claude-mode create -- --verbose --model sonnet
 ```
 
 Debug the assembled prompt:
@@ -129,7 +131,7 @@ claude-mode explore --print
 
 ```bash
 bun test                                          # Run all tests
-bun run src/build-prompt.ts new-project --print   # Inspect assembled prompt
+bun run src/build-prompt.ts create --print   # Inspect assembled prompt
 ./claude-mode explore --print | head -20          # Test full e2e pipeline
 ```
 

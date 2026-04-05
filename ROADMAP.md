@@ -45,7 +45,7 @@ Solo AI-assisted build. Phases are chunky — each completable in one session. F
 - `prompts/axis/scope/adjacent.md` — related changes ok, stay in neighborhood
 - `prompts/axis/scope/narrow.md` — only what was asked
 - `prompts/modifiers/readonly.md` — do not modify files, focus on explanation
-- `src/presets.ts` — preset name → axis mapping (new-project, vibe-extend, safe-small, refactor, explore, none)
+- `src/presets.ts` — preset name → axis mapping (create, extend, safe, refactor, explore, none)
 - Update `src/assemble.ts` to accept axis config + modifiers and select correct fragments
 - Unit tests: each preset resolves to correct axis values, assembly with each preset produces a prompt containing expected axis content and not containing content from other axes, `none` mode produces prompt with no axis content, axis override on a preset works
 
@@ -55,7 +55,7 @@ Solo AI-assisted build. Phases are chunky — each completable in one session. F
 
 ## Phase 3: CLI Argument Parser + Prompt Builder Binary
 
-**Goal:** `bun run src/build-prompt.ts new-project --verbose` outputs a complete `claude` command with the right `--system-prompt-file` and passthrough args.
+**Goal:** `bun run src/build-prompt.ts create --verbose` outputs a complete `claude` command with the right `--system-prompt-file` and passthrough args.
 
 **Build:**
 - `src/build-prompt.ts` — main entry point: parse args with `node:util/parseArgs`, resolve preset + overrides, call assemble, write temp file, print full claude command to stdout
@@ -66,18 +66,18 @@ Solo AI-assisted build. Phases are chunky — each completable in one session. F
 - Unit tests: arg parsing produces correct config for all preset/override/passthrough combinations, conflicting flags produce errors, unknown flags are collected for passthrough, `--system-prompt` rejection works
 - Integration tests: run `build-prompt.ts` as subprocess, verify stdout is a valid claude command with correct flags
 
-**Test checkpoint:** `bun test` — all tests pass. `bun run src/build-prompt.ts new-project --verbose --model sonnet` prints something like `claude --system-prompt-file /tmp/claude-mode-12345.md --verbose --model sonnet`. The temp file exists and contains the new-project prompt.
+**Test checkpoint:** `bun test` — all tests pass. `bun run src/build-prompt.ts create --verbose --model sonnet` prints something like `claude --system-prompt-file /tmp/claude-mode-12345.md --verbose --model sonnet`. The temp file exists and contains the create prompt.
 
 ---
 
 ## Phase 4: Bash Entry Point + End-to-End Testing
 
-**Goal:** `./claude-mode new-project` launches Claude Code with the correct system prompt. Full test suite green. Ready to use.
+**Goal:** `./claude-mode create` launches Claude Code with the correct system prompt. Full test suite green. Ready to use.
 
 **Build:**
 - `claude-mode` bash script — calls bun to build prompt, `exec`s the output command, traps EXIT for temp file cleanup
 - Make executable, add to PATH instructions
-- End-to-end tests: run `claude-mode --help` equivalent (or `claude-mode` with no args shows usage), run `claude-mode new-project --print` (a debug flag that prints the assembled prompt instead of launching claude) for each preset and verify output, test that `--readonly` modifier adds readonly content, test `--append-system-prompt` forwarding
-- Verify TUI works: manual test that `./claude-mode new-project` actually launches Claude Code's interactive UI
+- End-to-end tests: run `claude-mode --help` equivalent (or `claude-mode` with no args shows usage), run `claude-mode create --print` (a debug flag that prints the assembled prompt instead of launching claude) for each preset and verify output, test that `--readonly` modifier adds readonly content, test `--append-system-prompt` forwarding
+- Verify TUI works: manual test that `./claude-mode create` actually launches Claude Code's interactive UI
 
-**Test checkpoint:** `bun test` — full suite passes (unit + integration + e2e). Manual verification: run `./claude-mode new-project`, confirm Claude Code launches, type a message, confirm Claude's behavior reflects the new-project posture (willing to create files, thinks architecturally, doesn't suppress reasoning).
+**Test checkpoint:** `bun test` — full suite passes (unit + integration + e2e). Manual verification: run `./claude-mode create`, confirm Claude Code launches, type a message, confirm Claude's behavior reflects the create posture (willing to create files, thinks architecturally, doesn't suppress reasoning).

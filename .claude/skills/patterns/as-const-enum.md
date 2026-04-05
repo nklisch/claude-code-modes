@@ -27,7 +27,7 @@ export type Quality = (typeof QUALITY_VALUES)[number];
 **File**: `src/types.ts:10-18`
 ```typescript
 export const PRESET_NAMES = [
-  "new-project", "vibe-extend", "safe-small", "refactor", "explore", "none",
+  "create", "extend", "safe", "refactor", "explore", "none",
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 ```

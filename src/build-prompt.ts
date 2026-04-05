@@ -18,9 +18,9 @@ function printUsage(): void {
   const usage = `Usage: claude-mode [preset] [options] [-- claude-args...]
 
 Presets:
-  new-project     autonomous / architect / unrestricted
-  vibe-extend     autonomous / pragmatic / adjacent
-  safe-small      collaborative / minimal / narrow
+  create          autonomous / architect / unrestricted
+  extend          autonomous / pragmatic / adjacent
+  safe            collaborative / minimal / narrow
   refactor        autonomous / pragmatic / unrestricted
   explore         collaborative / architect / narrow (readonly)
   none            no behavioral instructions
@@ -41,11 +41,11 @@ Forwarded to claude:
 Everything after -- is passed to claude verbatim.
 
 Examples:
-  claude-mode new-project
-  claude-mode new-project --quality pragmatic
+  claude-mode create
+  claude-mode create --quality pragmatic
   claude-mode --agency autonomous --quality architect --scope unrestricted
   claude-mode explore --print
-  claude-mode new-project -- --verbose --model sonnet`;
+  claude-mode create -- --verbose --model sonnet`;
 
   process.stdout.write(usage + "\n");
 }

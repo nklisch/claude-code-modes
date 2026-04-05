@@ -18,8 +18,8 @@ const { run, runExpectFail } = createCliRunner(
   10000,  // faster timeout — no bash startup overhead
 );
 
-test("new-project outputs claude command", () => {
-  const output = run("new-project");
+test("create outputs claude command", () => {
+  const output = run("create");
   expect(output).toMatch(/^claude --system-prompt-file /);
 });
 ```
@@ -35,7 +35,7 @@ const { run, runExpectFail } = createCliRunner(
 );
 
 test("--system-prompt error propagates", () => {
-  const err = runExpectFail("new-project --system-prompt foo");
+  const err = runExpectFail("create --system-prompt foo");
   expect(err).toContain("Cannot use --system-prompt");
 });
 ```

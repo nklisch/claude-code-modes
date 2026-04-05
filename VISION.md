@@ -29,13 +29,13 @@ Five named presets cover common workflows:
 
 | Preset | Agency | Quality | Scope | When to use |
 |---|---|---|---|---|
-| `new-project` | autonomous | architect | unrestricted | Building from scratch — proper structure, abstractions, and architecture |
-| `vibe-extend` | autonomous | pragmatic | adjacent | Extending an agent-coded or fast-built project — improve quality incrementally, clean up as you go |
-| `safe-small` | collaborative | minimal | narrow | Surgical changes to production code — minimal risk, maximum precision |
+| `create` | autonomous | architect | unrestricted | Building from scratch — proper structure, abstractions, and architecture |
+| `extend` | autonomous | pragmatic | adjacent | Extending an agent-coded or fast-built project — improve quality incrementally, clean up as you go |
+| `safe` | collaborative | minimal | narrow | Surgical changes to production code — minimal risk, maximum precision |
 | `refactor` | autonomous | pragmatic | unrestricted | Restructuring — move files, consolidate modules, improve patterns across the codebase |
 | `explore` | collaborative | architect | narrow | Understanding a codebase — read, explain, suggest, but don't change files |
 
-Presets are starting points. Any axis can be overridden: `claude-mode new-project --quality pragmatic`.
+Presets are starting points. Any axis can be overridden: `claude-mode create --quality pragmatic`.
 
 ## The `none` Mode
 

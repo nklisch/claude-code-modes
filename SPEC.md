@@ -21,9 +21,9 @@ claude-mode <preset|none> [axis-overrides] [modifiers] [-- claude-flags]
 ### Presets
 
 ```
-claude-mode new-project
-claude-mode vibe-extend
-claude-mode safe-small
+claude-mode create
+claude-mode extend
+claude-mode safe
 claude-mode refactor
 claude-mode explore
 claude-mode none
@@ -34,8 +34,8 @@ claude-mode none
 Override any axis from a preset's defaults:
 
 ```
-claude-mode new-project --agency collaborative
-claude-mode safe-small --quality pragmatic --scope adjacent
+claude-mode create --agency collaborative
+claude-mode safe --quality pragmatic --scope adjacent
 ```
 
 Flags:
@@ -62,13 +62,13 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 Everything after `--` is forwarded to `claude` verbatim:
 
 ```
-claude-mode new-project -- --verbose --model sonnet
+claude-mode create -- --verbose --model sonnet
 ```
 
 Flags not recognized by `claude-mode` are also forwarded:
 
 ```
-claude-mode new-project --verbose --model sonnet
+claude-mode create --verbose --model sonnet
 ```
 
 `--system-prompt` and `--system-prompt-file` are intercepted and rejected with an error — they conflict with claude-mode's purpose.

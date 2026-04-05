@@ -1,6 +1,7 @@
 {
   "name": "claude-code-modes",
   "version": "0.1.0",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "claude-mode": "./claude-mode"

@@ -21,14 +21,14 @@ const baseParsed: ParsedArgs = {
 
 // Then each test specifies only what differs:
 test("preset with no overrides", () => {
-  const config = resolveConfig({ ...baseParsed, preset: "new-project" });
+  const config = resolveConfig({ ...baseParsed, preset: "create" });
   expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
 });
 
 test("--readonly flag", () => {
   const config = resolveConfig({
     ...baseParsed,
-    preset: "new-project",
+    preset: "create",
     modifiers: { readonly: true, print: false },
   });
   expect(config.modifiers.readonly).toBe(true);

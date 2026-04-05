@@ -9,8 +9,8 @@ CLI wrapper that launches Claude Code with behaviorally-tuned system prompts. Se
 ```bash
 bun test                                    # run all tests
 bun run src/build-prompt.ts --help          # test CLI directly
-bun run src/build-prompt.ts new-project --print  # inspect assembled prompt
-./claude-mode new-project                   # full e2e (needs claude installed)
+bun run src/build-prompt.ts create --print  # inspect assembled prompt
+./claude-mode create                   # full e2e (needs claude installed)
 ```
 
 ## Project Structure

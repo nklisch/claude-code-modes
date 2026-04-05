@@ -1,5 +1,8 @@
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
+import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { execSync } from "node:child_process";
 import { createCliRunner } from "./test-helpers.js";
 import { PRESET_NAMES } from "./types.js";
 
@@ -130,6 +133,169 @@ describe("claude-mode e2e", () => {
     for (const preset of PRESET_NAMES) {
       const output = run(`${preset} --print`);
       expect(output).not.toMatch(/\{\{[A-Z_]+\}\}/);
+    }
+  });
+});
+
+describe("claude-mode config e2e", () => {
+  const CLI = join(import.meta.dir, "..", "node_modules", ".bin", "bun");
+  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
+
+  function runConfig(args: string, cwd: string): string {
+    return execSync(`bun run ${SCRIPT} config ${args}`, {
+      encoding: "utf8",
+      timeout: 15000,
+      cwd,
+    }).trim();
+  }
+
+  function runConfigExpectFail(args: string, cwd: string): string {
+    try {
+      execSync(`bun run ${SCRIPT} config ${args}`, {
+        encoding: "utf8",
+        timeout: 15000,
+        cwd,
+      });
+      throw new Error("Expected command to fail");
+    } catch (err: any) {
+      return (err.stderr || err.stdout || err.message || "").toString();
+    }
+  }
+
+  test("config show returns 'No config file found.' when no config", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      const output = runConfig("show", tempDir);
+      expect(output).toContain("No config file found.");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config init creates scaffold", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("init", tempDir);
+      expect(existsSync(join(tempDir, ".claude-mode.json"))).toBe(true);
+      const output = runConfig("show", tempDir);
+      expect(output).toContain('"defaultModifiers"');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config init errors if file already exists", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("init", tempDir);
+      const err = runConfigExpectFail("init", tempDir);
+      expect(err).toContain("already exists");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-default / remove-default round-trip", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("add-default context-pacing", tempDir);
+      const afterAdd = runConfig("show", tempDir);
+      expect(afterAdd).toContain("context-pacing");
+
+      runConfig("remove-default context-pacing", tempDir);
+      const afterRemove = runConfig("show", tempDir);
+      // Value removed — defaultModifiers should be empty array
+      const parsed = JSON.parse(afterRemove);
+      expect(parsed.defaultModifiers).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-modifier / remove-modifier round-trip", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("add-modifier rust-style ./prompts/rust.md", tempDir);
+      const afterAdd = runConfig("show", tempDir);
+      expect(afterAdd).toContain("rust-style");
+
+      runConfig("remove-modifier rust-style", tempDir);
+      const afterRemove = runConfig("show", tempDir);
+      expect(afterRemove).not.toContain("rust-style");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-modifier rejects built-in name", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      const err = runConfigExpectFail("add-modifier readonly ./path.md", tempDir);
+      expect(err).toContain("built-in modifier name");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-axis / remove-axis round-trip", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("add-axis quality team-standard ./team.md", tempDir);
+      const afterAdd = runConfig("show", tempDir);
+      expect(afterAdd).toContain("team-standard");
+
+      runConfig("remove-axis quality team-standard", tempDir);
+      const afterRemove = runConfig("show", tempDir);
+      expect(afterRemove).not.toContain("team-standard");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-axis rejects built-in value", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      const err = runConfigExpectFail("add-axis agency autonomous ./path.md", tempDir);
+      expect(err).toContain("built-in agency value");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-preset / remove-preset round-trip", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      runConfig("add-preset team --agency collaborative --quality pragmatic", tempDir);
+      const afterAdd = runConfig("show", tempDir);
+      expect(afterAdd).toContain("team");
+      expect(afterAdd).toContain("collaborative");
+
+      runConfig("remove-preset team", tempDir);
+      const afterRemove = runConfig("show", tempDir);
+      const parsed = JSON.parse(afterRemove);
+      expect(parsed.presets?.team).toBeUndefined();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config add-preset rejects built-in preset name", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      const err = runConfigExpectFail("add-preset create", tempDir);
+      expect(err).toContain("built-in preset name");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config unknown subcommand exits with error", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
+    try {
+      const err = runConfigExpectFail("unknown-sub", tempDir);
+      expect(err).toContain("Unknown config subcommand");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });

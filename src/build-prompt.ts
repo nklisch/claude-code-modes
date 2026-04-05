@@ -5,6 +5,7 @@ import { loadConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
 import { assemblePrompt, writeTempPrompt } from "./assemble.js";
 import { detectEnv, buildTemplateVars } from "./env.js";
+import { runConfigCommand } from "./config-cli.js";
 
 function shellEscape(arg: string): string {
   // If arg contains no special characters, return as-is
@@ -69,7 +70,12 @@ function main(): void {
 
   // Config subcommand routing
   if (argv[0] === "config") {
-    process.stdout.write("Config management coming soon\n");
+    try {
+      runConfigCommand(argv.slice(1));
+    } catch (err) {
+      process.stderr.write(`Error: ${(err as Error).message}\n`);
+      process.exit(1);
+    }
     process.exit(0);
   }
 

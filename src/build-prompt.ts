@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { join } from "node:path";
 import { parseCliArgs } from "./args.js";
+import { loadConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
 import { assemblePrompt, writeTempPrompt } from "./assemble.js";
 import { detectEnv, buildTemplateVars } from "./env.js";
@@ -26,25 +27,31 @@ Presets:
   none            no behavioral instructions
 
 Axis overrides:
-  --agency <autonomous|collaborative|surgical>
-  --quality <architect|pragmatic|minimal>
-  --scope <unrestricted|adjacent|narrow>
+  --agency <value>        Built-in: autonomous, collaborative, surgical
+  --quality <value>       Built-in: architect, pragmatic, minimal
+  --scope <value>         Built-in: unrestricted, adjacent, narrow
+  Axis values can also be config-defined names or file paths (.md files).
 
 Modifiers:
   --readonly              Prevent file modifications
   --context-pacing        Include context pacing prompt
+  --modifier <name|path>  Add a custom modifier (repeatable)
   --print                 Print assembled prompt instead of launching claude
 
 Forwarded to claude:
   --append-system-prompt <text>
   --append-system-prompt-file <path>
 
+Config: .claude-mode.json (project) or ~/.config/claude-mode/config.json (global)
+
 Everything after -- is passed to claude verbatim.
 
 Examples:
   claude-mode create
   claude-mode create --quality pragmatic
-  claude-mode --agency autonomous --quality architect --scope unrestricted
+  claude-mode create --modifier ./my-rules.md
+  claude-mode --agency autonomous --quality ./team-quality.md
+  claude-mode team-default                    # custom preset from config
   claude-mode explore --print
   claude-mode create -- --verbose --model sonnet`;
 
@@ -60,6 +67,12 @@ function main(): void {
     process.exit(0);
   }
 
+  // Config subcommand routing
+  if (argv[0] === "config") {
+    process.stdout.write("Config management coming soon\n");
+    process.exit(0);
+  }
+
   let parsed;
   try {
     parsed = parseCliArgs(argv);
@@ -68,7 +81,23 @@ function main(): void {
     process.exit(1);
   }
 
-  const config = resolveConfig(parsed);
+  // Load config between parse and resolve
+  let loadedConfig;
+  try {
+    loadedConfig = loadConfig();
+  } catch (err) {
+    process.stderr.write(`Error: ${(err as Error).message}\n`);
+    process.exit(1);
+  }
+
+  // Resolve with config
+  let config;
+  try {
+    config = resolveConfig(parsed, loadedConfig);
+  } catch (err) {
+    process.stderr.write(`Error: ${(err as Error).message}\n`);
+    process.exit(1);
+  }
 
   // Detect environment and build template vars
   const env = detectEnv();

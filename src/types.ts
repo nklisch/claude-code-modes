@@ -17,10 +17,15 @@ export const PRESET_NAMES = [
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 
+// Built-in modifier names — used for collision checking in config validation
+export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing"] as const;
+export type BuiltinModifier = (typeof BUILTIN_MODIFIER_NAMES)[number];
+
+// Axis values are strings: either a built-in name or an absolute path to a custom fragment
 export interface AxisConfig {
-  agency: Agency;
-  quality: Quality;
-  scope: Scope;
+  agency: string;
+  quality: string;
+  scope: string;
 }
 
 export interface ModeConfig {
@@ -28,6 +33,7 @@ export interface ModeConfig {
   modifiers: {
     readonly: boolean;
     contextPacing: boolean;
+    custom: string[]; // ordered list of absolute paths to custom modifier files
   };
 }
 

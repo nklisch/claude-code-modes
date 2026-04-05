@@ -1,38 +1,23 @@
 import { parseArgs } from "node:util";
-import type { Agency, Quality, Scope, PresetName } from "./types.js";
-import { AGENCY_VALUES, QUALITY_VALUES, SCOPE_VALUES } from "./types.js";
-import { isPresetName } from "./presets.js";
 
 export interface ParsedArgs {
-  preset: PresetName | null;
+  preset: string | null;
   overrides: {
-    agency?: Agency;
-    quality?: Quality;
-    scope?: Scope;
+    agency?: string;
+    quality?: string;
+    scope?: string;
   };
   modifiers: {
     readonly: boolean;
     print: boolean;
     contextPacing: boolean;
   };
+  customModifiers: string[];
   forwarded: {
     appendSystemPrompt?: string;
     appendSystemPromptFile?: string;
   };
   passthroughArgs: string[];
-}
-
-function validateAxisValue<T extends string>(
-  value: unknown,
-  validValues: readonly T[],
-  flagName: string,
-): T {
-  if (!(validValues as readonly string[]).includes(value as string)) {
-    throw new Error(
-      `Invalid --${flagName} value: "${value}". Must be one of: ${validValues.join(", ")}`
-    );
-  }
-  return value as T;
 }
 
 export function parseCliArgs(argv: string[]): ParsedArgs {
@@ -47,6 +32,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
       agency: { type: "string" },
       quality: { type: "string" },
       scope: { type: "string" },
+      modifier: { type: "string", multiple: true },
       readonly: { type: "boolean" },
       print: { type: "boolean" },
       "context-pacing": { type: "boolean" },
@@ -68,34 +54,29 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
     );
   }
 
-  // Extract preset from first positional
-  let preset: PresetName | null = null;
+  // First positional is always treated as preset candidate
+  let preset: string | null = null;
   const remainingPositionals: string[] = [];
   for (const pos of positionals) {
-    if (preset === null && isPresetName(pos)) {
+    if (preset === null) {
       preset = pos;
     } else {
       remainingPositionals.push(pos);
     }
   }
 
-  // Validate axis overrides
+  // Raw axis overrides — validation moves to resolve
   const overrides: ParsedArgs["overrides"] = {};
-  if (values.agency !== undefined) {
-    overrides.agency = validateAxisValue(values.agency, AGENCY_VALUES, "agency");
-  }
-  if (values.quality !== undefined) {
-    overrides.quality = validateAxisValue(values.quality, QUALITY_VALUES, "quality");
-  }
-  if (values.scope !== undefined) {
-    overrides.scope = validateAxisValue(values.scope, SCOPE_VALUES, "scope");
-  }
+  if (values.agency !== undefined) overrides.agency = values.agency as string;
+  if (values.quality !== undefined) overrides.quality = values.quality as string;
+  if (values.scope !== undefined) overrides.scope = values.scope as string;
+
+  // Custom modifiers from --modifier flags
+  const customModifiers: string[] = (values.modifier as string[] | undefined) ?? [];
 
   // Collect unknown flags for passthrough
-  // parseArgs with strict:false puts unknown flags in values as booleans
-  // and their intended values as positionals. We need to reconstruct them.
   const knownFlags = new Set([
-    "agency", "quality", "scope", "readonly", "print", "context-pacing",
+    "agency", "quality", "scope", "modifier", "readonly", "print", "context-pacing",
     "append-system-prompt", "append-system-prompt-file",
     "system-prompt", "system-prompt-file", "help",
   ]);
@@ -124,6 +105,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
       print: values.print === true,
       contextPacing: values["context-pacing"] === true,
     },
+    customModifiers,
     forwarded: {
       appendSystemPrompt: values["append-system-prompt"] as string | undefined,
       appendSystemPromptFile: values["append-system-prompt-file"] as string | undefined,

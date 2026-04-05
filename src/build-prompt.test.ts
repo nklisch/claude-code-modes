@@ -56,7 +56,7 @@ describe("build-prompt CLI", () => {
 
   test("invalid agency rejected", () => {
     const errOutput = runExpectFail("--agency invalid");
-    expect(errOutput).toContain("Invalid --agency");
+    expect(errOutput).toContain("Unknown --agency value");
   });
 
   test("all presets produce valid commands", () => {

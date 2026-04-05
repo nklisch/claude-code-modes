@@ -40,16 +40,44 @@ describe("parseCliArgs", () => {
     expect(() => parseCliArgs(["create", "--system-prompt-file", "foo.md"])).toThrow("Cannot use --system-prompt");
   });
 
-  test("throws on invalid agency", () => {
-    expect(() => parseCliArgs(["--agency", "invalid"])).toThrow('Invalid --agency value: "invalid"');
+  test("stores raw string for --agency (no validation)", () => {
+    const result = parseCliArgs(["--agency", "invalid"]);
+    expect(result.overrides.agency).toBe("invalid");
   });
 
-  test("throws on invalid quality", () => {
-    expect(() => parseCliArgs(["--quality", "invalid"])).toThrow('Invalid --quality value: "invalid"');
+  test("stores raw file path for --agency", () => {
+    const result = parseCliArgs(["--agency", "./custom-agency.md"]);
+    expect(result.overrides.agency).toBe("./custom-agency.md");
   });
 
-  test("throws on invalid scope", () => {
-    expect(() => parseCliArgs(["--scope", "invalid"])).toThrow('Invalid --scope value: "invalid"');
+  test("stores raw string for --quality", () => {
+    const result = parseCliArgs(["--quality", "team-standard"]);
+    expect(result.overrides.quality).toBe("team-standard");
+  });
+
+  test("stores raw string for --scope", () => {
+    const result = parseCliArgs(["--scope", "my-scope"]);
+    expect(result.overrides.scope).toBe("my-scope");
+  });
+
+  test("parses single --modifier flag", () => {
+    const result = parseCliArgs(["create", "--modifier", "./my-rules.md"]);
+    expect(result.customModifiers).toEqual(["./my-rules.md"]);
+  });
+
+  test("parses multiple --modifier flags", () => {
+    const result = parseCliArgs(["create", "--modifier", "a", "--modifier", "b"]);
+    expect(result.customModifiers).toEqual(["a", "b"]);
+  });
+
+  test("customModifiers is empty array when no --modifier flags", () => {
+    const result = parseCliArgs(["create"]);
+    expect(result.customModifiers).toEqual([]);
+  });
+
+  test("first positional always stored as preset regardless of name", () => {
+    const result = parseCliArgs(["my-custom-preset"]);
+    expect(result.preset).toBe("my-custom-preset");
   });
 
   test("parses --readonly modifier", () => {

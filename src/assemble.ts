@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, isAbsolute } from "node:path";
 import { tmpdir } from "node:os";
 import type { AssembleOptions, TemplateVars, ModeConfig } from "./types.js";
+import { AGENCY_VALUES } from "./types.js";
 
 /**
  * Reads a prompt fragment from the prompts directory.
@@ -38,7 +39,8 @@ export function substituteTemplateVars(content: string, vars: TemplateVars): str
 }
 
 /**
- * Returns the ordered list of fragment relative paths for the given mode config.
+ * Returns the ordered list of fragment paths for the given mode config.
+ * Built-in fragments are relative paths; custom fragments are absolute paths.
  */
 export function getFragmentOrder(mode: ModeConfig): string[] {
   const fragments: string[] = [
@@ -48,16 +50,28 @@ export function getFragmentOrder(mode: ModeConfig): string[] {
 
   // Axis fragments — skipped for "none" mode (axes is null)
   if (mode.axes) {
-    fragments.push(`axis/agency/${mode.axes.agency}.md`);
-    fragments.push(`axis/quality/${mode.axes.quality}.md`);
-    fragments.push(`axis/scope/${mode.axes.scope}.md`);
+    for (const [axis, value] of [
+      ["agency", mode.axes.agency],
+      ["quality", mode.axes.quality],
+      ["scope", mode.axes.scope],
+    ] as const) {
+      if (isAbsolute(value)) {
+        fragments.push(value); // custom absolute path
+      } else {
+        fragments.push(`axis/${axis}/${value}.md`); // built-in relative path
+      }
+    }
   }
 
   // Base behavioral-neutral sections
   fragments.push("base/doing-tasks.md");
 
-  // Actions variant based on agency
-  if (mode.axes && mode.axes.agency === "autonomous") {
+  // Actions variant: autonomous only for built-in "autonomous" agency
+  const isAutonomous =
+    mode.axes !== null &&
+    (AGENCY_VALUES as readonly string[]).includes(mode.axes.agency) &&
+    mode.axes.agency === "autonomous";
+  if (isAutonomous) {
     fragments.push("base/actions-autonomous.md");
   } else {
     fragments.push("base/actions-cautious.md");
@@ -67,14 +81,17 @@ export function getFragmentOrder(mode: ModeConfig): string[] {
   fragments.push("base/tone.md");
   fragments.push("base/session-guidance.md");
 
-  // Context pacing — opt-in with --context-pacing
+  // Built-in modifiers
   if (mode.modifiers.contextPacing) {
     fragments.push("modifiers/context-pacing.md");
   }
-
-  // Conditional modifiers
   if (mode.modifiers.readonly) {
     fragments.push("modifiers/readonly.md");
+  }
+
+  // Custom modifiers — after built-in modifiers, before env
+  for (const customPath of mode.modifiers.custom) {
+    fragments.push(customPath);
   }
 
   // Environment info — always last (contains template variables)
@@ -91,10 +108,21 @@ export function assemblePrompt(options: AssembleOptions): string {
   const fragmentPaths = getFragmentOrder(mode);
 
   const sections: string[] = [];
-  for (const relPath of fragmentPaths) {
-    const content = readFragment(promptsDir, relPath);
+  for (const fragPath of fragmentPaths) {
+    // Absolute paths are custom fragments; relative paths are built-in
+    const fullPath = isAbsolute(fragPath)
+      ? fragPath
+      : resolve(promptsDir, fragPath);
+
+    let content: string | null;
+    try {
+      content = readFileSync(fullPath, "utf8");
+    } catch {
+      content = null;
+    }
+
     if (content === null) {
-      throw new Error(`Missing prompt fragment: ${relPath}`);
+      throw new Error(`Missing prompt fragment: ${fragPath}`);
     }
     sections.push(content.trim());
   }

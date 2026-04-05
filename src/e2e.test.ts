@@ -103,7 +103,7 @@ describe("claude-mode e2e", () => {
   // Error handling through bash script
   test("invalid agency error propagates", () => {
     const err = runExpectFail("--agency invalid");
-    expect(err).toContain("Invalid --agency");
+    expect(err).toContain("Unknown --agency value");
   });
 
   test("--system-prompt error propagates", () => {

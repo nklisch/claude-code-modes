@@ -44,7 +44,7 @@ describe("full assembly integration", () => {
       promptsDir: PROMPTS_DIR,
     });
 
-    expect(result).toContain("readonly");
+    expect(result).toContain("# Read-only mode");
   });
 });
 

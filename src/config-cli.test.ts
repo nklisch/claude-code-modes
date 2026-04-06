@@ -1,12 +1,8 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { runConfigCommand } from "./config-cli.js";
-
-function makeTempDir(): string {
-  return mkdtempSync(join(tmpdir(), "config-cli-test-"));
-}
+import { makeTempDir } from "./test-helpers.js";
 
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -19,7 +15,7 @@ describe("config show", () => {
   let captured: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -58,7 +54,7 @@ describe("config init", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -91,7 +87,7 @@ describe("config add-default / remove-default", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -147,7 +143,7 @@ describe("config add-modifier / remove-modifier", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -202,7 +198,7 @@ describe("config add-axis / remove-axis", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -287,7 +283,7 @@ describe("config add-preset / remove-preset", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     configPath = join(tempDir, ".claude-mode.json");
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -390,7 +386,7 @@ describe("config --global flag", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     originalCwd = process.cwd();
     process.chdir(tempDir);
   });
@@ -436,7 +432,7 @@ describe("config unknown subcommand", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("config-cli-test-");
     originalCwd = process.cwd();
     process.chdir(tempDir);
   });

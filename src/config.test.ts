@@ -1,13 +1,9 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir, homedir } from "node:os";
+import { homedir } from "node:os";
 import { loadConfig, resolveConfigPath } from "./config.js";
-
-// Helper to create a temp directory and write a config file into it
-function makeTempDir(): string {
-  return mkdtempSync(join(tmpdir(), "claude-mode-config-test-"));
-}
+import { makeTempDir } from "./test-helpers.js";
 
 function writeConfig(dir: string, filename: string, content: unknown): string {
   const path = join(dir, filename);
@@ -21,7 +17,7 @@ describe("loadConfig", () => {
 
   beforeEach(() => {
     originalCwd = process.cwd();
-    tempDir = makeTempDir();
+    tempDir = makeTempDir("claude-mode-config-test-");
   });
 
   afterEach(() => {

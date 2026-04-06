@@ -2,15 +2,13 @@ import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { parseArgs } from "node:util";
-import { type UserConfig, readConfigFile } from "./config.js";
 import {
-  PRESET_NAMES,
-  BUILTIN_MODIFIER_NAMES,
-  AGENCY_VALUES,
-  QUALITY_VALUES,
-  SCOPE_VALUES,
-} from "./types.js";
-
+  type UserConfig,
+  readConfigFile,
+  checkModifierNameCollision,
+  checkPresetNameCollision,
+  checkAxisValueCollision,
+} from "./config.js";
 const VALID_AXES = ["agency", "quality", "scope"] as const;
 type ValidAxis = (typeof VALID_AXES)[number];
 
@@ -95,11 +93,7 @@ function configRemoveDefault(configPath: string, value: string): void {
 }
 
 function configAddModifier(configPath: string, name: string, mdPath: string): void {
-  if ((BUILTIN_MODIFIER_NAMES as readonly string[]).includes(name)) {
-    throw new Error(
-      `"${name}" is a built-in modifier name (${BUILTIN_MODIFIER_NAMES.join(", ")}); choose a different name`
-    );
-  }
+  checkModifierNameCollision(name);
   const config = readConfig(configPath);
   config.modifiers = { ...config.modifiers, [name]: mdPath };
   writeConfig(configPath, config);
@@ -133,16 +127,7 @@ function configAddAxis(configPath: string, axis: string, name: string, mdPath: s
   }
   const validAxis = axis as ValidAxis;
 
-  const axisBuiltins: Record<ValidAxis, readonly string[]> = {
-    agency: AGENCY_VALUES,
-    quality: QUALITY_VALUES,
-    scope: SCOPE_VALUES,
-  };
-  if ((axisBuiltins[validAxis] as readonly string[]).includes(name)) {
-    throw new Error(
-      `"${name}" is a built-in ${axis} value (${axisBuiltins[validAxis].join(", ")}); choose a different name`
-    );
-  }
+  checkAxisValueCollision(validAxis, name);
 
   const config = readConfig(configPath);
   config.axes = config.axes ?? {};
@@ -179,11 +164,7 @@ function configRemoveAxis(configPath: string, axis: string, name: string): void 
 }
 
 function configAddPreset(configPath: string, name: string, flags: string[]): void {
-  if ((PRESET_NAMES as readonly string[]).includes(name)) {
-    throw new Error(
-      `"${name}" is a built-in preset name (${PRESET_NAMES.join(", ")}); choose a different name`
-    );
-  }
+  checkPresetNameCollision(name);
 
   const { values } = parseArgs({
     args: flags,

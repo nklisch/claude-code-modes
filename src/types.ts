@@ -21,6 +21,13 @@ export type PresetName = (typeof PRESET_NAMES)[number];
 export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing"] as const;
 export type BuiltinModifier = (typeof BUILTIN_MODIFIER_NAMES)[number];
 
+/** Maps each axis to its built-in values — single source of truth for collision checks */
+export const AXIS_BUILTINS: Record<"agency" | "quality" | "scope", readonly string[]> = {
+  agency: AGENCY_VALUES,
+  quality: QUALITY_VALUES,
+  scope: SCOPE_VALUES,
+};
+
 // Axis values are strings: either a built-in name or an absolute path to a custom fragment
 export interface AxisConfig {
   agency: string;

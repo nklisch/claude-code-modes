@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname, resolve, isAbsolute } from "node:path";
 import { homedir } from "node:os";
-import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES } from "./types.js";
+import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES, AXIS_BUILTINS } from "./types.js";
 
 /** Schema for .claude-mode.json */
 export interface UserConfig {
@@ -27,6 +27,34 @@ export interface CustomPresetDef {
 export interface LoadedConfig {
   config: UserConfig;
   configDir: string; // directory the config file lives in, for resolving relative paths
+}
+
+/** Throws if name collides with a built-in modifier name. */
+export function checkModifierNameCollision(name: string): void {
+  if ((BUILTIN_MODIFIER_NAMES as readonly string[]).includes(name)) {
+    throw new Error(
+      `"${name}" is a built-in modifier name (${BUILTIN_MODIFIER_NAMES.join(", ")}); choose a different name`
+    );
+  }
+}
+
+/** Throws if name collides with a built-in preset name. */
+export function checkPresetNameCollision(name: string): void {
+  if ((PRESET_NAMES as readonly string[]).includes(name)) {
+    throw new Error(
+      `"${name}" is a built-in preset name (${PRESET_NAMES.join(", ")}); choose a different name`
+    );
+  }
+}
+
+/** Throws if name collides with a built-in value for the given axis. */
+export function checkAxisValueCollision(axis: "agency" | "quality" | "scope", name: string): void {
+  const builtins = AXIS_BUILTINS[axis];
+  if ((builtins as readonly string[]).includes(name)) {
+    throw new Error(
+      `"${name}" is a built-in ${axis} value (${builtins.join(", ")}); choose a different name`
+    );
+  }
 }
 
 /**
@@ -114,11 +142,7 @@ function validateConfig(raw: unknown, configPath: string): UserConfig {
           `Invalid config file ${configPath}: "modifiers.${key}" must be a string`
         );
       }
-      if ((BUILTIN_MODIFIER_NAMES as readonly string[]).includes(key)) {
-        throw new Error(
-          `Invalid config file ${configPath}: modifier name "${key}" collides with a built-in modifier name (${BUILTIN_MODIFIER_NAMES.join(", ")})`
-        );
-      }
+      checkModifierNameCollision(key);
     }
   }
 
@@ -160,11 +184,7 @@ function validateConfig(raw: unknown, configPath: string): UserConfig {
       );
     }
     for (const [presetName, presetDef] of Object.entries(obj.presets as Record<string, unknown>)) {
-      if ((PRESET_NAMES as readonly string[]).includes(presetName)) {
-        throw new Error(
-          `Invalid config file ${configPath}: preset name "${presetName}" collides with a built-in preset name (${PRESET_NAMES.join(", ")})`
-        );
-      }
+      checkPresetNameCollision(presetName);
       if (typeof presetDef !== "object" || presetDef === null || Array.isArray(presetDef)) {
         throw new Error(
           `Invalid config file ${configPath}: preset "${presetName}" must be an object`

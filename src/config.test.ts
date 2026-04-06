@@ -131,25 +131,25 @@ describe("loadConfig", () => {
   test("throws when modifier name collides with built-in", () => {
     writeConfig(tempDir, ".claude-mode.json", { modifiers: { "readonly": "./path.md" } });
     process.chdir(tempDir);
-    expect(() => loadConfig()).toThrow('modifier name "readonly" collides with a built-in modifier name');
+    expect(() => loadConfig()).toThrow('"readonly" is a built-in modifier name');
   });
 
   test("throws when context-pacing modifier name collides with built-in", () => {
     writeConfig(tempDir, ".claude-mode.json", { modifiers: { "context-pacing": "./path.md" } });
     process.chdir(tempDir);
-    expect(() => loadConfig()).toThrow('modifier name "context-pacing" collides with a built-in modifier name');
+    expect(() => loadConfig()).toThrow('"context-pacing" is a built-in modifier name');
   });
 
   test("throws when preset name collides with built-in", () => {
     writeConfig(tempDir, ".claude-mode.json", { presets: { "create": { agency: "collaborative" } } });
     process.chdir(tempDir);
-    expect(() => loadConfig()).toThrow('preset name "create" collides with a built-in preset name');
+    expect(() => loadConfig()).toThrow('"create" is a built-in preset name');
   });
 
   test("throws when preset name collides with explore", () => {
     writeConfig(tempDir, ".claude-mode.json", { presets: { "explore": {} } });
     process.chdir(tempDir);
-    expect(() => loadConfig()).toThrow('preset name "explore" collides with a built-in preset name');
+    expect(() => loadConfig()).toThrow('"explore" is a built-in preset name');
   });
 
   test("throws when preset definition is not an object", () => {

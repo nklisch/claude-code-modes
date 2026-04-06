@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { parseArgs } from "node:util";
-import type { UserConfig } from "./config.js";
+import { type UserConfig, readConfigFile } from "./config.js";
 import {
   PRESET_NAMES,
   BUILTIN_MODIFIER_NAMES,
@@ -32,21 +32,7 @@ function configFileName(configPath: string): string {
 
 function readConfig(configPath: string): UserConfig {
   if (!existsSync(configPath)) return {};
-  let raw: unknown;
-  try {
-    const text = readFileSync(configPath, "utf8");
-    raw = JSON.parse(text);
-  } catch (err) {
-    throw new Error(
-      `Invalid config file ${configPath}: ${(err as Error).message}`
-    );
-  }
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-    throw new Error(
-      `Invalid config file ${configPath}: top-level value must be an object`
-    );
-  }
-  return raw as UserConfig;
+  return readConfigFile(configPath);
 }
 
 function writeConfig(configPath: string, config: UserConfig): void {

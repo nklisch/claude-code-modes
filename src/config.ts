@@ -30,6 +30,29 @@ export interface LoadedConfig {
 }
 
 /**
+ * Reads and parses a config file, checking only that the top-level value is an object.
+ * Does NOT run full schema validation — callers that need full validation should use loadConfig().
+ * Throws on invalid JSON or non-object top-level value.
+ */
+export function readConfigFile(configPath: string): UserConfig {
+  let raw: unknown;
+  try {
+    const text = readFileSync(configPath, "utf8");
+    raw = JSON.parse(text);
+  } catch (err) {
+    throw new Error(
+      `Invalid config file ${configPath}: ${(err as Error).message}`
+    );
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    throw new Error(
+      `Invalid config file ${configPath}: top-level value must be an object`
+    );
+  }
+  return raw as UserConfig;
+}
+
+/**
  * Loads config from .claude-mode.json in CWD, falling back to
  * ~/.config/claude-mode/config.json. Returns null if neither exists.
  * Throws on invalid JSON or schema violations.
@@ -43,17 +66,7 @@ export function loadConfig(): LoadedConfig | null {
   for (const configPath of candidates) {
     if (!existsSync(configPath)) continue;
 
-    let raw: unknown;
-    try {
-      const text = readFileSync(configPath, "utf8");
-      raw = JSON.parse(text);
-    } catch (err) {
-      throw new Error(
-        `Invalid config file ${configPath}: ${(err as Error).message}`
-      );
-    }
-
-    const config = validateConfig(raw, configPath);
+    const config = validateConfig(readConfigFile(configPath), configPath);
     return { config, configDir: dirname(configPath) };
   }
 

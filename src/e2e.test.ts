@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { join } from "node:path";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { execSync } from "node:child_process";
-import { createCliRunner } from "./test-helpers.js";
+import { createCliRunner, makeTempDir } from "./test-helpers.js";
 import { PRESET_NAMES } from "./types.js";
 
 const { run, runExpectFail } = createCliRunner(
@@ -134,6 +134,36 @@ describe("claude-mode e2e", () => {
       const output = run(`${preset} --print`);
       expect(output).not.toMatch(/\{\{[A-Z_]+\}\}/);
     }
+  });
+});
+
+describe("custom prompts e2e", () => {
+  let tempDir: string;
+  let customModifierPath: string;
+  let customQualityPath: string;
+
+  beforeAll(() => {
+    tempDir = makeTempDir("e2e-custom-prompts-");
+    customModifierPath = join(tempDir, "my-rules.md");
+    writeFileSync(customModifierPath, "# E2E Custom Modifier Test Content\nFollow these rules.", "utf8");
+    customQualityPath = join(tempDir, "quality.md");
+    writeFileSync(customQualityPath, "# Quality: E2E Custom Quality\nCustom quality standard.", "utf8");
+  });
+
+  afterAll(() => {
+    if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test("--modifier with file path includes content in --print output", () => {
+    const output = run(`create --modifier ${customModifierPath} --print`);
+    expect(output).toContain("# E2E Custom Modifier Test Content");
+    expect(output).toContain("Follow these rules.");
+  });
+
+  test("--quality with file path includes content and replaces built-in quality", () => {
+    const output = run(`create --quality ${customQualityPath} --print`);
+    expect(output).toContain("E2E Custom Quality");
+    expect(output).not.toContain("# Quality: Architect");
   });
 });
 

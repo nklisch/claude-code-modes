@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, afterAll } from "bun:test";
 import { join } from "node:path";
 import {
   readFragment,
@@ -7,9 +7,10 @@ import {
   assemblePrompt,
   writeTempPrompt,
 } from "./assemble.js";
-import { existsSync, unlinkSync, rmdirSync } from "node:fs";
+import { existsSync, unlinkSync, rmdirSync, writeFileSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
 import type { ModeConfig, TemplateVars } from "./types.js";
+import { makeTempDir } from "./test-helpers.js";
 
 const PROMPTS_DIR = join(import.meta.dir, "..", "prompts");
 
@@ -187,6 +188,93 @@ describe("assemblePrompt", () => {
     expect(result).toContain("# Agency: Autonomous");
     expect(result).toContain("# Quality: Architect");
     expect(result).toContain("# Scope: Unrestricted");
+  });
+});
+
+describe("assemblePrompt custom prompts", () => {
+  let tempDir: string;
+
+  afterAll(() => {
+    if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test("custom modifier content appears in output", () => {
+    tempDir = makeTempDir("assemble-custom-");
+    const customPath = join(tempDir, "custom-modifier.md");
+    writeFileSync(customPath, "# Custom Test Rule\nDo this thing.", "utf8");
+
+    const mode: ModeConfig = {
+      axes: null,
+      modifiers: { readonly: false, contextPacing: false, custom: [customPath] },
+    };
+    const result = assemblePrompt({ mode, templateVars: TEST_VARS, promptsDir: PROMPTS_DIR });
+    expect(result).toContain("# Custom Test Rule");
+    expect(result).toContain("Do this thing.");
+  });
+
+  test("custom axis file content appears in output", () => {
+    tempDir = makeTempDir("assemble-custom-axis-");
+    const customPath = join(tempDir, "team-quality.md");
+    writeFileSync(customPath, "# Quality: Team Standard\nOur team quality rules.", "utf8");
+
+    const mode: ModeConfig = {
+      axes: { agency: "collaborative", quality: customPath, scope: "adjacent" },
+      modifiers: { readonly: false, contextPacing: false, custom: [] },
+    };
+    const result = assemblePrompt({ mode, templateVars: TEST_VARS, promptsDir: PROMPTS_DIR });
+    expect(result).toContain("Team Standard");
+    expect(result).not.toContain("# Quality: Architect");
+    expect(result).not.toContain("# Quality: Pragmatic");
+    expect(result).not.toContain("# Quality: Minimal");
+  });
+
+  test("missing custom modifier throws with clear error", () => {
+    const mode: ModeConfig = {
+      axes: null,
+      modifiers: { readonly: false, contextPacing: false, custom: ["/nonexistent/path.md"] },
+    };
+    expect(() =>
+      assemblePrompt({ mode, templateVars: TEST_VARS, promptsDir: PROMPTS_DIR })
+    ).toThrow("Missing prompt fragment");
+  });
+
+  test("missing custom axis file throws with clear error", () => {
+    const mode: ModeConfig = {
+      axes: { agency: "collaborative", quality: "/nonexistent/quality.md", scope: "adjacent" },
+      modifiers: { readonly: false, contextPacing: false, custom: [] },
+    };
+    expect(() =>
+      assemblePrompt({ mode, templateVars: TEST_VARS, promptsDir: PROMPTS_DIR })
+    ).toThrow("Missing prompt fragment");
+  });
+});
+
+describe("getFragmentOrder custom prompts", () => {
+  test("custom modifier positioned after readonly and before env", () => {
+    const mode: ModeConfig = {
+      axes: null,
+      modifiers: { readonly: true, contextPacing: true, custom: ["/tmp/custom.md"] },
+    };
+    const order = getFragmentOrder(mode);
+    const readonlyIdx = order.indexOf("modifiers/readonly.md");
+    const customIdx = order.indexOf("/tmp/custom.md");
+    const envIdx = order.indexOf("base/env.md");
+
+    expect(readonlyIdx).toBeGreaterThan(-1);
+    expect(customIdx).toBeGreaterThan(-1);
+    expect(envIdx).toBeGreaterThan(-1);
+    expect(customIdx).toBeGreaterThan(readonlyIdx);
+    expect(customIdx).toBeLessThan(envIdx);
+  });
+
+  test("custom agency path uses cautious actions, not autonomous", () => {
+    const mode: ModeConfig = {
+      axes: { agency: "/tmp/custom-agency.md", quality: "pragmatic", scope: "adjacent" },
+      modifiers: { readonly: false, contextPacing: false, custom: [] },
+    };
+    const order = getFragmentOrder(mode);
+    expect(order).toContain("base/actions-cautious.md");
+    expect(order).not.toContain("base/actions-autonomous.md");
   });
 });
 

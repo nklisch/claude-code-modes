@@ -325,4 +325,78 @@ describe("resolveConfig with LoadedConfig", () => {
     expect(config.axes?.quality).toBe("minimal");
     expect(config.axes?.agency).toBe("collaborative");
   });
+
+  test("custom preset with mixed built-in and custom axis values", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        axes: {
+          quality: { "team-standard": "./team-q.md" },
+        },
+        presets: {
+          "team": {
+            agency: "autonomous",
+            quality: "team-standard",
+            scope: "narrow",
+          },
+        },
+      },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "team" }, loadedConfig);
+    expect(config.axes?.agency).toBe("autonomous");
+    expect(config.axes?.quality).toMatch(/team-q\.md$/);
+    expect(config.axes?.scope).toBe("narrow");
+  });
+
+  test("custom preset with custom modifier names", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        modifiers: { "focus": "./focus-rules.md" },
+        presets: {
+          "team": {
+            agency: "collaborative",
+            modifiers: ["focus", "readonly"],
+          },
+        },
+      },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "team" }, loadedConfig);
+    expect(config.modifiers.readonly).toBe(true);
+    expect(config.modifiers.custom.some((p) => p.endsWith("focus-rules.md"))).toBe(true);
+  });
+
+  test("defaultModifiers with unknown name throws descriptive error", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        defaultModifiers: ["nonexistent-name"],
+      },
+    };
+    expect(() => resolveConfig(baseParsed, loadedConfig)).toThrow("Unknown modifier");
+  });
+
+  test("CLI override wins over custom preset axis value", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        axes: {
+          quality: { "team-standard": "./team-q.md" },
+        },
+        presets: {
+          "team": {
+            agency: "collaborative",
+            quality: "team-standard",
+            scope: "narrow",
+          },
+        },
+      },
+    };
+    const config = resolveConfig({
+      ...baseParsed,
+      preset: "team",
+      overrides: { quality: "pragmatic" },
+    }, loadedConfig);
+    expect(config.axes?.quality).toBe("pragmatic");
+  });
 });

@@ -167,6 +167,202 @@ describe("custom prompts e2e", () => {
   });
 });
 
+describe("config-driven workflow e2e", () => {
+  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
+
+  function runWithCwd(args: string, cwd: string): string {
+    return execSync(`bun run ${SCRIPT} ${args}`, {
+      encoding: "utf8",
+      timeout: 15000,
+      cwd,
+    }).trim();
+  }
+
+  function runWithCwdExpectFail(args: string, cwd: string): string {
+    try {
+      execSync(`bun run ${SCRIPT} ${args}`, {
+        encoding: "utf8",
+        timeout: 15000,
+        cwd,
+      });
+      throw new Error("Expected command to fail");
+    } catch (err: any) {
+      return (err.stderr || err.stdout || err.message || "").toString();
+    }
+  }
+
+  test("custom preset from config produces correct output", () => {
+    const tempDir = makeTempDir("e2e-custom-preset-");
+    try {
+      writeFileSync(join(tempDir, "team-rules.md"), "# Team Rules\nAlways write tests.", "utf8");
+      writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
+        modifiers: { "team-rules": "./team-rules.md" },
+        presets: {
+          team: {
+            agency: "collaborative",
+            quality: "architect",
+            scope: "adjacent",
+            modifiers: ["team-rules"],
+          },
+        },
+      }), "utf8");
+      const output = runWithCwd("team --print", tempDir);
+      expect(output).toContain("# Team Rules");
+      expect(output).toContain("Always write tests.");
+      expect(output).toContain("# Agency: Collaborative");
+      expect(output).toContain("# Quality: Architect");
+      expect(output).toContain("# Scope: Adjacent");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("defaultModifiers included in output without --modifier flag", () => {
+    const tempDir = makeTempDir("e2e-default-modifiers-");
+    try {
+      writeFileSync(join(tempDir, "default-rule.md"), "# Default Rule\nThis is always on.", "utf8");
+      writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
+        defaultModifiers: ["default-rule"],
+        modifiers: { "default-rule": "./default-rule.md" },
+      }), "utf8");
+      const output = runWithCwd("create --print", tempDir);
+      expect(output).toContain("# Default Rule");
+      expect(output).toContain("This is always on.");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("custom preset with custom axis value", () => {
+    const tempDir = makeTempDir("e2e-custom-axis-");
+    try {
+      writeFileSync(join(tempDir, "team-quality.md"), "# Quality: Team Standard\nOur quality rules.", "utf8");
+      writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
+        axes: { quality: { "team-standard": "./team-quality.md" } },
+        presets: {
+          team: {
+            agency: "autonomous",
+            quality: "team-standard",
+            scope: "unrestricted",
+          },
+        },
+      }), "utf8");
+      const output = runWithCwd("team --print", tempDir);
+      expect(output).toContain("Team Standard");
+      expect(output).toContain("Our quality rules.");
+      expect(output).not.toContain("# Quality: Architect");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("multiple --modifier flags compose in order", () => {
+    const tempDir = makeTempDir("e2e-multi-modifier-");
+    try {
+      const firstPath = join(tempDir, "first.md");
+      const secondPath = join(tempDir, "second.md");
+      writeFileSync(firstPath, "# First Modifier\nFirst content.", "utf8");
+      writeFileSync(secondPath, "# Second Modifier\nSecond content.", "utf8");
+      const output = run(`create --modifier ${firstPath} --modifier ${secondPath} --print`);
+      expect(output).toContain("First content.");
+      expect(output).toContain("Second content.");
+      expect(output.indexOf("First content.")).toBeLessThan(output.indexOf("Second content."));
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("--modifier resolves config-defined name", () => {
+    const tempDir = makeTempDir("e2e-modifier-name-");
+    try {
+      writeFileSync(join(tempDir, "focus.md"), "# Focus Rules\nStay focused.", "utf8");
+      writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
+        modifiers: { "focus-rules": "./focus.md" },
+      }), "utf8");
+      const output = runWithCwd("create --modifier focus-rules --print", tempDir);
+      expect(output).toContain("# Focus Rules");
+      expect(output).toContain("Stay focused.");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("--append-system-prompt appears in claude command", () => {
+    const output = run("create --append-system-prompt 'Use TypeScript only'");
+    expect(output).toContain("--append-system-prompt");
+    expect(output).toContain("Use TypeScript only");
+  });
+
+  test("multi-step config then run", () => {
+    const tempDir = makeTempDir("e2e-multistep-");
+    try {
+      const rulesPath = join(tempDir, "rules.md");
+      writeFileSync(rulesPath, "# Team Rules E2E\nMulti-step test.", "utf8");
+      runWithCwd("config init", tempDir);
+      runWithCwd(`config add-modifier team-rules ${rulesPath}`, tempDir);
+      runWithCwd("config add-default team-rules", tempDir);
+      runWithCwd("config add-preset team --agency collaborative --quality architect", tempDir);
+      const output = runWithCwd("team --print", tempDir);
+      expect(output).toContain("# Team Rules E2E");
+      expect(output).toContain("# Agency: Collaborative");
+      expect(output).toContain("# Quality: Architect");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("failure mode e2e", () => {
+  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
+
+  function runWithCwdExpectFail(args: string, cwd: string): string {
+    try {
+      execSync(`bun run ${SCRIPT} ${args}`, {
+        encoding: "utf8",
+        timeout: 15000,
+        cwd,
+      });
+      throw new Error("Expected command to fail");
+    } catch (err: any) {
+      return (err.stderr || err.stdout || err.message || "").toString();
+    }
+  }
+
+  test("unknown preset name produces helpful error", () => {
+    const err = runExpectFail("typo-preset");
+    expect(err).toContain("Unknown preset");
+  });
+
+  test("--modifier with nonexistent file produces error", () => {
+    const err = runExpectFail("create --modifier /nonexistent/rules.md --print");
+    expect(err.length).toBeGreaterThan(0);
+  });
+
+  test("invalid JSON config produces error", () => {
+    const tempDir = makeTempDir("e2e-invalid-json-");
+    try {
+      writeFileSync(join(tempDir, ".claude-mode.json"), "{ bad json", "utf8");
+      const err = runWithCwdExpectFail("create --print", tempDir);
+      expect(err).toContain("Invalid config file");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test("config referencing nonexistent modifier in defaultModifiers", () => {
+    const tempDir = makeTempDir("e2e-missing-mod-");
+    try {
+      writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
+        defaultModifiers: ["nonexistent-mod"],
+      }), "utf8");
+      const err = runWithCwdExpectFail("create --print", tempDir);
+      expect(err).toContain("Unknown modifier");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("claude-mode config e2e", () => {
   const CLI = join(import.meta.dir, "..", "node_modules", ".bin", "bun");
   const SCRIPT = join(import.meta.dir, "build-prompt.ts");

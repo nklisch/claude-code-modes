@@ -14,7 +14,7 @@ fi
 # If so, pass through directly to TypeScript and exit — no exec needed.
 for arg in "$@"; do
   case "$arg" in
-    --help|-h|--print|config)
+    --help|-h|--print|config|inspect)
       bun run "$SCRIPT_DIR/src/build-prompt.ts" "$@"
       exit $?
       ;;

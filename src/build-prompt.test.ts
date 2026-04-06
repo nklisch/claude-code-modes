@@ -66,3 +66,40 @@ describe("build-prompt CLI", () => {
     }
   });
 });
+
+describe("routing isolation: inspect vs normal --print", () => {
+  const { run } = createCliRunner(
+    `bun run ${join(import.meta.dir, "build-prompt.ts")}`,
+    10000,
+  );
+
+  test("inspect create --print produces verbose inspect output", () => {
+    const output = run("inspect create --print");
+    // Should have inspect structure
+    expect(output).toContain("=== Fragments ===");
+    expect(output).toContain("--- #1");
+    expect(output).toContain("[built-in]");
+    // Should NOT produce a claude command (guards against missing process.exit after inspect)
+    expect(output).not.toMatch(/^claude /);
+    expect(output).not.toContain("--system-prompt-file");
+  });
+
+  test("create --print produces assembled prompt, not inspect output", () => {
+    const output = run("create --print");
+    // Should contain assembled prompt content
+    expect(output).toContain("Claude Code");
+    // Should NOT have inspect structure
+    expect(output).not.toContain("=== Fragments ===");
+    expect(output).not.toContain("--- #1");
+  });
+
+  test("inspect create (no --print) produces tabular manifest", () => {
+    const output = run("inspect create");
+    expect(output).toContain("=== Fragments ===");
+    expect(output).toContain("Provenance       Path");
+    // Should NOT have verbose separators
+    expect(output).not.toContain("--- #1");
+    // Should NOT produce a claude command (guards against missing process.exit after inspect)
+    expect(output).not.toContain("--system-prompt-file");
+  });
+});

@@ -1,12 +1,14 @@
 import { execSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 export const PROJECT_ROOT = join(import.meta.dir, "..");
 
 export function makeTempDir(prefix = "test-"): string {
-  return mkdtempSync(join(tmpdir(), prefix));
+  // realpathSync resolves symlinks (e.g. macOS /var -> /private/var)
+  // so temp paths match process.cwd() after chdir
+  return realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 }
 
 export function createCliRunner(command: string, timeout = 15000) {

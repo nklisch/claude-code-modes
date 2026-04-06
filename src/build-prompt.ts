@@ -6,6 +6,7 @@ import { resolveConfig } from "./resolve.js";
 import { assemblePrompt, writeTempPrompt } from "./assemble.js";
 import { detectEnv, buildTemplateVars } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
+import { runInspectCommand } from "./inspect.js";
 
 function shellEscape(arg: string): string {
   // If arg contains no special characters, return as-is
@@ -18,6 +19,10 @@ function shellEscape(arg: string): string {
 
 function printUsage(): void {
   const usage = `Usage: claude-mode [preset] [options] [-- claude-args...]
+
+Subcommands:
+  config            Manage configuration
+  inspect [--print] Show prompt assembly plan with provenance and warnings
 
 Presets:
   create          autonomous / architect / unrestricted
@@ -68,10 +73,24 @@ function main(): void {
     process.exit(0);
   }
 
+  // Prompts directory — needed by inspect before the normal pipeline runs
+  const promptsDir = join(import.meta.dir, "..", "prompts");
+
   // Config subcommand routing
   if (argv[0] === "config") {
     try {
       runConfigCommand(argv.slice(1));
+    } catch (err) {
+      process.stderr.write(`Error: ${(err as Error).message}\n`);
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+
+  // Inspect subcommand routing
+  if (argv[0] === "inspect") {
+    try {
+      runInspectCommand(argv.slice(1), promptsDir);
     } catch (err) {
       process.stderr.write(`Error: ${(err as Error).message}\n`);
       process.exit(1);
@@ -110,7 +129,6 @@ function main(): void {
   const templateVars = buildTemplateVars(env);
 
   // Assemble the prompt
-  const promptsDir = join(import.meta.dir, "..", "prompts");
   const prompt = assemblePrompt({
     mode: config,
     templateVars,

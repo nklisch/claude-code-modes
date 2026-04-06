@@ -54,8 +54,55 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 ### Modifiers
 
 - `--readonly` — Appends readonly instructions. Intended for explore-style sessions.
+- `--context-pacing` — Appends context pacing instructions (opt-in).
+- `--modifier <name|path>` — Appends a custom modifier fragment. Repeatable. Accepts file paths or config-defined names.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
+
+### Custom Axis Values
+
+Axis flags (`--agency`, `--quality`, `--scope`) accept:
+1. Built-in names (e.g., `autonomous`, `architect`, `narrow`)
+2. Config-defined names (resolved from `.claude-mode.json`)
+3. File paths (e.g., `./team-quality.md`, `/path/to/custom.md`)
+
+Resolution order: built-in → config → file path heuristic. A value is treated as a file path if it contains `/`, `\`, or ends with `.md`.
+
+### Config File
+
+Loaded from `.claude-mode.json` in CWD, falling back to `~/.config/claude-mode/config.json`. Project-local wins entirely if present (no merging).
+
+```json
+{
+  "defaultModifiers": ["<name>"],
+  "modifiers": { "<name>": "<path>" },
+  "axes": {
+    "agency": { "<name>": "<path>" },
+    "quality": { "<name>": "<path>" },
+    "scope": { "<name>": "<path>" }
+  },
+  "presets": {
+    "<name>": {
+      "agency": "<value>",
+      "quality": "<value>",
+      "scope": "<value>",
+      "modifiers": ["<name>"],
+      "readonly": true,
+      "contextPacing": true
+    }
+  }
+}
+```
+
+Custom preset names must not collide with built-in presets. Custom modifier names must not collide with `readonly` or `context-pacing`. Config paths are relative to the config file's directory.
+
+### Config Management CLI
+
+```
+claude-mode config <subcommand> [args] [--global]
+```
+
+Subcommands: `show`, `init`, `add-default`, `remove-default`, `add-modifier`, `remove-modifier`, `add-axis`, `remove-axis`, `add-preset`, `remove-preset`. Defaults to project-local config; `--global` targets `~/.config/claude-mode/config.json`.
 
 ### Claude Passthrough
 
@@ -86,9 +133,10 @@ claude-mode create --verbose --model sonnet
 7. `base/actions.md` — Risky action guidance (full for surgical/collaborative, relaxed for autonomous)
 8. `base/tools.md` — Tool usage preferences
 9. `base/tone.md` — Style guidelines
-10. `modifiers/context-pacing.md` — Always included
+10. `modifiers/context-pacing.md` — Only if `--context-pacing` flag
 11. `modifiers/readonly.md` — Only if `--readonly` flag
-12. `base/env.md` — Dynamically rendered environment info
+12. Custom modifier fragments — `defaultModifiers` + preset modifiers + `--modifier` flags, in order
+13. `base/env.md` — Dynamically rendered environment info (always last)
 
 ### Template Variables
 
@@ -142,10 +190,14 @@ claude-code-modes/
 ├── tsconfig.json
 ├── src/
 │   ├── build-prompt.ts            # main: parse args, compose, print command
+│   ├── args.ts                    # CLI arg parsing → ParsedArgs
+│   ├── resolve.ts                 # ParsedArgs + config → ModeConfig
+│   ├── config.ts                  # config file loading, validation, collision checks
+│   ├── config-cli.ts              # `claude-mode config` subcommand
 │   ├── env.ts                     # shell commands for env detection
 │   ├── presets.ts                 # preset → axis mapping
 │   ├── assemble.ts                # reads fragments, substitutes templates, concatenates
-│   └── types.ts                   # Agency, Quality, Scope enums
+│   └── types.ts                   # enums, types, interfaces
 ├── prompts/
 │   ├── base/
 │   │   ├── intro.md

@@ -46,13 +46,20 @@ For users who manage Claude's behavior entirely through their own mechanisms —
 - Tool usage instructions (prefer Read over cat, etc.)
 - System mechanics (hooks, tags, permissions, context compression)
 - Environment info
-- Context pacing
 
-No opinions on agency, quality, scope, output style, or coding approach. The user's own instructions fill that vacuum.
+No opinions on agency, quality, scope, output style, or coding approach. The user's own instructions fill that vacuum. Custom modifiers and `defaultModifiers` from the config still apply in `none` mode — they're user-provided, not built-in opinions.
+
+## Custom Prompts & Config
+
+Beyond presets and axis overrides, teams can define their own prompt fragments and presets in a `.claude-mode.json` config file. Custom modifiers append team-specific instructions (coding standards, review checklists, domain rules). Custom axis values replace built-in behavioral fragments entirely. Custom presets compose any mix of built-in and custom values into a named shortcut.
+
+`defaultModifiers` in the config are always applied — useful for team rules that should be active on every invocation without remembering a flag.
+
+The config file lives in the project root (version-controlled, shared with the team) or `~/.config/claude-mode/config.json` (personal defaults). A CLI (`claude-mode config`) manages it without manual JSON editing.
 
 ## Context Pacing
 
-All modes — including `none` — include instructions that tell Claude it's okay to pause at a natural boundary if a task exceeds the current context window. This addresses a specific failure pattern where Claude rushes and cuts corners as context fills up, producing incomplete or broken code. The instruction encourages finishing current work cleanly and documenting where to pick up, rather than racing to an artificial finish line.
+An optional `--context-pacing` flag includes instructions that tell Claude it's okay to pause at a natural boundary if a task exceeds the current context window. This addresses a specific failure pattern where Claude rushes and cuts corners as context fills up, producing incomplete or broken code. The instruction encourages finishing current work cleanly and documenting where to pick up, rather than racing to an artificial finish line.
 
 ## What This Doesn't Do
 

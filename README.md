@@ -93,11 +93,20 @@ Compose from scratch (defaults to collaborative/pragmatic/adjacent for unspecifi
 claude-mode --agency autonomous --quality architect --scope narrow
 ```
 
+Axis values can also be file paths or config-defined names:
+
+```bash
+claude-mode create --quality ./team-quality.md     # Use a custom quality fragment
+claude-mode create --quality team-standard          # Resolve from config
+```
+
 Add modifiers:
 
 ```bash
-claude-mode create --readonly              # Prevent file modifications
-claude-mode create --context-pacing        # Include context pacing prompt
+claude-mode create --readonly                                    # Prevent file modifications
+claude-mode create --context-pacing                              # Include context pacing prompt
+claude-mode create --modifier ./my-rules.md                      # Add a custom modifier
+claude-mode create --modifier team-rules --modifier focus-mode   # Multiple, by config name
 claude-mode create --append-system-prompt "Use Rust, not TypeScript"
 ```
 
@@ -111,6 +120,72 @@ Debug the assembled prompt:
 
 ```bash
 claude-mode explore --print
+```
+
+## Config file
+
+Create a `.claude-mode.json` in your project root to define reusable custom modifiers, axis values, and presets. Manage it with the CLI or edit directly.
+
+```bash
+claude-mode config init                              # Create scaffold
+claude-mode config add-modifier team-rules ./prompts/team-rules.md
+claude-mode config add-default team-rules            # Always include this modifier
+claude-mode config add-axis quality team-standard ./prompts/team-quality.md
+claude-mode config add-preset team --agency collaborative --quality team-standard --modifier team-rules
+claude-mode config show                              # View current config
+```
+
+Then use your custom preset:
+
+```bash
+claude-mode team                                     # Uses your config-defined preset
+claude-mode team --quality pragmatic                  # Override an axis from your preset
+```
+
+Example `.claude-mode.json`:
+
+```json
+{
+  "defaultModifiers": ["team-rules"],
+  "modifiers": {
+    "team-rules": "./prompts/team-rules.md"
+  },
+  "axes": {
+    "quality": {
+      "team-standard": "./prompts/team-quality.md"
+    }
+  },
+  "presets": {
+    "team": {
+      "agency": "collaborative",
+      "quality": "team-standard",
+      "scope": "adjacent",
+      "modifiers": ["team-rules"]
+    }
+  }
+}
+```
+
+- **`defaultModifiers`** — always applied to every invocation (no flag needed)
+- **`modifiers`** — named modifiers referencing markdown files
+- **`axes`** — custom axis values (replace built-in fragments)
+- **`presets`** — named presets composing built-in and custom values
+
+Config searches `.claude-mode.json` in the current directory first, then `~/.config/claude-mode/config.json` as a global fallback. All commands accept `--global` to target the global config.
+
+All `config` subcommands:
+
+```
+claude-mode config show                              # Print current config
+claude-mode config init                              # Create scaffold
+claude-mode config add-default <name-or-path>        # Add to defaultModifiers
+claude-mode config remove-default <name>             # Remove from defaultModifiers
+claude-mode config add-modifier <name> <path>        # Register named modifier
+claude-mode config remove-modifier <name>            # Unregister named modifier
+claude-mode config add-axis <axis> <name> <path>     # Register custom axis value
+claude-mode config remove-axis <axis> <name>         # Unregister custom axis value
+claude-mode config add-preset <name> [flags]         # Create custom preset
+claude-mode config remove-preset <name>              # Remove custom preset
 ```
 
 ## The axis model

@@ -54,21 +54,22 @@ export interface ParsedArgs {
 ```
 
 ### Example 3: Resolve stage merges with defaults, no I/O
-**File**: `src/resolve.ts:102-130`
+**File**: `src/resolve.ts`
 ```typescript
 export function resolveConfig(
   parsed: ParsedArgs,
   loadedConfig: LoadedConfig | null,
 ): ModeConfig {
   // No side effects except reading loadedConfig (already loaded by caller)
-  const flags = { readonly: parsed.modifiers.readonly, contextPacing: parsed.modifiers.contextPacing };
-  const customModifierPaths: string[] = [];
+  const modifierPaths: string[] = [];
   if (config?.defaultModifiers) {
-    applyModifiers(config.defaultModifiers, loadedConfig, flags, customModifierPaths, "append");
+    applyModifiers(config.defaultModifiers, loadedConfig, modifierPaths, "append");
   }
-  applyModifiers(parsed.customModifiers, loadedConfig, flags, customModifierPaths, "append");
+  // CLI boolean flags → inject as modifier names
+  if (parsed.modifiers.readonly) applyModifiers(["readonly"], loadedConfig, modifierPaths, "append");
+  applyModifiers(parsed.customModifiers, loadedConfig, modifierPaths, "append");
   // ... axis resolution ...
-  return { axes: { agency, quality, scope }, modifiers: { readonly: flags.readonly, ... } };
+  return { base, axes: { agency, quality, scope }, modifiers: modifierPaths };
 }
 ```
 

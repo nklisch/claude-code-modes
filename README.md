@@ -34,10 +34,12 @@ Pick a preset that matches your task:
 ```bash
 claude-mode create      # Build from scratch with proper architecture
 claude-mode extend      # Extend a fast-built project, improve incrementally
-claude-mode safe       # Surgical precision, minimal risk
-claude-mode refactor         # Restructure freely across the codebase
-claude-mode explore          # Read-only — understand code without changing it
-claude-mode none             # Strip all behavioral opinions, use your own CLAUDE.md
+claude-mode safe        # Surgical precision, minimal risk
+claude-mode refactor    # Restructure freely across the codebase
+claude-mode explore     # Read-only — understand code without changing it
+claude-mode debug       # Investigation-first debugging (chill base)
+claude-mode methodical  # Step-by-step precision (chill base)
+claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
 | Preset | Agency | Quality | Scope | Use when... |
@@ -47,6 +49,8 @@ claude-mode none             # Strip all behavioral opinions, use your own CLAUD
 | `safe` | collaborative | minimal | narrow | Surgical changes to production code |
 | `refactor` | autonomous | pragmatic | unrestricted | Move files, consolidate modules, improve patterns |
 | `explore` | collaborative | architect | narrow | Read, explain, suggest — no file modifications |
+| `debug` | collaborative | pragmatic | narrow | Find root causes — evidence-first, ask for guidance when stuck |
+| `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions, stop when done |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Alternative base: chill

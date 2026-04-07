@@ -25,7 +25,7 @@ Instead of a handful of hardcoded personas, `claude-mode` composes behavior from
 
 ## Presets
 
-Five named presets cover common workflows:
+Seven named presets cover common workflows:
 
 | Preset | Agency | Quality | Scope | When to use |
 |---|---|---|---|---|
@@ -34,6 +34,8 @@ Five named presets cover common workflows:
 | `safe` | collaborative | minimal | narrow | Surgical changes to production code — minimal risk, maximum precision |
 | `refactor` | autonomous | pragmatic | unrestricted | Restructuring — move files, consolidate modules, improve patterns across the codebase |
 | `explore` | collaborative | architect | narrow | Understanding a codebase — read, explain, suggest, but don't change files |
+| `debug` | collaborative | pragmatic | narrow | Investigation-first debugging — gather evidence, present findings, ask for guidance when stuck |
+| `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions precisely, attend to details, stop when done |
 
 Presets are starting points. Any axis can be overridden: `claude-mode create --quality pragmatic`.
 

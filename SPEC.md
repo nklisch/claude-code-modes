@@ -26,6 +26,8 @@ claude-mode extend
 claude-mode safe
 claude-mode refactor
 claude-mode explore
+claude-mode debug
+claude-mode methodical
 claude-mode none
 ```
 
@@ -55,13 +57,17 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 
 - `--base <name|path>` — Selects the base prompt. Built-in: `standard` (default), `chill`. Also accepts config-defined names or directory paths containing a `base.json` manifest.
 
-Resolution order: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > `"standard"`.
+Resolution order: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > preset `base` > `"standard"`.
 
 ### Modifiers
 
-- `--readonly` — Appends readonly instructions. Intended for explore-style sessions.
-- `--context-pacing` — Appends context pacing instructions (opt-in).
-- `--modifier <name|path>` — Appends a custom modifier fragment. Repeatable. Accepts file paths or config-defined names.
+All modifiers are fragment-based — they resolve to markdown files that get inserted at the manifest's `"modifiers"` marker.
+
+- `--readonly` — Shorthand for `--modifier readonly`. Appends readonly instructions.
+- `--context-pacing` — Shorthand for `--modifier context-pacing`. Appends context pacing instructions.
+- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`), config-defined names, or file paths.
+
+Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`. The `debug` and `methodical` presets include their respective modifiers automatically.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
 

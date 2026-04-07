@@ -27,7 +27,7 @@ Both must appear exactly once. Everything else is a filename relative to the bas
 The assembler walks the array top to bottom:
 1. Plain strings → reads the fragment file from the base directory
 2. `"axes"` → inserts the resolved agency, quality, scope fragments (skipped for `none` mode)
-3. `"modifiers"` → inserts context-pacing, readonly, then custom modifier fragments
+3. `"modifiers"` → inserts all modifier fragment paths (built-in and custom) in order
 
 ### Fragment files
 - Markdown files with `.md` extension

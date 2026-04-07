@@ -26,13 +26,13 @@ test("preset with no overrides returns preset axes", () => {
   expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
 });
 
-test("--readonly flag", () => {
+test("--readonly flag adds readonly modifier", () => {
   const config = resolveConfig({
     ...baseParsed,
     preset: "create",
     modifiers: { readonly: true, print: false, contextPacing: false },
   }, null);
-  expect(config.modifiers.readonly).toBe(true);
+  expect(config.modifiers).toContain("modifiers/readonly.md");
 });
 ```
 

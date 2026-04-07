@@ -51,6 +51,12 @@ const PRESETS: Record<PresetName, PresetDefinition> = {
     base: "chill",
     modifiers: ["methodical"],
   },
+  "director": {
+    axes: { agency: "collaborative", quality: "architect", scope: "unrestricted" },
+    readonly: false,
+    base: "chill",
+    modifiers: ["director"],
+  },
 };
 
 export function getPreset(name: PresetName): PresetDefinition {

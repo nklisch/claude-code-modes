@@ -48,6 +48,9 @@ prompts/
   modifiers/               # optional behavior toggles
     context-pacing.md
     readonly.md
+    debug.md
+    methodical.md
+    director.md
 ```
 
 ### Synthetic example: implementation-organized prompts (anti-pattern)

@@ -14,6 +14,7 @@ Presets:
   none            no behavioral instructions
   debug           collaborative / pragmatic / narrow (chill base, investigation mode)
   methodical      surgical / architect / narrow (chill base, step-by-step)
+  director        collaborative / architect / unrestricted (chill base, agent delegation)
 
 Base:
   --base <name|path>      Built-in: standard, chill
@@ -49,6 +50,7 @@ Examples:
   claude-mode explore --print
   claude-mode debug                           # investigation-first debugging
   claude-mode methodical                      # step-by-step precision
+  claude-mode director                        # delegate to sub-agents
   claude-mode create -- --verbose --model sonnet`;
 
   process.stdout.write(usage + "\n");

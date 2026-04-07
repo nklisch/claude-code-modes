@@ -35,7 +35,7 @@ prompts/
   base/            # standard base: base.json manifest + 8 fragments
   chill/           # chill base: base.json manifest + 4 fragments (emotion-research-informed)
   axis/            # 9 fragments: agency/{autonomous,collaborative,surgical}, quality/{architect,pragmatic,minimal}, scope/{unrestricted,adjacent,narrow}
-  modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md
+  modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md, director.md
 scripts/
   generate-prompts.ts         # embeds prompt fragments into src/embedded-prompts.ts
   extract-upstream-prompt.ts  # downloads CC npm package, extracts system prompt functions

@@ -39,6 +39,7 @@ claude-mode refactor    # Restructure freely across the codebase
 claude-mode explore     # Read-only — understand code without changing it
 claude-mode debug       # Investigation-first debugging (chill base)
 claude-mode methodical  # Step-by-step precision (chill base)
+claude-mode director    # Delegate to sub-agents, orchestrate and verify (chill base)
 claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
@@ -51,6 +52,7 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `explore` | collaborative | architect | narrow | Read, explain, suggest — no file modifications |
 | `debug` | collaborative | pragmatic | narrow | Find root causes — evidence-first, ask for guidance when stuck |
 | `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions, stop when done |
+| `director` | collaborative | architect | unrestricted | Orchestrate sub-agents — delegate implementation, verify results |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Alternative base: chill

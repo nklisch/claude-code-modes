@@ -222,6 +222,22 @@ Anthropic's recent interpretability research ([Emotion Concepts and their Functi
 
 System prompt instructions create exactly this kind of situational context. When the default prompt tells Claude to "be concise" and "make the smallest change," it's not just a suggestion — it's shaping internal states that cause Claude to suppress reasoning and cut scope even when the task requires more. `claude-mode` gives you control over that framing.
 
+## Limitations
+
+- **Environment info is static.** Git status, branch name, and platform info are captured once at launch and baked into the prompt. If you switch branches or stage files mid-session, `/clear` and `/compact` won't refresh this — you'd need to restart `claude-mode`. Stock Claude Code has the same caching behavior for most sections, so this is rarely noticeable.
+- **Named sub-agents ignore your prompt.** See [Sub-agent behavior](#sub-agent-behavior) below for details.
+- **MCP server instructions work normally.** Claude Code delivers MCP instructions via message attachments, independent of the system prompt. No action needed on your part.
+
+## Sub-agent behavior
+
+Claude Code's Agent tool spawns sub-agents to handle tasks. How they interact with your `claude-mode` prompt depends on the agent type:
+
+**General-purpose agents** (the default when Claude delegates work) inherit your full system prompt via Claude Code's fork mechanism. Your axis settings — agency, quality, scope — carry through to these agents. This is the most common type of sub-agent.
+
+**Named specialists** (Explore, Plan, etc.) have their own hardcoded system prompts and run on their own models (Explore uses Haiku). They don't see your behavioral tuning at all — they're purpose-built for specific tasks like file search or architecture planning.
+
+**What this means for custom agent definitions:** If you create custom agent definitions (markdown files in `agents/` directories), their system prompt is whatever you write in the file body — they won't inherit your `claude-mode` axes. If you want consistent behavioral tuning in a custom specialist agent, include those instructions directly in its definition.
+
 ## Development
 
 ```bash

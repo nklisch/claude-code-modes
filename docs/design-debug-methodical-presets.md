@@ -208,13 +208,29 @@ const value = raw ?? config?.defaultBase ?? presetBase ?? "standard";
 
 This makes config `defaultBase` take priority over preset base.
 
-**Implementation Notes**:
-- `applyModifiers` already handles built-in modifier names — it checks `isBuiltinModifier` and sets flags. But "debug" and "methodical" are not boolean flags on `ModeConfig.modifiers` — they're string names that resolve to embedded modifier files. So `applyModifiers` will route them through the "custom" path (file lookup). That's wrong.
-- The fix: "debug" and "methodical" are built-in modifier names but they behave like custom modifiers (they're fragment files, not boolean flags). The `resolveModifier` function returns `{ kind: "builtin", name: "debug" }` — but there's no boolean flag for it. We need to handle this.
-- **Simplest approach**: In `applyModifiers`, when a builtin modifier is encountered that isn't "readonly" or "context-pacing", treat it as a custom path using the embedded fragment key: `modifiers/${name}.md`. Add this as a third branch in `applyModifiers`.
+**Implementation Notes — Modifier Model**:
 
-Update `applyModifiers`:
+Built-in modifiers fall into two categories:
+1. **Flag modifiers** (`readonly`, `context-pacing`) — these have dedicated CLI flags (`--readonly`, `--context-pacing`) and boolean fields on `ModeConfig.modifiers`. They exist because they predate the modifier system and are deeply wired into the assembly pipeline (the `"modifiers"` manifest marker checks these booleans).
+2. **Fragment modifiers** (everything else: `debug`, `methodical`, and any future additions) — these are just embedded markdown files. They go into `ModeConfig.modifiers.custom` as relative embedded keys (`modifiers/debug.md`). No boolean flag, no special assembly logic.
+
+The **fragment modifier is the general-purpose model**. Adding a new built-in modifier requires only:
+1. Add the name to `BUILTIN_MODIFIER_NAMES` in `types.ts`
+2. Write `prompts/modifiers/{name}.md`
+3. Add to `generate-prompts.ts`
+
+No changes to `ModeConfig`, `applyModifiers`, `resolveConfig`, or assembly logic.
+
+The flag modifiers (`readonly`, `context-pacing`) are **legacy sugar** kept for backwards compatibility. New modifiers should always be fragment-based.
+
+Update `applyModifiers` to make this model explicit:
 ```typescript
+// Flag modifiers — legacy CLI sugar, kept for backwards compat
+const FLAG_MODIFIERS: Record<string, keyof typeof flags> = {
+  "readonly": "readonly",
+  "context-pacing": "contextPacing",
+};
+
 function applyModifiers(
   modifiers: string[],
   loadedConfig: LoadedConfig | null,
@@ -225,10 +241,12 @@ function applyModifiers(
   for (const raw of modifiers) {
     const resolved = resolveModifier(raw, loadedConfig);
     if (resolved.kind === "builtin") {
-      if (resolved.name === "readonly") flags.readonly = true;
-      else if (resolved.name === "context-pacing") flags.contextPacing = true;
-      else {
-        // Built-in modifier with a fragment file (debug, methodical, etc.)
+      const flagKey = FLAG_MODIFIERS[resolved.name];
+      if (flagKey) {
+        // Flag modifier — set the boolean
+        flags[flagKey] = true;
+      } else {
+        // Fragment modifier — add embedded key to custom paths
         const fragmentKey = `modifiers/${resolved.name}.md`;
         if (!customPaths.includes(fragmentKey)) {
           if (position === "prepend") customPaths.unshift(fragmentKey);
@@ -244,6 +262,8 @@ function applyModifiers(
   }
 }
 ```
+
+This eliminates the `if/else if/else` chain. `FLAG_MODIFIERS` is a data-driven map — adding or removing flag modifiers is a one-line change. Fragment modifiers need no changes at all.
 
 **Acceptance Criteria**:
 - [ ] `claude-mode debug` resolves to `base: "chill"`, axes collaborative/pragmatic/narrow, with `modifiers/debug.md` in custom modifier paths

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.3
+
+**Fixes**
+
+- Release workflow: remove broken npm self-upgrade step that prevented npm publish
+
 ## v0.1.2
 
 **Fixes**

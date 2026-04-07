@@ -3,3 +3,4 @@ upstream-prompts/
 .tmp-extract/
 dist/
 claude-mode-bin
+src/embedded-prompts.ts

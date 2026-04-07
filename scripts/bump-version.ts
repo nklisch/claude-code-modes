@@ -83,7 +83,8 @@ try {
   console.log("Regenerating embedded prompts...");
   run("bun scripts/generate-prompts.ts");
 
-  // Stage files
+  // Stage all tracked changes + new generated files
+  run("git add -u");
   run("git add package.json");
 
   // Commit

@@ -279,7 +279,7 @@ describe("getFragmentOrder custom prompts", () => {
 });
 
 describe("assemblePrompt embedded prompts", () => {
-  test("assemblePrompt works with non-existent promptsDir (uses embedded)", () => {
+  test("assemblePrompt works with non-existent promptsDir for none mode", () => {
     const result = assemblePrompt({
       mode: { axes: null, modifiers: { readonly: false, contextPacing: false, custom: [] } },
       templateVars: TEST_VARS,
@@ -287,6 +287,57 @@ describe("assemblePrompt embedded prompts", () => {
     });
     expect(result).toContain("Claude Code");
     expect(result).not.toMatch(/\{\{[A-Z_]+\}\}/);
+  });
+
+  test("assemblePrompt works with non-existent promptsDir for preset with axes", () => {
+    // Spec: built-in fragments resolve from embedded map, not disk
+    const result = assemblePrompt({
+      mode: {
+        axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        modifiers: { readonly: false, contextPacing: false, custom: [] },
+      },
+      templateVars: TEST_VARS,
+      promptsDir: "/nonexistent/path",
+    });
+    expect(result).toContain("# Agency: Autonomous");
+    expect(result).toContain("# Quality: Architect");
+    expect(result).toContain("# Scope: Unrestricted");
+    expect(result).not.toMatch(/\{\{[A-Z_]+\}\}/);
+  });
+
+  test("assemblePrompt with modifiers works from embedded map", () => {
+    // Spec: readonly and context-pacing modifiers are built-in, should embed
+    const result = assemblePrompt({
+      mode: {
+        axes: null,
+        modifiers: { readonly: true, contextPacing: true, custom: [] },
+      },
+      templateVars: TEST_VARS,
+      promptsDir: "/nonexistent/path",
+    });
+    expect(result).toContain("# Read-only mode");
+    expect(result).toContain("# Context and pacing");
+  });
+});
+
+describe("readFragment embedded prompts behavior", () => {
+  test("returns embedded content for built-in fragment", () => {
+    // Spec: readFragment checks embedded map first for relative paths
+    const content = readFragment("/nonexistent/path", "base/intro.md");
+    expect(content).not.toBeNull();
+    expect(content).toContain("Claude Code");
+  });
+
+  test("returns null for unknown relative path not in embedded map or disk", () => {
+    const content = readFragment("/nonexistent/path", "base/nonexistent.md");
+    expect(content).toBeNull();
+  });
+
+  test("reads absolute path from disk, not embedded map", () => {
+    // Spec: custom fragments (absolute paths) always read from disk
+    const content = readFragment(PROMPTS_DIR, "/nonexistent/absolute/path.md");
+    // Should be null since file doesn't exist on disk — NOT checking embedded
+    expect(content).toBeNull();
   });
 });
 

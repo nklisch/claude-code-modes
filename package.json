@@ -1,6 +1,6 @@
 {
   "name": "claude-code-modes",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Behaviorally-tuned system prompts for Claude Code",
   "license": "MIT",
   "type": "module",

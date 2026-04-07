@@ -208,71 +208,121 @@ const value = raw ?? config?.defaultBase ?? presetBase ?? "standard";
 
 This makes config `defaultBase` take priority over preset base.
 
-**Implementation Notes — Modifier Model**:
+**Implementation Notes — Unified Modifier Model**:
 
-Built-in modifiers fall into two categories:
-1. **Flag modifiers** (`readonly`, `context-pacing`) — these have dedicated CLI flags (`--readonly`, `--context-pacing`) and boolean fields on `ModeConfig.modifiers`. They exist because they predate the modifier system and are deeply wired into the assembly pipeline (the `"modifiers"` manifest marker checks these booleans).
-2. **Fragment modifiers** (everything else: `debug`, `methodical`, and any future additions) — these are just embedded markdown files. They go into `ModeConfig.modifiers.custom` as relative embedded keys (`modifiers/debug.md`). No boolean flag, no special assembly logic.
+**All built-in modifiers are fragment modifiers.** Every built-in modifier name resolves to an embedded fragment key (`modifiers/{name}.md`) and goes into `ModeConfig.modifiers.custom`. No special cases, no boolean flags.
 
-The **fragment modifier is the general-purpose model**. Adding a new built-in modifier requires only:
+The `--readonly` and `--context-pacing` CLI flags are **sugar** — they just inject the modifier name into the modifier list. The `readonly` and `contextPacing` boolean fields on `ModeConfig.modifiers` are removed. The assembly pipeline's `"modifiers"` marker no longer checks booleans — it just iterates `custom` paths.
+
+**Adding a new built-in modifier requires only:**
 1. Add the name to `BUILTIN_MODIFIER_NAMES` in `types.ts`
 2. Write `prompts/modifiers/{name}.md`
 3. Add to `generate-prompts.ts`
 
 No changes to `ModeConfig`, `applyModifiers`, `resolveConfig`, or assembly logic.
 
-The flag modifiers (`readonly`, `context-pacing`) are **legacy sugar** kept for backwards compatibility. New modifiers should always be fragment-based.
-
-Update `applyModifiers` to make this model explicit:
+**Changes to ModeConfig** (in `types.ts`):
 ```typescript
-// Flag modifiers — legacy CLI sugar, kept for backwards compat
-const FLAG_MODIFIERS: Record<string, keyof typeof flags> = {
-  "readonly": "readonly",
-  "context-pacing": "contextPacing",
-};
+export interface ModeConfig {
+  base: string;
+  axes: AxisConfig | null;
+  modifiers: string[]; // ordered list of modifier fragment paths (embedded keys or absolute paths)
+}
+```
 
+The `modifiers` field changes from `{ readonly: boolean; contextPacing: boolean; custom: string[] }` to a flat `string[]`. This is simpler and extensible.
+
+**Changes to resolve.ts**:
+- Remove `flags` object — no more boolean tracking
+- `applyModifiers` simplifies to: resolve each name → get fragment path → deduplicate → append/prepend to list
+- CLI `--readonly` flag → adds `"readonly"` to the modifier name list
+- CLI `--context-pacing` flag → adds `"context-pacing"` to the modifier name list
+- Preset `readonly: true` → adds `"readonly"` to the modifier name list
+
+```typescript
 function applyModifiers(
   modifiers: string[],
   loadedConfig: LoadedConfig | null,
-  flags: { readonly: boolean; contextPacing: boolean },
-  customPaths: string[],
+  resolvedPaths: string[],
   position: "append" | "prepend",
 ): void {
   for (const raw of modifiers) {
     const resolved = resolveModifier(raw, loadedConfig);
+    let path: string;
     if (resolved.kind === "builtin") {
-      const flagKey = FLAG_MODIFIERS[resolved.name];
-      if (flagKey) {
-        // Flag modifier — set the boolean
-        flags[flagKey] = true;
-      } else {
-        // Fragment modifier — add embedded key to custom paths
-        const fragmentKey = `modifiers/${resolved.name}.md`;
-        if (!customPaths.includes(fragmentKey)) {
-          if (position === "prepend") customPaths.unshift(fragmentKey);
-          else customPaths.push(fragmentKey);
-        }
-      }
+      // All built-in modifiers resolve to their embedded fragment key
+      path = `modifiers/${resolved.name}.md`;
     } else {
-      if (!customPaths.includes(resolved.path)) {
-        if (position === "prepend") customPaths.unshift(resolved.path);
-        else customPaths.push(resolved.path);
-      }
+      path = resolved.path;
+    }
+    if (!resolvedPaths.includes(path)) {
+      if (position === "prepend") resolvedPaths.unshift(path);
+      else resolvedPaths.push(path);
     }
   }
 }
 ```
 
-This eliminates the `if/else if/else` chain. `FLAG_MODIFIERS` is a data-driven map — adding or removing flag modifiers is a one-line change. Fragment modifiers need no changes at all.
+**Changes to resolveConfig**:
+```typescript
+export function resolveConfig(parsed: ParsedArgs, loadedConfig: LoadedConfig | null): ModeConfig {
+  const config = loadedConfig?.config ?? null;
+  const modifierPaths: string[] = [];
+
+  // 1. Config defaultModifiers
+  if (config?.defaultModifiers) {
+    applyModifiers(config.defaultModifiers, loadedConfig, modifierPaths, "append");
+  }
+
+  // 2. CLI boolean flags → inject as modifier names
+  if (parsed.modifiers.readonly) {
+    applyModifiers(["readonly"], loadedConfig, modifierPaths, "append");
+  }
+  if (parsed.modifiers.contextPacing) {
+    applyModifiers(["context-pacing"], loadedConfig, modifierPaths, "append");
+  }
+
+  // 3. CLI --modifier flags
+  applyModifiers(parsed.customModifiers, loadedConfig, modifierPaths, "append");
+
+  // ... preset resolution, including preset.modifiers via applyModifiers with "prepend" ...
+
+  return {
+    base,
+    axes: { agency, quality, scope },
+    modifiers: modifierPaths,
+  };
+}
+```
+
+**Changes to assembly** (`getFragmentOrder` in `assemble.ts`):
+The `"modifiers"` manifest marker simplifies:
+```typescript
+} else if (entry === "modifiers") {
+  // All modifiers are fragment paths — just add them
+  for (const modPath of mode.modifiers) {
+    fragments.push(modPath);
+  }
+}
+```
+
+No more `mode.modifiers.contextPacing` / `mode.modifiers.readonly` boolean checks. No more `mode.modifiers.custom` iteration. Just one list.
+
+**Changes to AssembleOptions**: None — it takes `ModeConfig` which now has the simpler `modifiers: string[]`.
+
+**Impact on existing tests**: Every test that constructs a `ModeConfig` needs updating — `{ readonly: false, contextPacing: false, custom: [] }` becomes `[]` (or `["modifiers/readonly.md"]` etc). This is a lot of test fixtures but each change is mechanical.
 
 **Acceptance Criteria**:
-- [ ] `claude-mode debug` resolves to `base: "chill"`, axes collaborative/pragmatic/narrow, with `modifiers/debug.md` in custom modifier paths
-- [ ] `claude-mode methodical` resolves to `base: "chill"`, axes surgical/architect/narrow, with `modifiers/methodical.md` in custom modifier paths
+- [ ] `claude-mode debug` resolves to `base: "chill"`, axes collaborative/pragmatic/narrow, modifiers includes `modifiers/debug.md`
+- [ ] `claude-mode methodical` resolves to `base: "chill"`, axes surgical/architect/narrow, modifiers includes `modifiers/methodical.md`
 - [ ] `claude-mode debug --base standard` overrides base to standard
 - [ ] `claude-mode debug --agency autonomous` overrides agency
 - [ ] Config `defaultBase: "standard"` overrides preset base for `claude-mode debug`
-- [ ] `claude-mode create --modifier debug` adds the debug modifier to the create preset
-- [ ] `--modifier debug` is not passed through to claude (it's a known flag name)
+- [ ] `claude-mode create --modifier debug` adds `modifiers/debug.md` to modifiers list
+- [ ] `claude-mode create --readonly` adds `modifiers/readonly.md` to modifiers list (same as `--modifier readonly`)
+- [ ] `claude-mode create --modifier readonly` works identically to `--readonly`
+- [ ] `claude-mode create --context-pacing` adds `modifiers/context-pacing.md` to modifiers list
+- [ ] `ModeConfig.modifiers` is `string[]` not an object with boolean fields
 
 ---
 

@@ -28,6 +28,7 @@
   ],
   "scripts": {
     "generate-prompts": "bun scripts/generate-prompts.ts",
+    "prepare": "bun scripts/generate-prompts.ts",
     "build": "bun scripts/generate-prompts.ts && bun build src/cli.ts --compile --outfile claude-mode-bin",
     "build:all": "bun scripts/generate-prompts.ts && bun build src/cli.ts --compile --target=bun-linux-x64 --outfile=dist/claude-mode-linux-x64 && bun build src/cli.ts --compile --target=bun-linux-arm64 --outfile=dist/claude-mode-linux-arm64 && bun build src/cli.ts --compile --target=bun-darwin-x64 --outfile=dist/claude-mode-darwin-x64 && bun build src/cli.ts --compile --target=bun-darwin-arm64 --outfile=dist/claude-mode-darwin-arm64",
     "build-prompt": "bun run src/build-prompt.ts",

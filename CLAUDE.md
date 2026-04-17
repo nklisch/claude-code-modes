@@ -81,7 +81,7 @@ Managed via `claude-mode config` subcommand (init, show, add/remove for defaults
 
 ## Upstream Tracking
 
-**Validated against:** Claude Code v2.1.104
+**Validated against:** Claude Code v2.1.112
 
 Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream prompts for diffing.
 

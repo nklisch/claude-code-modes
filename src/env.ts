@@ -32,9 +32,9 @@ export function detectEnv(): EnvInfo {
 }
 
 // Hardcoded model info — update when Claude Code updates
-const MODEL_NAME = "Claude Opus 4.6";
-const MODEL_ID = "claude-opus-4-6";
-const KNOWLEDGE_CUTOFF = "May 2025";
+const MODEL_NAME = "Claude Opus 4.7";
+const MODEL_ID = "claude-opus-4-7";
+const KNOWLEDGE_CUTOFF = "January 2026";
 
 export function buildTemplateVars(env: EnvInfo): TemplateVars {
   let gitStatusBlock = "";

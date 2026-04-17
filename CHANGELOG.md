@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.5
+
+**Improvements**
+
+- Synced base prompts against Claude Code v2.1.112: updated model to Opus 4.7,
+  knowledge cutoff to January 2026, model family line to "Claude 4.X"; updated
+  fast-mode description; adopted upstream's concise tools, session-guidance, and
+  tone fragments; added "Default to writing no comments" and "Don't explain WHAT
+  the code does" bullets to doing-tasks.md
+
 ## v0.2.4
 
 **Improvements**

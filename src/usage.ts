@@ -5,6 +5,10 @@ Subcommands:
   config            Manage configuration
   inspect [--print] Show prompt assembly plan with provenance and warnings
 
+Info:
+  --version         Print claude-mode version and exit
+  --help, -h        Show this help
+
 Presets:
   create          autonomous / architect / unrestricted
   extend          autonomous / pragmatic / adjacent

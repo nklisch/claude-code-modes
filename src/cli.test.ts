@@ -56,6 +56,58 @@ describe("cli.ts help and usage", () => {
   });
 });
 
+// ─── Version ─────────────────────────────────────────────────────────────────
+
+describe("cli.ts --version", () => {
+  test("--version prints claude-mode version and exits 0", () => {
+    const output = run("--version");
+    expect(output).toMatch(/^claude-mode \d+\.\d+\.\d+/);
+    // Must not look like Claude Code's own version line
+    expect(output).not.toContain("Claude Code");
+  });
+
+  test("--version matches package.json version", async () => {
+    const pkg = await import("../package.json", { with: { type: "json" } });
+    const output = run("--version");
+    expect(output).toBe(`claude-mode ${pkg.default.version}`);
+  });
+
+  test("--version combined with a preset errors out", () => {
+    const err = runExpectFail("create --version");
+    expect(err).toContain("--version cannot be combined with other arguments");
+  });
+
+  test("--version before a preset errors out", () => {
+    const err = runExpectFail("--version create");
+    expect(err).toContain("--version cannot be combined with other arguments");
+  });
+
+  test("--version with trailing passthrough errors out", () => {
+    const err = runExpectFail("--version -- --help");
+    expect(err).toContain("--version cannot be combined with other arguments");
+  });
+
+  test("--version with config subcommand errors out (not forwarded)", () => {
+    const err = runExpectFail("config --version");
+    expect(err).toContain("--version cannot be combined with other arguments");
+  });
+
+  test("passthrough --version after -- is preserved for claude", () => {
+    // `claude-mode create -- --version` should not trigger the version
+    // intercept. We confirm by inspecting the assembled prompt path: with
+    // --print this would just print the prompt; instead we use the
+    // build-prompt entry point which emits the command string to stdout.
+    const buildPrompt = `bun run ${join(import.meta.dir, "build-prompt.ts")}`;
+    const cmd = execSync(`${buildPrompt} create -- --version`, {
+      encoding: "utf8",
+      timeout: 10000,
+      cwd: join(import.meta.dir, ".."),
+    }).trim();
+    expect(cmd).toStartWith("claude ");
+    expect(cmd).toContain("--version");
+  });
+});
+
 // ─── Preset Prompt Assembly ──────────────────────────────────────────────────
 
 describe("cli.ts preset --print", () => {

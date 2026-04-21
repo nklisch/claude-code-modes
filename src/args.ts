@@ -80,7 +80,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
   const knownFlags = new Set([
     "base", "agency", "quality", "scope", "modifier", "readonly", "print", "context-pacing",
     "append-system-prompt", "append-system-prompt-file",
-    "system-prompt", "system-prompt-file", "help",
+    "system-prompt", "system-prompt-file", "help", "version",
   ]);
   const unknownPassthrough: string[] = [];
   for (const [key, val] of Object.entries(values)) {

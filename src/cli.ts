@@ -9,9 +9,28 @@ import { detectEnv, buildTemplateVars } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
 import { printUsage } from "./usage.js";
+import { VERSION } from "./version.js";
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
+
+  // --version: print claude-mode's own version and exit. Must stand alone —
+  // combinations like `claude-mode create --version` are rejected so --version
+  // can't be confused for a subcommand flag or silently forwarded to claude.
+  // Use `claude-mode -- --version` to pass --version through to claude.
+  const dashDashIdx = argv.indexOf("--");
+  const ownArgs = dashDashIdx >= 0 ? argv.slice(0, dashDashIdx) : argv;
+  if (ownArgs.includes("--version")) {
+    if (argv.length !== 1) {
+      process.stderr.write(
+        "Error: --version cannot be combined with other arguments. " +
+        "Use `claude-mode -- --version` to pass --version through to claude.\n"
+      );
+      process.exit(1);
+    }
+    process.stdout.write(`claude-mode ${VERSION}\n`);
+    process.exit(0);
+  }
 
   // No args or --help: show usage
   if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {

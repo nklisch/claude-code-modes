@@ -19,13 +19,14 @@ Presets:
   debug           collaborative / pragmatic / narrow (chill base, investigation mode)
   methodical      surgical / architect / narrow (chill base, step-by-step)
   director        collaborative / architect / unrestricted (chill base, agent delegation)
+  partner         partner / pragmatic / adjacent (chill base, speak-plain + tdd)
 
 Base:
   --base <name|path>      Built-in: standard, chill
   Base can also be a config-defined name or a directory path.
 
 Axis overrides:
-  --agency <value>        Built-in: autonomous, collaborative, surgical
+  --agency <value>        Built-in: autonomous, collaborative, surgical, partner
   --quality <value>       Built-in: architect, pragmatic, minimal
   --scope <value>         Built-in: unrestricted, adjacent, narrow
   Axis values can also be config-defined names or file paths (.md files).
@@ -55,6 +56,7 @@ Examples:
   claude-mode debug                           # investigation-first debugging
   claude-mode methodical                      # step-by-step precision
   claude-mode director                        # delegate to sub-agents
+  claude-mode partner                         # equal-pair: speak plainly, TDD by default
   claude-mode create --modifier bold          # confident, idiomatic code
   claude-mode create -- --verbose --model sonnet`;
 

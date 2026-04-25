@@ -1,4 +1,4 @@
-export const AGENCY_VALUES = ["autonomous", "collaborative", "surgical"] as const;
+export const AGENCY_VALUES = ["autonomous", "collaborative", "surgical", "partner"] as const;
 export type Agency = (typeof AGENCY_VALUES)[number];
 
 export const QUALITY_VALUES = ["architect", "pragmatic", "minimal"] as const;
@@ -17,6 +17,7 @@ export const PRESET_NAMES = [
   "debug",
   "methodical",
   "director",
+  "partner",
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 export function isPresetName(value: string): value is PresetName {
@@ -24,7 +25,7 @@ export function isPresetName(value: string): value is PresetName {
 }
 
 // Built-in modifier names — used for collision checking in config validation
-export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold"] as const;
+export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold", "speak-plain", "tdd"] as const;
 export type BuiltinModifier = (typeof BUILTIN_MODIFIER_NAMES)[number];
 export function isBuiltinModifier(value: string): value is BuiltinModifier {
   return (BUILTIN_MODIFIER_NAMES as readonly string[]).includes(value);

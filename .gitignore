@@ -4,3 +4,4 @@ upstream-prompts/
 dist/
 claude-mode-bin
 src/embedded-prompts.ts
+src/build-info.ts

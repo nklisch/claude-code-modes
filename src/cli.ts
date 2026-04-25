@@ -9,7 +9,7 @@ import { detectEnv, buildTemplateVars } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
 import { printUsage } from "./usage.js";
-import { VERSION } from "./version.js";
+import { formatVersion } from "./version.js";
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
       );
       process.exit(1);
     }
-    process.stdout.write(`claude-mode ${VERSION}\n`);
+    process.stdout.write(`${formatVersion()}\n`);
     process.exit(0);
   }
 

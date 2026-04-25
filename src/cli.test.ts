@@ -2,29 +2,13 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { createCliRunner, makeTempDir } from "./test-helpers.js";
 import { join } from "node:path";
 import { writeFileSync, rmSync } from "node:fs";
-import { execSync } from "node:child_process";
 import { PRESET_NAMES } from "./types.js";
 
 const CLI = `bun run ${join(import.meta.dir, "cli.ts")}`;
+const BUILD_PROMPT = `bun run ${join(import.meta.dir, "build-prompt.ts")}`;
 
 const { run, runExpectFail } = createCliRunner(CLI, 10000);
-
-function runWithCwd(args: string, cwd: string): string {
-  return execSync(`${CLI} ${args}`, {
-    encoding: "utf8",
-    timeout: 10000,
-    cwd,
-  }).trim();
-}
-
-function runWithCwdExpectFail(args: string, cwd: string): string {
-  try {
-    execSync(`${CLI} ${args}`, { encoding: "utf8", timeout: 10000, cwd });
-    throw new Error("Expected command to fail");
-  } catch (err: any) {
-    return (err.stderr || err.message || "").toString();
-  }
-}
+const { run: runBuildPrompt } = createCliRunner(BUILD_PROMPT, 10000);
 
 // ─── Help and Usage ──────────────────────────────────────────────────────────
 
@@ -66,10 +50,21 @@ describe("cli.ts --version", () => {
     expect(output).not.toContain("Claude Code");
   });
 
-  test("--version matches package.json version", async () => {
+  test("--version first line matches package.json version", async () => {
     const pkg = await import("../package.json", { with: { type: "json" } });
     const output = run("--version");
-    expect(output).toBe(`claude-mode ${pkg.default.version}`);
+    const firstLine = output.split("\n")[0];
+    expect(firstLine).toBe(`claude-mode ${pkg.default.version}`);
+  });
+
+  test("--version includes build provenance when run from a git checkout", () => {
+    // The dev test environment is a git repo, so generate-build-info captures
+    // real values. We don't pin specific values — branches change — but the
+    // shape of the multi-line output must be intact.
+    const output = run("--version");
+    expect(output).toMatch(/\n {2}repo: {3}https?:\/\/.+/);
+    expect(output).toMatch(/\n {2}branch: \S+/);
+    expect(output).toMatch(/\n {2}commit: [0-9a-f]{7,}/);
   });
 
   test("--version combined with a preset errors out", () => {
@@ -97,12 +92,7 @@ describe("cli.ts --version", () => {
     // intercept. We confirm by inspecting the assembled prompt path: with
     // --print this would just print the prompt; instead we use the
     // build-prompt entry point which emits the command string to stdout.
-    const buildPrompt = `bun run ${join(import.meta.dir, "build-prompt.ts")}`;
-    const cmd = execSync(`${buildPrompt} create -- --version`, {
-      encoding: "utf8",
-      timeout: 10000,
-      cwd: join(import.meta.dir, ".."),
-    }).trim();
+    const cmd = runBuildPrompt("create -- --version");
     expect(cmd).toStartWith("claude ");
     expect(cmd).toContain("--version");
   });
@@ -429,7 +419,7 @@ describe("cli.ts config errors", () => {
     const tempDir = makeTempDir("cli-bad-json-");
     try {
       writeFileSync(join(tempDir, ".claude-mode.json"), "{ bad json", "utf8");
-      const err = runWithCwdExpectFail("create --print", tempDir);
+      const err = runExpectFail("create --print", tempDir);
       expect(err).toContain("Invalid config file");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -444,7 +434,7 @@ describe("cli.ts config errors", () => {
         JSON.stringify({ defaultModifiers: ["nonexistent"] }),
         "utf8",
       );
-      const err = runWithCwdExpectFail("create --print", tempDir);
+      const err = runExpectFail("create --print", tempDir);
       expect(err).toContain("Unknown modifier");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -461,7 +451,7 @@ describe("cli.ts config errors", () => {
         }),
         "utf8",
       );
-      const err = runWithCwdExpectFail("broken --print", tempDir);
+      const err = runExpectFail("broken --print", tempDir);
       expect(err).toContain("Unknown --agency value");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -491,7 +481,7 @@ describe("cli.ts config-driven workflows", () => {
         }),
         "utf8",
       );
-      const output = runWithCwd("team --print", tempDir);
+      const output = run("team --print", tempDir);
       expect(output).toContain("# Team Rules");
       expect(output).toContain("# Agency: Collaborative");
       expect(output).toContain("# Quality: Architect");
@@ -513,7 +503,7 @@ describe("cli.ts config-driven workflows", () => {
         }),
         "utf8",
       );
-      const output = runWithCwd("create --print", tempDir);
+      const output = run("create --print", tempDir);
       expect(output).toContain("# Default Rule");
       expect(output).toContain("Always on.");
     } finally {
@@ -532,7 +522,7 @@ describe("cli.ts config-driven workflows", () => {
         }),
         "utf8",
       );
-      const output = runWithCwd("create --quality team-standard --print", tempDir);
+      const output = run("create --quality team-standard --print", tempDir);
       expect(output).toContain("# Quality: Team");
       expect(output).not.toContain("# Quality: Architect");
     } finally {
@@ -549,7 +539,7 @@ describe("cli.ts config-driven workflows", () => {
         JSON.stringify({ modifiers: { focus: "./focus.md" } }),
         "utf8",
       );
-      const output = runWithCwd("create --modifier focus --print", tempDir);
+      const output = run("create --modifier focus --print", tempDir);
       expect(output).toContain("# Focus");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -568,7 +558,7 @@ describe("cli.ts config-driven workflows", () => {
         }),
         "utf8",
       );
-      const output = runWithCwd("team --quality minimal --print", tempDir);
+      const output = run("team --quality minimal --print", tempDir);
       expect(output).toContain("# Quality: Minimal");
       expect(output).toContain("# Agency: Collaborative"); // from preset
     } finally {
@@ -616,8 +606,8 @@ describe("cli.ts config subcommand", () => {
   test("config init creates scaffold", () => {
     const tempDir = makeTempDir("cli-config-init-");
     try {
-      runWithCwd("config init", tempDir);
-      const output = runWithCwd("config show", tempDir);
+      run("config init", tempDir);
+      const output = run("config show", tempDir);
       expect(output).toContain('"defaultModifiers"');
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -627,8 +617,8 @@ describe("cli.ts config subcommand", () => {
   test("config init errors if file already exists", () => {
     const tempDir = makeTempDir("cli-config-dup-");
     try {
-      runWithCwd("config init", tempDir);
-      const err = runWithCwdExpectFail("config init", tempDir);
+      run("config init", tempDir);
+      const err = runExpectFail("config init", tempDir);
       expect(err).toContain("already exists");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -638,7 +628,7 @@ describe("cli.ts config subcommand", () => {
   test("config add-modifier rejects built-in name", () => {
     const tempDir = makeTempDir("cli-config-builtin-");
     try {
-      const err = runWithCwdExpectFail("config add-modifier readonly ./path.md", tempDir);
+      const err = runExpectFail("config add-modifier readonly ./path.md", tempDir);
       expect(err).toContain("built-in modifier name");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -648,7 +638,7 @@ describe("cli.ts config subcommand", () => {
   test("config add-axis rejects built-in value", () => {
     const tempDir = makeTempDir("cli-config-axis-builtin-");
     try {
-      const err = runWithCwdExpectFail("config add-axis agency autonomous ./path.md", tempDir);
+      const err = runExpectFail("config add-axis agency autonomous ./path.md", tempDir);
       expect(err).toContain("built-in agency value");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -658,7 +648,7 @@ describe("cli.ts config subcommand", () => {
   test("config add-preset rejects built-in preset name", () => {
     const tempDir = makeTempDir("cli-config-preset-builtin-");
     try {
-      const err = runWithCwdExpectFail("config add-preset create", tempDir);
+      const err = runExpectFail("config add-preset create", tempDir);
       expect(err).toContain("built-in preset name");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -668,7 +658,7 @@ describe("cli.ts config subcommand", () => {
   test("config unknown subcommand exits with error", () => {
     const tempDir = makeTempDir("cli-config-unknown-");
     try {
-      const err = runWithCwdExpectFail("config unknown-sub", tempDir);
+      const err = runExpectFail("config unknown-sub", tempDir);
       expect(err).toContain("Unknown config subcommand");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });

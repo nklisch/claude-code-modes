@@ -8,7 +8,7 @@ import { detectEnv, buildTemplateVars } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
 import { printUsage } from "./usage.js";
-import { VERSION } from "./version.js";
+import { formatVersion } from "./version.js";
 
 function shellEscape(arg: string): string {
   // If arg contains no special characters, return as-is
@@ -36,7 +36,7 @@ function main(): void {
       );
       process.exit(1);
     }
-    process.stdout.write(`claude-mode ${VERSION}\n`);
+    process.stdout.write(`${formatVersion()}\n`);
     process.exit(0);
   }
 

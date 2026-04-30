@@ -8,6 +8,7 @@ import { assemblePrompt, writeTempPrompt } from "./assemble.js";
 import { detectEnv, buildTemplateVars } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
+import { runUpdateCommand } from "./update.js";
 import { printUsage } from "./usage.js";
 import { formatVersion } from "./version.js";
 
@@ -56,6 +57,17 @@ async function main(): Promise<void> {
   if (argv[0] === "inspect") {
     try {
       runInspectCommand(argv.slice(1), promptsDir);
+    } catch (err) {
+      process.stderr.write(`Error: ${(err as Error).message}\n`);
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+
+  // Update subcommand routing
+  if (argv[0] === "update") {
+    try {
+      await runUpdateCommand(argv.slice(1));
     } catch (err) {
       process.stderr.write(`Error: ${(err as Error).message}\n`);
       process.exit(1);

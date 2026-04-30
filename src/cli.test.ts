@@ -666,3 +666,27 @@ describe("cli.ts config subcommand", () => {
     }
   });
 });
+
+// ─── Update subcommand ────────────────────────────────────────────────────────
+
+describe("cli.ts update subcommand", () => {
+  test("update --bogus rejects unknown flag", () => {
+    const out = runExpectFail("update --bogus");
+    expect(out).toContain("Unknown flag");
+    expect(out).toContain("--bogus");
+  });
+
+  test("update from source build refuses with guidance", () => {
+    // Running via `bun run` means process.execPath is bun → source mode
+    const out = runExpectFail("update --check");
+    expect(out).toContain("source");
+    expect(out).toContain("git pull");
+  });
+
+  test("update help mentions in main usage", () => {
+    const out = run("--help");
+    expect(out).toContain("update [version]");
+    expect(out).toContain("--check");
+    expect(out).toContain("--dry-run");
+  });
+});

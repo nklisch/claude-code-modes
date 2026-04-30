@@ -27,6 +27,20 @@ Requires [Bun](https://bun.sh/) and [Claude Code](https://docs.anthropic.com/en/
 
 > **Migrating from an older git clone?** If you previously used `./claude-mode` directly from the repo, that bash wrapper has been removed. Run `bun link` in the repo to put `claude-mode` on your PATH via the package.json bin entry, or switch to the binary install above.
 
+## Updating
+
+If you installed the binary via `install.sh`:
+
+```bash
+claude-mode update              # update to the latest release
+claude-mode update --check      # check without installing
+claude-mode update 0.2.5        # pin a specific version (downgrade or reinstall)
+claude-mode update --force      # reinstall same version (repair a corrupt binary)
+claude-mode update --dry-run    # show what would happen
+```
+
+`update` only works on binaries built from the upstream repo. If you're running from a `git clone` checkout (`bun link`), use `git pull && bun install` instead. If you're running a fork build, update via your fork's release process.
+
 ## Usage
 
 Pick a preset that matches your task:

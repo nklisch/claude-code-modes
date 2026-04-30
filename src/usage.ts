@@ -4,6 +4,13 @@ export function printUsage(): void {
 Subcommands:
   config            Manage configuration
   inspect [--print] Show prompt assembly plan with provenance and warnings
+  update [version]  Update the installed binary from GitHub Releases
+
+Update flags (passed after the "update" subcommand):
+  --check           Check for updates without installing
+  --force           Reinstall the same version (repair a corrupted install)
+  --dry-run         Show what would happen without writing anything
+  <version>         Install a specific release tag (e.g. "0.2.5"); default is latest
 
 Info:
   --version         Print claude-mode version and exit
@@ -58,7 +65,11 @@ Examples:
   claude-mode director                        # delegate to sub-agents
   claude-mode partner                         # equal-pair: speak plainly, TDD by default
   claude-mode create --modifier bold          # confident, idiomatic code
-  claude-mode create -- --verbose --model sonnet`;
+  claude-mode create -- --verbose --model sonnet
+  claude-mode update                          # update to the latest release
+  claude-mode update --check                  # check for updates without installing
+  claude-mode update 0.2.5                    # pin to a specific version (downgrade or reinstall)
+  claude-mode update --force                  # reinstall the same version (repair)`;
 
   process.stdout.write(usage + "\n");
 }

@@ -29,6 +29,7 @@ claude-mode explore
 claude-mode debug
 claude-mode methodical
 claude-mode director
+claude-mode partner
 claude-mode none
 ```
 
@@ -42,7 +43,7 @@ claude-mode safe --quality pragmatic --scope adjacent
 ```
 
 Flags:
-- `--agency <autonomous|collaborative|surgical>`
+- `--agency <autonomous|collaborative|surgical|partner>`
 - `--quality <architect|pragmatic|minimal>`
 - `--scope <unrestricted|adjacent|narrow>`
 
@@ -66,9 +67,9 @@ All modifiers are fragment-based — they resolve to markdown files that get ins
 
 - `--readonly` — Shorthand for `--modifier readonly`. Appends readonly instructions.
 - `--context-pacing` — Shorthand for `--modifier context-pacing`. Appends context pacing instructions.
-- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`), config-defined names, or file paths.
+- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`), config-defined names, or file paths.
 
-Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`. The `debug`, `methodical`, and `director` presets include their respective modifiers automatically.
+Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`. The `debug`, `methodical`, `director`, and `partner` presets include their respective modifiers automatically.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
 
@@ -136,6 +137,18 @@ claude-mode create --verbose --model sonnet
 
 `--system-prompt` and `--system-prompt-file` are intercepted and rejected with an error — they conflict with claude-mode's purpose.
 
+### Version Flag
+
+- `--version` — Prints `claude-mode <version>` and exits 0. When the binary was compiled from a git checkout (forks, dev builds), additional provenance lines follow: `repo`, `branch`, `commit` (with a `(dirty)` suffix if the worktree was modified). Release builds print only the single version line.
+
+Standalone-only: combining `--version` with any other argument exits with a non-zero status. To forward `--version` to `claude` itself, use the `--` escape hatch:
+
+```
+claude-mode -- --version
+```
+
+Implemented in `src/version.ts` (formatting) and `scripts/generate-build-info.ts` (build-time provenance capture into `src/build-info.ts`).
+
 ## Prompt Assembly
 
 ### Manifest-Driven Fragment Order
@@ -182,6 +195,7 @@ Each base has a single `actions.md` that lists what constitutes risky actions (d
 - `axis/agency/autonomous.md` tells Claude to act freely on local, reversible actions
 - `axis/agency/collaborative.md` tells Claude to check in at decision points
 - `axis/agency/surgical.md` tells Claude to execute exactly what was asked
+- `axis/agency/partner.md` tells Claude to commit decisively on execution choices while deferring to the user on direction
 
 ## Environment Detection
 
@@ -243,7 +257,8 @@ claude-code-modes/
 │   │   ├── agency/
 │   │   │   ├── autonomous.md
 │   │   │   ├── collaborative.md
-│   │   │   └── surgical.md
+│   │   │   ├── surgical.md
+│   │   │   └── partner.md
 │   │   ├── quality/
 │   │   │   ├── architect.md
 │   │   │   ├── pragmatic.md
@@ -258,7 +273,9 @@ claude-code-modes/
 │       ├── debug.md
 │       ├── methodical.md
 │       ├── director.md
-│       └── bold.md
+│       ├── bold.md
+│       ├── speak-plain.md
+│       └── tdd.md
 ├── VISION.md
 ├── SPEC.md
 └── PROMPT-AUDIT.md

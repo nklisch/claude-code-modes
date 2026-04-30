@@ -40,6 +40,7 @@ claude-mode explore     # Read-only — understand code without changing it
 claude-mode debug       # Investigation-first debugging (chill base)
 claude-mode methodical  # Step-by-step precision (chill base)
 claude-mode director    # Delegate to sub-agents, orchestrate and verify (chill base)
+claude-mode partner     # Pair-of-equals: terse, test-first, decisive on craft (chill base)
 claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
@@ -53,6 +54,7 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `debug` | collaborative | pragmatic | narrow | Find root causes — evidence-first, ask for guidance when stuck |
 | `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions, stop when done |
 | `director` | collaborative | architect | unrestricted | Orchestrate sub-agents — delegate implementation, verify results |
+| `partner` | partner | pragmatic | adjacent | Pair-of-equals collaboration — decisive on craft, test-first, terse by default |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Alternative base: chill
@@ -93,7 +95,7 @@ prompts/
   base/         Standard base (derived from upstream Claude Code)
   chill/        Alternative base (emotion-research-informed, leaner)
   axis/         Behavioral prompts organized by three axes
-  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing)
+  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd)
 ```
 
 Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.121**.
@@ -157,6 +159,14 @@ Check the installed version:
 
 ```bash
 claude-mode --version
+```
+
+Release builds print a single line (`claude-mode 0.2.8`). Builds compiled from a git checkout — forks, dev builds — also print build provenance (`repo`, `branch`, `commit`, plus `(dirty)` if the worktree had uncommitted changes), so a binary built from a fork is unmistakably identifiable.
+
+`--version` is standalone-only — combining it with any other flag exits with a non-zero status. To pass `--version` through to Claude Code itself, use the `--` escape hatch:
+
+```bash
+claude-mode -- --version    # Forwards --version to claude
 ```
 
 ## Config file
@@ -236,6 +246,7 @@ claude-mode config remove-preset <name>              # Remove custom preset
 - **autonomous** — Makes decisions, creates files, restructures without asking
 - **collaborative** — Explains reasoning, checks in at decision points
 - **surgical** — Executes exactly what was asked, nothing more
+- **partner** — Pair of equals: commits decisively on execution choices (naming, structure, idiom), defers to the user on direction (priorities, scope, what counts as done), keeps mental models in sync
 
 **Quality** — What code standard should it target?
 - **architect** — Proper abstractions, error handling, forward-thinking structure

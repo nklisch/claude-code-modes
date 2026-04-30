@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+**Features**
+
+- Added `claude-mode update` self-update subcommand — fetches the latest GitHub release (or a pinned version), verifies SHA-256 against `checksums.txt`, and atomically replaces the running binary. Supports `--check`, `--force`, `--dry-run`, and a positional version like `0.2.5`. Refuses gracefully on source/dirty/fork builds with guidance for the right update path.
+
+**Internal**
+
+- New `src/update.ts` module implements the update operation with injectable transport for unit testability without live network access.
+
 ## v0.2.8
 
 **Features**

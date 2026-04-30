@@ -28,6 +28,7 @@ src/
   config.ts        # .claude-mode.json loading, validation, collision checks
   config-cli.ts    # `claude-mode config` subcommand (init, show, add/remove)
   inspect.ts       # `claude-mode inspect` subcommand (fragment provenance, warnings)
+  update.ts        # `claude-mode update` subcommand (self-update from GitHub Releases)
   cli.ts           # main entry point: spawns claude with assembled prompt
   build-prompt.ts  # alternative entry: outputs claude command string for scripting
   test-helpers.ts  # shared test utilities (createCliRunner, makeTempDir, PROJECT_ROOT)

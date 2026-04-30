@@ -149,6 +149,31 @@ claude-mode -- --version
 
 Implemented in `src/version.ts` (formatting) and `scripts/generate-build-info.ts` (build-time provenance capture into `src/build-info.ts`).
 
+### Update Subcommand
+
+Updates the installed binary in place from GitHub Releases. Implemented in `src/update.ts`; routed from `src/cli.ts`.
+
+```
+claude-mode update [version] [flags]
+```
+
+**Positional:**
+- `[version]` — target release tag, e.g. `0.2.5` or `v0.2.5`; omit for latest
+
+**Flags:**
+- `--check` — check for updates without installing (prints status, exits 0)
+- `--force` — reinstall the same version (repair a corrupt binary)
+- `--dry-run` — show what would happen without writing anything
+
+**Mechanism:** fetches release metadata from `https://api.github.com/repos/nklisch/claude-code-modes/releases/...`, downloads the platform binary (`claude-mode-{linux,darwin}-{x64,arm64}`) and `checksums.txt`, verifies SHA-256, then atomically replaces `process.execPath` (write to `${path}.new`, chmod 0755, drop macOS quarantine xattr, rename).
+
+**Refusal cases** (with guidance printed to stderr):
+- Running via bun runtime (source mode) → `"use git pull && bun install"`
+- `BUILD_INFO.dirty === true` → `"commit or revert local changes"`
+- `BUILD_INFO.repo` set and ≠ `https://github.com/nklisch/claude-code-modes.git` → `"update via your fork's release process"`
+
+Upstream repo constant: `https://github.com/nklisch/claude-code-modes`
+
 ## Prompt Assembly
 
 ### Manifest-Driven Fragment Order
@@ -231,6 +256,7 @@ claude-code-modes/
 │   ├── config.ts                  # config file loading, validation, collision checks
 │   ├── config-cli.ts              # `claude-mode config` subcommand
 │   ├── inspect.ts                 # `claude-mode inspect` subcommand
+│   ├── update.ts                  # `claude-mode update` subcommand
 │   ├── env.ts                     # shell commands for env detection
 │   ├── presets.ts                 # preset → axis mapping
 │   ├── assemble.ts                # manifest-driven fragment assembly

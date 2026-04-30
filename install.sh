@@ -156,3 +156,6 @@ case ":$PATH:" in
     echo ""
     ;;
 esac
+
+echo ""
+echo "To update later: claude-mode update"

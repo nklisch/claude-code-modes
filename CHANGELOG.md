@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.2.8
+
+**Features**
+
+- Added `--version` flag that reports claude-mode's own version (`claude-mode 0.2.8`), including build provenance (repo/branch/commit) for fork-built binaries
+- Added `partner` agency axis — equal-pair framing where the model commits decisively on execution choices while the user owns direction
+- Added `speak-plain` modifier — terse default register with a `DEEP` token as an explicit escape hatch for full exploration
+- Added `tdd` modifier — test-driven development by default with opt-out via `"let's prototype"` and self-verification before prompting the user
+- Added `partner` preset combining chill base + partner/pragmatic/adjacent + speak-plain and tdd modifiers
+
+**Fixes**
+
+- Fixed Windows "The system cannot find the path specified." printed on every invocation — `2>/dev/null` shell redirect replaced with cross-platform `stdio: ["ignore", "pipe", "ignore"]` on `execSync` (fixes #7)
+
+**Internal**
+
+- Base prompts (`session-guidance.md`, `tools.md`) rewritten to describe behavior rather than name specific tools, reducing brittleness when tools are deferred or absent
+- Chill base prompts adopt consequentialist Bash framing and plainer Anglo-Saxon register
+- Test scaffolding: `createCliRunner` now pipes stdio to prevent expected errors from leaking into test output; `run`/`runExpectFail` accept an optional `cwd`, eliminating ~80 lines of duplicated helpers
+
 ## v0.2.7
 
 **Improvements**

@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, spyOn } from "bun:test";
 import { detectEnv, buildTemplateVars } from "./env.js";
 import type { EnvInfo } from "./types.js";
 
@@ -33,6 +33,22 @@ describe("detectEnv", () => {
     const env = detectEnv();
     if (env.isGit) {
       expect(env.gitBranch).not.toBeNull();
+    }
+  });
+
+  // Regression: on Windows, `2>/dev/null` is interpreted by cmd.exe as a path
+  // redirection and prints "The system cannot find the path specified." to
+  // stderr for every invocation. detectEnv must not write anything to stderr
+  // when run outside a git repo or when shell utilities (uname) are missing.
+  test("does not leak stderr from failing subprocesses", () => {
+    const writeSpy = spyOn(process.stderr, "write").mockImplementation(() => true);
+    try {
+      detectEnv();
+      const calls = writeSpy.mock.calls.map((c) => String(c[0])).join("");
+      expect(calls).not.toContain("The system cannot find the path specified");
+      expect(calls).not.toContain("not a git repository");
+    } finally {
+      writeSpy.mockRestore();
     }
   });
 });

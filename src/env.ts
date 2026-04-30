@@ -4,7 +4,15 @@ import type { EnvInfo, TemplateVars } from "./types.js";
 
 function exec(command: string): string | null {
   try {
-    return execSync(command, { encoding: "utf8", timeout: 5000 }).trim();
+    // stdio: ignore stderr cross-platform — avoids shell-specific redirects
+    // like `2>/dev/null` (Unix) or `2>NUL` (Windows). Without this, Windows
+    // cmd.exe interprets `/dev/null` as a missing path and prints
+    // "The system cannot find the path specified." for every invocation.
+    return execSync(command, {
+      encoding: "utf8",
+      timeout: 5000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
   } catch {
     return null;
   }
@@ -12,7 +20,7 @@ function exec(command: string): string | null {
 
 export function detectEnv(): EnvInfo {
   const cwd = process.cwd();
-  const isGit = exec("git rev-parse --is-inside-work-tree 2>/dev/null") === "true";
+  const isGit = exec("git rev-parse --is-inside-work-tree") === "true";
 
   let gitBranch: string | null = null;
   let gitStatus: string | null = null;

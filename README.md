@@ -153,6 +153,12 @@ Debug the assembled prompt:
 claude-mode explore --print
 ```
 
+Check the installed version:
+
+```bash
+claude-mode --version
+```
+
 ## Config file
 
 Create a `.claude-mode.json` in your project root to define reusable custom modifiers, axis values, and presets. Manage it with the CLI or edit directly.

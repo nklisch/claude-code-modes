@@ -30,6 +30,7 @@ const EXPECTED_FRAGMENTS = [
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
   "axis/agency/surgical.md",
+  "axis/agency/partner.md",
   "axis/quality/architect.md",
   "axis/quality/pragmatic.md",
   "axis/quality/minimal.md",
@@ -43,11 +44,13 @@ const EXPECTED_FRAGMENTS = [
   "modifiers/methodical.md",
   "modifiers/director.md",
   "modifiers/bold.md",
+  "modifiers/speak-plain.md",
+  "modifiers/tdd.md",
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 30 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(30);
+  test("contains exactly 33 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(33);
   });
 
   test("all expected fragment keys are present", () => {
@@ -128,6 +131,12 @@ describe("EMBEDDED_PROMPTS", () => {
         base: "chill",
         axes: { agency: "surgical", quality: "architect", scope: "narrow" },
         modifiers: ["modifiers/methodical.md"],
+      },
+      // partner preset — chill base, partner agency, speak-plain + tdd modifiers
+      {
+        base: "chill",
+        axes: { agency: "partner", quality: "pragmatic", scope: "adjacent" },
+        modifiers: ["modifiers/speak-plain.md", "modifiers/tdd.md"],
       },
     ];
     for (const mode of modes) {

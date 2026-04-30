@@ -57,6 +57,12 @@ const PRESETS: Record<PresetName, PresetDefinition> = {
     base: "chill",
     modifiers: ["director"],
   },
+  "partner": {
+    axes: { agency: "partner", quality: "pragmatic", scope: "adjacent" },
+    readonly: false,
+    base: "chill",
+    modifiers: ["speak-plain", "tdd"],
+  },
 };
 
 export function getPreset(name: PresetName): PresetDefinition {

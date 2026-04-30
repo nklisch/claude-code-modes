@@ -2,12 +2,14 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { join } from "node:path";
 import { mkdtempSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { execSync } from "node:child_process";
 import { createCliRunner, makeTempDir } from "./test-helpers.js";
 import { PRESET_NAMES } from "./types.js";
 
-const { run, runExpectFail } = createCliRunner(
-  `bun run ${join(import.meta.dir, "build-prompt.ts")}`,
+const BUILD_PROMPT = `bun run ${join(import.meta.dir, "build-prompt.ts")}`;
+
+const { run, runExpectFail } = createCliRunner(BUILD_PROMPT);
+const { run: runConfig, runExpectFail: runConfigExpectFail } = createCliRunner(
+  `${BUILD_PROMPT} config`,
 );
 
 describe("claude-mode e2e", () => {
@@ -211,29 +213,6 @@ describe("custom prompts e2e", () => {
 });
 
 describe("config-driven workflow e2e", () => {
-  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
-
-  function runWithCwd(args: string, cwd: string): string {
-    return execSync(`bun run ${SCRIPT} ${args}`, {
-      encoding: "utf8",
-      timeout: 15000,
-      cwd,
-    }).trim();
-  }
-
-  function runWithCwdExpectFail(args: string, cwd: string): string {
-    try {
-      execSync(`bun run ${SCRIPT} ${args}`, {
-        encoding: "utf8",
-        timeout: 15000,
-        cwd,
-      });
-      throw new Error("Expected command to fail");
-    } catch (err: any) {
-      return (err.stderr || err.stdout || err.message || "").toString();
-    }
-  }
-
   test("custom preset from config produces correct output", () => {
     const tempDir = makeTempDir("e2e-custom-preset-");
     try {
@@ -249,7 +228,7 @@ describe("config-driven workflow e2e", () => {
           },
         },
       }), "utf8");
-      const output = runWithCwd("team --print", tempDir);
+      const output = run("team --print", tempDir);
       expect(output).toContain("# Team Rules");
       expect(output).toContain("Always write tests.");
       expect(output).toContain("# Agency: Collaborative");
@@ -268,7 +247,7 @@ describe("config-driven workflow e2e", () => {
         defaultModifiers: ["default-rule"],
         modifiers: { "default-rule": "./default-rule.md" },
       }), "utf8");
-      const output = runWithCwd("create --print", tempDir);
+      const output = run("create --print", tempDir);
       expect(output).toContain("# Default Rule");
       expect(output).toContain("This is always on.");
     } finally {
@@ -290,7 +269,7 @@ describe("config-driven workflow e2e", () => {
           },
         },
       }), "utf8");
-      const output = runWithCwd("team --print", tempDir);
+      const output = run("team --print", tempDir);
       expect(output).toContain("Team Standard");
       expect(output).toContain("Our quality rules.");
       expect(output).not.toContain("# Quality: Architect");
@@ -322,7 +301,7 @@ describe("config-driven workflow e2e", () => {
       writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
         modifiers: { "focus-rules": "./focus.md" },
       }), "utf8");
-      const output = runWithCwd("create --modifier focus-rules --print", tempDir);
+      const output = run("create --modifier focus-rules --print", tempDir);
       expect(output).toContain("# Focus Rules");
       expect(output).toContain("Stay focused.");
     } finally {
@@ -341,11 +320,11 @@ describe("config-driven workflow e2e", () => {
     try {
       const rulesPath = join(tempDir, "rules.md");
       writeFileSync(rulesPath, "# Team Rules E2E\nMulti-step test.", "utf8");
-      runWithCwd("config init", tempDir);
-      runWithCwd(`config add-modifier team-rules ${rulesPath}`, tempDir);
-      runWithCwd("config add-default team-rules", tempDir);
-      runWithCwd("config add-preset team --agency collaborative --quality architect", tempDir);
-      const output = runWithCwd("team --print", tempDir);
+      run("config init", tempDir);
+      run(`config add-modifier team-rules ${rulesPath}`, tempDir);
+      run("config add-default team-rules", tempDir);
+      run("config add-preset team --agency collaborative --quality architect", tempDir);
+      const output = run("team --print", tempDir);
       expect(output).toContain("# Team Rules E2E");
       expect(output).toContain("# Agency: Collaborative");
       expect(output).toContain("# Quality: Architect");
@@ -356,20 +335,6 @@ describe("config-driven workflow e2e", () => {
 });
 
 describe("failure mode e2e", () => {
-  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
-
-  function runWithCwdExpectFail(args: string, cwd: string): string {
-    try {
-      execSync(`bun run ${SCRIPT} ${args}`, {
-        encoding: "utf8",
-        timeout: 15000,
-        cwd,
-      });
-      throw new Error("Expected command to fail");
-    } catch (err: any) {
-      return (err.stderr || err.stdout || err.message || "").toString();
-    }
-  }
 
   test("unknown preset name produces helpful error", () => {
     const err = runExpectFail("typo-preset");
@@ -385,7 +350,7 @@ describe("failure mode e2e", () => {
     const tempDir = makeTempDir("e2e-invalid-json-");
     try {
       writeFileSync(join(tempDir, ".claude-mode.json"), "{ bad json", "utf8");
-      const err = runWithCwdExpectFail("create --print", tempDir);
+      const err = runExpectFail("create --print", tempDir);
       expect(err).toContain("Invalid config file");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -398,7 +363,7 @@ describe("failure mode e2e", () => {
       writeFileSync(join(tempDir, ".claude-mode.json"), JSON.stringify({
         defaultModifiers: ["nonexistent-mod"],
       }), "utf8");
-      const err = runWithCwdExpectFail("create --print", tempDir);
+      const err = runExpectFail("create --print", tempDir);
       expect(err).toContain("Unknown modifier");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -407,30 +372,6 @@ describe("failure mode e2e", () => {
 });
 
 describe("claude-mode config e2e", () => {
-  const CLI = join(import.meta.dir, "..", "node_modules", ".bin", "bun");
-  const SCRIPT = join(import.meta.dir, "build-prompt.ts");
-
-  function runConfig(args: string, cwd: string): string {
-    return execSync(`bun run ${SCRIPT} config ${args}`, {
-      encoding: "utf8",
-      timeout: 15000,
-      cwd,
-    }).trim();
-  }
-
-  function runConfigExpectFail(args: string, cwd: string): string {
-    try {
-      execSync(`bun run ${SCRIPT} config ${args}`, {
-        encoding: "utf8",
-        timeout: 15000,
-        cwd,
-      });
-      throw new Error("Expected command to fail");
-    } catch (err: any) {
-      return (err.stderr || err.stdout || err.message || "").toString();
-    }
-  }
-
   test("config show returns 'No config file found.' when no config", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "e2e-config-test-"));
     try {

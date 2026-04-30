@@ -69,6 +69,18 @@ describe("getPreset", () => {
     expect(p.modifiers).toEqual(["methodical"]);
   });
 
+  test("partner has partner/pragmatic/adjacent", () => {
+    const p = getPreset("partner");
+    expect(p.axes).toEqual({ agency: "partner", quality: "pragmatic", scope: "adjacent" });
+    expect(p.readonly).toBe(false);
+  });
+
+  test("partner has base chill and modifiers ['speak-plain', 'tdd']", () => {
+    const p = getPreset("partner");
+    expect(p.base).toBe("chill");
+    expect(p.modifiers).toEqual(["speak-plain", "tdd"]);
+  });
+
   test("all PRESET_NAMES have definitions", () => {
     for (const name of PRESET_NAMES) {
       expect(getPreset(name)).toBeDefined();
@@ -93,6 +105,8 @@ describe("isPresetName", () => {
     expect(isPresetName("none")).toBe(true);
     expect(isPresetName("debug")).toBe(true);
     expect(isPresetName("methodical")).toBe(true);
+    expect(isPresetName("director")).toBe(true);
+    expect(isPresetName("partner")).toBe(true);
   });
 
   test("returns false for invalid names", () => {

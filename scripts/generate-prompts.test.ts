@@ -5,11 +5,12 @@ import { execSync } from "node:child_process";
 import { PROJECT_ROOT, makeTempDir } from "../src/test-helpers.js";
 
 describe("generate-prompts.ts", () => {
-  test("produces src/embedded-prompts.ts with 30 fragments", () => {
+  test("produces src/embedded-prompts.ts with the expected fragment count", () => {
     execSync("bun scripts/generate-prompts.ts", {
       cwd: PROJECT_ROOT,
       encoding: "utf8",
       timeout: 10000,
+      stdio: ["pipe", "pipe", "pipe"],
     });
     const content = readFileSync(
       join(PROJECT_ROOT, "src/embedded-prompts.ts"),
@@ -18,7 +19,7 @@ describe("generate-prompts.ts", () => {
     expect(content).toContain("EMBEDDED_PROMPTS");
     // Count fragment entries (lines with "path": ` pattern) — includes .md and .json files
     const entries = content.match(/^\s+"(?:base|chill|axis|modifiers)\/[a-z/\-.]+": `/gm);
-    expect(entries).toHaveLength(30);
+    expect(entries).toHaveLength(33);
   });
 
   test("generated file has auto-generated header comment", () => {
@@ -81,6 +82,7 @@ describe("generate-prompts.ts error handling", () => {
       execSync(`bun run ${modifiedScript}`, {
         encoding: "utf8",
         timeout: 10000,
+        stdio: ["pipe", "pipe", "pipe"],
       });
       throw new Error("Expected script to fail");
     } catch (err: any) {

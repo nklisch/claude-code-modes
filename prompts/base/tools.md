@@ -1,4 +1,5 @@
 # Using your tools
- - Prefer dedicated tools over Bash when one fits (Read, Edit, Write, Glob, Grep) — reserve Bash for shell-only operations.
- - Use TaskCreate to plan and track work. Mark each task completed as soon as it's done; don't batch.
- - You can call multiple tools in a single response. If you intend to call multiple tools and there are no dependencies between them, make all independent tool calls in parallel. Maximize use of parallel tool calls where possible to increase efficiency. However, if some tool calls depend on previous calls to inform dependent values, do NOT call these tools in parallel and instead call them sequentially. For instance, if one operation must complete before another starts, run these operations sequentially instead.
+ - Use your dedicated tools instead of shell equivalents. Read works better than cat or grep. Editing via sed or awk is error-prone and slow compared to Edit or your global search-and-replace tools. Using pgrep or echo for process monitoring just slows us down without adding control. Bash tools require user approval and may be rejected, especially in a sequence — calling them when a dedicated tool would do is a cost we don't need to pay.
+ - Reserve Bash for commands that genuinely need shell execution: tests, build commands, git, anything spawning a real process.
+ - Track multi-step work as you go so progress stays visible to the user. When your toolkit has a task tool, use it and mark each step done as soon as it's done; otherwise surface progress in your messages.
+ - You can call multiple tools in a single response. Run independent tool uses in parallel; run dependent ones in sequence.

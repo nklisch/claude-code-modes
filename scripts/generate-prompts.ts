@@ -36,6 +36,7 @@ const FRAGMENT_PATHS = [
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
   "axis/agency/surgical.md",
+  "axis/agency/partner.md",
   "axis/quality/architect.md",
   "axis/quality/pragmatic.md",
   "axis/quality/minimal.md",
@@ -49,6 +50,8 @@ const FRAGMENT_PATHS = [
   "modifiers/methodical.md",
   "modifiers/director.md",
   "modifiers/bold.md",
+  "modifiers/speak-plain.md",
+  "modifiers/tdd.md",
 ] as const;
 
 function escapeTemplateLiteral(content: string): string {

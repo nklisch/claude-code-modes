@@ -174,6 +174,23 @@ claude-mode update [version] [flags]
 
 Upstream repo constant: `https://github.com/nklisch/claude-code-modes`
 
+### Auto Update-Check
+
+When `claude-mode` launches `claude` (any preset or axis-driven invocation), it also performs a background check against GitHub Releases. If a newer release is available, a one-line nag is printed to stderr and the launcher pauses for 1.5 s before spawning `claude`:
+
+```
+claude-mode update available: 0.2.10 -> 0.2.11. Run `claude-mode update` to install.
+```
+
+Behavior:
+- The check honors a 24-hour cache at `$XDG_CACHE_HOME/claude-mode/version-check.json` (or `~/.cache/claude-mode/version-check.json`).
+- The check is skipped on the `update` subcommand, on `--version`, and when stderr is not a TTY.
+- Set `CLAUDE_MODE_NO_UPDATE_CHECK=1` (or `=true`) to disable the check entirely.
+- When the cache is stale or missing and a network call is needed, a one-line `Checking for newer versions of claude-mode...` notice is printed to stderr so a slow GitHub request doesn't read as a hang. The fresh-cache path is silent.
+- Network failures are swallowed silently; the launcher always proceeds to spawn `claude`.
+
+Implemented in `src/version-check.ts`; wired into `src/cli.ts`.
+
 ## Prompt Assembly
 
 ### Manifest-Driven Fragment Order

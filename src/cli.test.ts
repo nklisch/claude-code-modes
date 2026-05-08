@@ -667,6 +667,32 @@ describe("cli.ts config subcommand", () => {
   });
 });
 
+// ─── Version check suppression ───────────────────────────────────────────────
+
+describe("cli.ts version check in non-TTY environment", () => {
+  // createCliRunner uses piped stdio, so process.stderr.isTTY is undefined in
+  // the child → shouldRunCheck returns false → no version check fires. This
+  // test locks in that invariant so the check never contaminates test output.
+  test("--print create does not emit version-check lines to stderr", () => {
+    // run() returns stdout; to inspect stderr we need runExpectFail-like capture.
+    // We use execSync directly to capture both streams.
+    const { execSync } = require("node:child_process");
+    let stderr = "";
+    try {
+      execSync(`${CLI} create --print`, {
+        encoding: "utf8",
+        timeout: 10000,
+        cwd: require("node:path").join(import.meta.dir, ".."),
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch (err: any) {
+      stderr = (err.stderr || "").toString();
+    }
+    expect(stderr).not.toContain("Checking for newer versions");
+    expect(stderr).not.toContain("update available");
+  });
+});
+
 // ─── Update subcommand ────────────────────────────────────────────────────────
 
 describe("cli.ts update subcommand", () => {

@@ -11,6 +11,12 @@ import { runInspectCommand } from "./inspect.js";
 import { runUpdateCommand } from "./update.js";
 import { printUsage } from "./usage.js";
 import { formatVersion } from "./version.js";
+import {
+  shouldRunCheck,
+  startVersionCheck,
+  awaitAndNag,
+  type VersionCheckHandle,
+} from "./version-check.js";
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -38,6 +44,17 @@ async function main(): Promise<void> {
     printUsage();
     process.exit(0);
   }
+
+  // Fire version check early so the fetch overlaps with arg parsing / config /
+  // prompt assembly. Skipped when stderr is not a TTY (piped/CI), on the
+  // update subcommand, on --version, and when CLAUDE_MODE_NO_UPDATE_CHECK=1.
+  const versionCheck: VersionCheckHandle | null = shouldRunCheck(
+    argv,
+    process.env,
+    process.stderr.isTTY === true,
+  )
+    ? startVersionCheck()
+    : null;
 
   // Prompts directory — embedded prompts are primary; disk is fallback
   const promptsDir = join(import.meta.dir, "..", "prompts");
@@ -112,8 +129,10 @@ async function main(): Promise<void> {
     promptsDir,
   });
 
-  // --print: output the prompt itself (for debugging)
+  // --print: output the prompt itself (for debugging); abort the check so
+  // a background fetch doesn't keep the process alive after stdout is written.
   if (parsed.modifiers.print) {
+    versionCheck?.abort();
     process.stdout.write(prompt);
     process.exit(0);
   }
@@ -134,6 +153,10 @@ async function main(): Promise<void> {
 
   // Add passthrough args
   claudeArgs.push(...parsed.passthroughArgs);
+
+  // Await the version check result and print a nag if an update is available.
+  // Total latency is capped at 1 s by awaitAndNag's internal timeout.
+  await awaitAndNag(versionCheck);
 
   // Spawn claude directly — gives it full TTY ownership
   const proc = Bun.spawn(["claude", ...claudeArgs], {

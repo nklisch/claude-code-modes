@@ -21,6 +21,7 @@ This design layers on top of the existing self-update infrastructure (`src/updat
 | Output stream | stderr | The launcher's stdout may already be claimed (e.g., `build-prompt.ts` prints the claude command); stderr is the right channel for ambient launcher messages. |
 | Network failure | swallow silently; proceed to launch | Auto-check is a courtesy, never a blocker. |
 | Hard timeout | 1000 ms (race against fetch) | Total added latency capped at 1 s on stale-cache invocations; 0 ms on the typical fresh-cache path. |
+| In-flight notice | print `Checking for newer versions of claude-mode...` to stderr when cache is stale/missing | Without it, a slow fetch reads as a hang. Only printed when we're actually going to fetch — the fresh-cache path stays silent. |
 
 ### Out of scope
 
@@ -194,6 +195,8 @@ export interface StartVersionCheckOptions {
   transport?: UpdateTransport;
   cachePath?: string;
   now?: () => number;
+  /** Where the in-flight notice is written. Defaults to process.stderr. */
+  stderr?: NodeJS.WritableStream;
 }
 
 /**
@@ -202,9 +205,10 @@ export interface StartVersionCheckOptions {
  * null. NEVER throws synchronously; the result promise NEVER rejects.
  *
  * If the cache is fresh, resolves immediately with the cached value (no
- * network request).
+ * network request, no stderr noise).
  *
- * If the cache is stale or missing, fires a fetch. The fetch's success
+ * If the cache is stale or missing, prints a one-line "Checking for newer
+ * versions..." notice to stderr, then fires the fetch. The fetch's success
  * updates the cache as a side effect. If aborted or it errors, resolves
  * with the stale cache value (if any) or null.
  */
@@ -214,17 +218,23 @@ export function startVersionCheck(
   const transport = opts.transport ?? defaultTransport;
   const cachePath = opts.cachePath ?? getCachePath();
   const now = opts.now ?? Date.now;
+  const stderr = opts.stderr ?? process.stderr;
 
   const cache = readCache(cachePath);
   const cachedVersion = cache?.latestVersion ?? null;
 
-  // Fresh cache → no network
+  // Fresh cache → no network, no notice
   if (cache && isCacheFresh(cache, now())) {
     return {
       result: Promise.resolve(cachedVersion),
       abort: () => {},
     };
   }
+
+  // We're going to fetch — tell the user what's happening so a slow GitHub
+  // request doesn't read as a hang. Single line; the nag (if any) appears on
+  // a new line below.
+  stderr.write("Checking for newer versions of claude-mode...\n");
 
   const controller = new AbortController();
   let aborted = false;
@@ -319,6 +329,8 @@ function defaultSleep(ms: number): Promise<void> {
 - **Why does `readCache` validate the parsed shape?** A future format change shouldn't crash the launcher; treating malformed cache as "no cache" is forward-compatible.
 - **The `aborted` flag inside the async IIFE** prevents writing the cache after the user already gave up waiting — we don't want a slow background fetch to clobber the cache after `awaitAndNag` aborted it.
 - **Reuses `fetchLatestRelease`, `compareSemver`, `defaultTransport` from `update.ts`** — single source of truth for release fetching and version comparison. No duplicated semver logic.
+- **Why print "Checking..." in `startVersionCheck` and not `awaitAndNag`?** The notice should appear *while* the fetch is in flight, not after the await. Printing in `startVersionCheck` lets the message appear at the start of the launcher (overlapping with arg parsing / config / prompt assembly), so by the time we reach `awaitAndNag` the user has already seen it. If we deferred the print to `awaitAndNag`, a fast fetch would show no notice (good) but a slow one would only show it 1 s in (after the timeout fires) — defeating the purpose.
+- **Why no `success` confirmation when up to date?** Minimum viable noise. The "Checking..." line scrolls naturally; if no nag follows, the user infers up-to-date. Adding a "✓ up to date" line would double the visual footprint without telling the user anything actionable.
 
 **Acceptance Criteria**:
 - [ ] `shouldRunCheck` returns false when `argv[0] === "update"`
@@ -333,8 +345,10 @@ function defaultSleep(ms: number): Promise<void> {
 - [ ] `writeCache` creates parent directories
 - [ ] `writeCache` swallows errors silently
 - [ ] `isCacheFresh` returns true for a `checkedAt` within the last 24 h, false beyond
-- [ ] `startVersionCheck` returns a handle without performing any I/O when called (cache read is fine, but the fetch is async)
+- [ ] `startVersionCheck` returns a handle without performing any network I/O synchronously (cache read and the in-flight notice are fine; the fetch is async)
 - [ ] `startVersionCheck` resolves with the cached version without calling the transport when cache is fresh
+- [ ] `startVersionCheck` does NOT write the in-flight notice when cache is fresh
+- [ ] `startVersionCheck` writes "Checking for newer versions of claude-mode..." to the injected stderr exactly once when cache is stale or missing
 - [ ] `startVersionCheck` resolves with the fetched version AND writes the cache when cache is stale and fetch succeeds
 - [ ] `startVersionCheck` resolves with the stale cached version (or null) when fetch errors
 - [ ] `startVersionCheck`'s `abort()` causes the result to resolve to the stale cached version
@@ -434,6 +448,7 @@ Behavior:
 - The check honors a 24-hour cache at `$XDG_CACHE_HOME/claude-mode/version-check.json` (or `~/.cache/claude-mode/version-check.json`).
 - The check is skipped on the `update` subcommand, on `--version`, and when stderr is not a TTY.
 - Set `CLAUDE_MODE_NO_UPDATE_CHECK=1` (or `=true`) to disable the check entirely.
+- When the cache is stale or missing and a network call is needed, a one-line `Checking for newer versions of claude-mode...` notice is printed to stderr so a slow GitHub request doesn't read as a hang. The fresh-cache path is silent.
 - Network failures are swallowed silently; the launcher always proceeds to spawn `claude`.
 
 Implemented in `src/version-check.ts`; wired into `src/cli.ts`.
@@ -499,12 +514,12 @@ Use `bun:test`. Use injection (transport, cachePath, now, sleep, stderr, env) to
 - false for far-stale entries
 
 **`startVersionCheck`**
-- fresh cache: result resolves to `cache.latestVersion` synchronously; transport is never called
-- stale cache + fetch succeeds: result resolves to fetched version; cache is updated with new `checkedAt` and `latestVersion`
-- stale cache + fetch errors: result resolves to the stale cached version; cache is unchanged
-- no cache + fetch errors: result resolves to null
+- fresh cache: result resolves to `cache.latestVersion` synchronously; transport is never called; injected stderr receives no writes
+- stale cache + fetch succeeds: result resolves to fetched version; cache is updated with new `checkedAt` and `latestVersion`; injected stderr receives the "Checking..." line exactly once
+- stale cache + fetch errors: result resolves to the stale cached version; cache is unchanged; "Checking..." line still printed
+- no cache + fetch errors: result resolves to null; "Checking..." line still printed
 - abort: result resolves to stale cached version (or null) without writing cache
-- transport injection lets tests fake `fetchLatestRelease` outcomes
+- transport, stderr, cachePath, now injection lets tests fake `fetchLatestRelease` outcomes and capture the stderr stream
 
 **`awaitAndNag`**
 - handle is null → returns without writing

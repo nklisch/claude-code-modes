@@ -138,6 +138,16 @@ export function parseUpdateArgs(argv: string[]): UpdateOptions {
   return opts;
 }
 
+/**
+ * Canonicalize a git remote URL for equality comparison. Strips the optional
+ * `.git` suffix, trailing slash, and lowercases — `actions/checkout` sets origin
+ * without `.git`, while local clones via `git clone <url>.git` keep it. Both
+ * point at the same repo and must compare equal.
+ */
+function canonicalRepoUrl(url: string): string {
+  return url.toLowerCase().replace(/\.git$/, "").replace(/\/+$/, "");
+}
+
 /** Determines whether the running binary is safe to self-update. Pure. */
 export function classifyInstall(
   execPath: string = process.execPath,
@@ -160,7 +170,7 @@ export function classifyInstall(
   }
 
   // 3. Non-upstream repo → fork build
-  if (buildInfo.repo && buildInfo.repo !== UPSTREAM_REPO_URL) {
+  if (buildInfo.repo && canonicalRepoUrl(buildInfo.repo) !== canonicalRepoUrl(UPSTREAM_REPO_URL)) {
     return {
       kind: "fork",
       reason: `Binary was built from a fork: ${buildInfo.repo}`,

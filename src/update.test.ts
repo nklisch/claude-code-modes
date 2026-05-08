@@ -212,6 +212,41 @@ describe("classifyInstall", () => {
     const c = classifyInstall(FAKE_BIN_PATH, { ...CLEAN_RELEASE_BUILD, repo: null });
     expect(c.kind).toBe("release");
   });
+
+  // Regression: actions/checkout sets origin without the .git suffix, so CI
+  // builds embed "https://github.com/nklisch/claude-code-modes" while the
+  // upstream constant uses ".git". Both forms must compare equal.
+  test("upstream repo without .git suffix is release (actions/checkout form)", () => {
+    const c = classifyInstall(FAKE_BIN_PATH, {
+      ...CLEAN_RELEASE_BUILD,
+      repo: "https://github.com/nklisch/claude-code-modes",
+    });
+    expect(c.kind).toBe("release");
+  });
+
+  test("upstream repo with trailing slash is release", () => {
+    const c = classifyInstall(FAKE_BIN_PATH, {
+      ...CLEAN_RELEASE_BUILD,
+      repo: "https://github.com/nklisch/claude-code-modes/",
+    });
+    expect(c.kind).toBe("release");
+  });
+
+  test("upstream repo with mixed case host is release", () => {
+    const c = classifyInstall(FAKE_BIN_PATH, {
+      ...CLEAN_RELEASE_BUILD,
+      repo: "https://GitHub.com/nklisch/claude-code-modes.git",
+    });
+    expect(c.kind).toBe("release");
+  });
+
+  test("real fork without .git suffix is still fork", () => {
+    const c = classifyInstall(FAKE_BIN_PATH, {
+      ...CLEAN_RELEASE_BUILD,
+      repo: "https://github.com/someoneelse/claude-code-modes",
+    });
+    expect(c.kind).toBe("fork");
+  });
 });
 
 // ----------------------------------------------------------------------

@@ -1,5 +1,5 @@
 # Environment
-- Working directory: {{CWD}}
+- Working directory: {{CWD}}{{WORKTREE_NOTICE}}
 - Git repo: {{IS_GIT}}
 - Platform: {{PLATFORM}}
 - Shell: {{SHELL}}

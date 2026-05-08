@@ -23,9 +23,14 @@ const TMP = join(PROJECT_ROOT, ".tmp-extract");
 const OUT_DIR = join(PROJECT_ROOT, "upstream-prompts");
 
 // Sentinel marker used to locate the JS bundle inside compiled native binaries.
+// The sentinel appears multiple times in the binary: once in the fragmented
+// string-table region (where each prompt sentence is stored as its own length-
+// prefixed string) and once in the JS function-body region. We want the latter
+// because that's where the prompt assembly logic lives. The function-body
+// region is later in the file, so we search for the LAST occurrence.
 const BUNDLE_SENTINEL = "an interactive agent that helps users";
 // Window around the sentinel to slice out of the binary, in bytes.
-// Must cover the CLAUDE_CODE_SIMPLE region (~12MB before) and prompt fragments.
+// Must cover the CLAUDE_CODE_SIMPLE region and all prompt-related functions.
 const BUNDLE_WINDOW_BEFORE = 20 * 1024 * 1024;
 const BUNDLE_WINDOW_AFTER = 5 * 1024 * 1024;
 
@@ -85,7 +90,7 @@ function sliceJsBundle(binPath: string): string {
   const size = statSync(binPath).size;
   const fd = openSync(binPath, "r");
   try {
-    const sentinelOffset = findFirstOccurrence(fd, size, BUNDLE_SENTINEL);
+    const sentinelOffset = findLastOccurrence(fd, size, BUNDLE_SENTINEL);
     if (sentinelOffset < 0) {
       throw new Error(`Sentinel not found in ${binPath} — bundle layout may have changed`);
     }
@@ -100,26 +105,32 @@ function sliceJsBundle(binPath: string): string {
   }
 }
 
-/** Stream-search a file for the first byte offset of `needle`. */
-function findFirstOccurrence(fd: number, size: number, needle: string): number {
+/** Stream-search a file for the last byte offset of `needle`. */
+function findLastOccurrence(fd: number, size: number, needle: string): number {
   const needleBuf = Buffer.from(needle, "utf8");
   const chunkSize = 4 * 1024 * 1024;
   const overlap = needleBuf.length;
   const buf = Buffer.alloc(chunkSize + overlap);
   let pos = 0;
   let carry = 0;
+  let lastFound = -1;
   while (pos < size) {
     const toRead = Math.min(chunkSize, size - pos);
     const bytesRead = readSync(fd, buf, carry, toRead, pos);
     if (bytesRead === 0) break;
     const haystackEnd = carry + bytesRead;
-    const idx = buf.subarray(0, haystackEnd).indexOf(needleBuf);
-    if (idx !== -1) return pos - carry + idx;
+    let searchFrom = 0;
+    while (searchFrom < haystackEnd) {
+      const idx = buf.subarray(searchFrom, haystackEnd).indexOf(needleBuf);
+      if (idx === -1) break;
+      lastFound = pos - carry + searchFrom + idx;
+      searchFrom += idx + 1;
+    }
     carry = Math.min(overlap, haystackEnd);
     buf.copy(buf, 0, haystackEnd - carry, haystackEnd);
     pos += bytesRead;
   }
-  return -1;
+  return lastFound;
 }
 
 // ---------------------------------------------------------------------------
@@ -214,7 +225,7 @@ const SECTIONS = [
   { label: "Executing Actions with Care", marker: "Carefully consider the reversibility and blast radius" },
   { label: "Using Your Tools", marker: "planning your work and helping the user track your progress" },
   { label: "Tone and Style", marker: "file_path:line_number to allow the user to easily navigate" },
-  { label: "Output Efficiency", marker: "Go straight to the point" },
+  { label: "Text Output", marker: "Assume users can't see most tool calls" },
   { label: "Session Guidance", marker: "Session-specific guidance" },
   { label: "Environment Info", marker: "You have been invoked in the following environment" },
   { label: "Main Assembler", marker: "CLAUDE_CODE_SIMPLE" },

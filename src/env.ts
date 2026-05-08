@@ -22,11 +22,15 @@ export function detectEnv(): EnvInfo {
   const cwd = process.cwd();
   const isGit = exec("git rev-parse --is-inside-work-tree") === "true";
 
+  let isWorktree = false;
   let gitBranch: string | null = null;
   let gitStatus: string | null = null;
   let gitLog: string | null = null;
 
   if (isGit) {
+    const gitDir = exec("git rev-parse --git-dir");
+    const commonDir = exec("git rev-parse --git-common-dir");
+    isWorktree = gitDir !== null && commonDir !== null && gitDir !== commonDir;
     gitBranch = exec("git branch --show-current");
     gitStatus = exec("git status --short");
     gitLog = exec("git log --oneline -5");
@@ -36,7 +40,7 @@ export function detectEnv(): EnvInfo {
   const shell = basename(process.env.SHELL || "bash");
   const osVersion = exec("uname -sr") ?? "unknown";
 
-  return { cwd, isGit, gitBranch, gitStatus, gitLog, platform, shell, osVersion };
+  return { cwd, isGit, isWorktree, gitBranch, gitStatus, gitLog, platform, shell, osVersion };
 }
 
 // Hardcoded model info — update when Claude Code updates
@@ -58,6 +62,10 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
     gitStatusBlock = parts.join("\n");
   }
 
+  const worktreeNotice = env.isWorktree
+    ? "\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root."
+    : "";
+
   return {
     CWD: env.cwd,
     IS_GIT: env.isGit ? "true" : "false",
@@ -68,5 +76,6 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
     MODEL_ID,
     KNOWLEDGE_CUTOFF,
     GIT_STATUS: gitStatusBlock,
+    WORKTREE_NOTICE: worktreeNotice,
   };
 }

@@ -24,6 +24,7 @@ const TEST_VARS: TemplateVars = {
   MODEL_ID: "claude-opus-4-6",
   KNOWLEDGE_CUTOFF: "May 2025",
   GIT_STATUS: "Current branch: main\n\nStatus:\n(clean)",
+  WORKTREE_NOTICE: "",
 };
 
 describe("readFragment", () => {

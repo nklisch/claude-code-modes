@@ -57,6 +57,7 @@ describe("buildTemplateVars", () => {
   const mockEnv: EnvInfo = {
     cwd: "/home/user/project",
     isGit: true,
+    isWorktree: false,
     gitBranch: "main",
     gitStatus: "M src/index.ts",
     gitLog: "abc123 Initial commit",
@@ -86,5 +87,16 @@ describe("buildTemplateVars", () => {
     expect(vars.MODEL_NAME.length).toBeGreaterThan(0);
     expect(vars.MODEL_ID.length).toBeGreaterThan(0);
     expect(vars.KNOWLEDGE_CUTOFF.length).toBeGreaterThan(0);
+  });
+
+  test("returns empty WORKTREE_NOTICE when not in a worktree", () => {
+    const vars = buildTemplateVars(mockEnv);
+    expect(vars.WORKTREE_NOTICE).toBe("");
+  });
+
+  test("emits worktree notice when in a worktree", () => {
+    const vars = buildTemplateVars({ ...mockEnv, isWorktree: true });
+    expect(vars.WORKTREE_NOTICE).toContain("git worktree");
+    expect(vars.WORKTREE_NOTICE).toContain("Do NOT");
   });
 });

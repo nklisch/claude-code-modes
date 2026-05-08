@@ -71,6 +71,7 @@ export interface ModeConfig {
 export interface EnvInfo {
   cwd: string;
   isGit: boolean;
+  isWorktree: boolean;
   gitBranch: string | null;
   gitStatus: string | null;
   gitLog: string | null;
@@ -90,6 +91,7 @@ export interface TemplateVars {
   MODEL_ID: string;
   KNOWLEDGE_CUTOFF: string;
   GIT_STATUS: string;
+  WORKTREE_NOTICE: string;
 }
 
 export interface AssembleOptions {

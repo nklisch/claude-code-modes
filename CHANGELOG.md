@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.2.13
+
+**Fixes**
+
+- Fixed `claude-mode update` refusing to run on every release binary built from upstream. `actions/checkout` sets the origin remote URL without a `.git` suffix, but the upstream-repo check used strict `===` against a `.git`-suffixed constant — so every CI-built binary classified itself as a fork ("Cannot self-update: Binary was built from a fork: https://github.com/nklisch/claude-code-modes"). Both URL forms now compare equal after canonicalization (lowercase, `.git` stripped, trailing slash stripped).
+
+**Recovery for v0.2.12 users**
+
+- v0.2.12 binaries cannot self-update — the fork check throws before the update logic ever runs, so `claude-mode update` is unrecoverable from inside the affected binary. Reinstall to recover:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/nklisch/claude-code-modes/main/install.sh | sh
+  ```
+  From v0.2.13 onward, `claude-mode update` works normally.
+
+**Internal**
+
+- `scripts/generate-build-info.ts` now canonicalizes the captured origin URL at build time, so `--version` output is identical across local clones (with `.git`) and CI checkouts (without). Canonical form: `https://github.com/nklisch/claude-code-modes`.
+- Release workflow runs `bun scripts/generate-build-info.ts` as an explicit step between `bun install` and the binary build — no longer relies on the `prepare` lifecycle hook firing during `bun install --frozen-lockfile`.
+
 ## v0.2.12
 
 **Features**

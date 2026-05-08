@@ -41,6 +41,14 @@ claude-mode update --dry-run    # show what would happen
 
 `update` only works on binaries built from the upstream repo. If you're running from a `git clone` checkout (`bun link`), use `git pull && bun install` instead. If you're running a fork build, update via your fork's release process.
 
+> **Stuck on v0.2.12?** v0.2.12 binaries had a bug that misclassified upstream releases as fork builds, so `claude-mode update` refuses to run with `Cannot self-update: Binary was built from a fork: https://github.com/nklisch/claude-code-modes`. The fix in v0.2.13 cannot reach you from inside v0.2.12 — reinstall via `install.sh` to recover:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/nklisch/claude-code-modes/main/install.sh | sh
+> ```
+>
+> Once you're on v0.2.13 or later, `claude-mode update` works normally.
+
 ## Usage
 
 Pick a preset that matches your task:

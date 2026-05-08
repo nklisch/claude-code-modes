@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.11
+
+**Features**
+
+- Added auto update-check on launch: when `claude-mode` is invoked interactively, it checks GitHub Releases for a newer version and prints a one-line nag with a 1.5 s pause before handing off to `claude`. Prints "Checking for newer versions of claude-mode..." while fetching so slow network calls don't look like a hang.
+- Check runs in the background (overlapping with arg parsing and prompt assembly); results are cached for 24 hours at `$XDG_CACHE_HOME/claude-mode/version-check.json`
+- Skipped automatically when stderr is not a TTY, on the `update` subcommand, and on `--version`; opt out with `CLAUDE_MODE_NO_UPDATE_CHECK=1`
+
 ## v0.2.10
 
 **Features**

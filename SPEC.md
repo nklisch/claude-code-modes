@@ -30,6 +30,7 @@ claude-mode debug
 claude-mode methodical
 claude-mode director
 claude-mode partner
+claude-mode muse
 claude-mode none
 ```
 
@@ -67,9 +68,9 @@ All modifiers are fragment-based — they resolve to markdown files that get ins
 
 - `--readonly` — Shorthand for `--modifier readonly`. Appends readonly instructions.
 - `--context-pacing` — Shorthand for `--modifier context-pacing`. Appends context pacing instructions.
-- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`), config-defined names, or file paths.
+- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`), config-defined names, or file paths.
 
-Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`. The `debug`, `methodical`, `director`, and `partner` presets include their respective modifiers automatically.
+Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`. The `debug`, `methodical`, `director`, `partner`, and `muse` presets include their respective modifiers automatically.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
 
@@ -318,7 +319,8 @@ claude-code-modes/
 │       ├── director.md
 │       ├── bold.md
 │       ├── speak-plain.md
-│       └── tdd.md
+│       ├── tdd.md
+│       └── muse.md
 ├── VISION.md
 ├── SPEC.md
 └── PROMPT-AUDIT.md

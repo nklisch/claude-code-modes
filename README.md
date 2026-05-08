@@ -55,6 +55,7 @@ claude-mode debug       # Investigation-first debugging (chill base)
 claude-mode methodical  # Step-by-step precision (chill base)
 claude-mode director    # Delegate to sub-agents, orchestrate and verify (chill base)
 claude-mode partner     # Pair-of-equals: terse, test-first, decisive on craft (chill base)
+claude-mode muse        # Creative latitude — treat the request as inspiration, not spec (chill base)
 claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
@@ -69,6 +70,7 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions, stop when done |
 | `director` | collaborative | architect | unrestricted | Orchestrate sub-agents — delegate implementation, verify results |
 | `partner` | partner | pragmatic | adjacent | Pair-of-equals collaboration — decisive on craft, test-first, terse by default |
+| `muse` | autonomous | architect | unrestricted | Creative latitude — input as inspiration, Claude commits to a vision |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Alternative base: chill
@@ -109,7 +111,7 @@ prompts/
   base/         Standard base (derived from upstream Claude Code)
   chill/        Alternative base (emotion-research-informed, leaner)
   axis/         Behavioral prompts organized by three axes
-  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd)
+  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse)
 ```
 
 Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.133**.
@@ -286,6 +288,22 @@ claude-mode director --modifier bold        # Bold director — decisive orchest
 The **director** preset also uses bold framing in its design — "you own the outcome", "you are the quality gate" — because a director who hedges is a bad director. The bold modifier extends this confidence to any preset where you want Claude to write code with authority rather than apology.
 
 This isn't about removing caution — security boundaries and error handling at system boundaries remain firm. It's about shifting from anxious defensiveness ("what if this edge case...") to professional confidence ("I know this language, here's the clean solution").
+
+## Muse
+
+The **muse** preset (and modifier) gives Claude explicit creative latitude. Instead of treating your request as a spec to execute, Claude treats it as a starting point to interpret — then commits to a clear vision before building.
+
+The core framing: most LLM output gravitates toward the average shape — same patterns, same scaffolds, same safe defaults. Muse works against that gravity. Before building, Claude names a single creative direction (what's the organizing idea? what are we leaving behind?), then executes with conviction in that direction. Bold maximalism and refined minimalism both qualify. The point is intentionality, not intensity.
+
+```bash
+claude-mode muse                              # Creative latitude as a standalone preset
+claude-mode create --modifier muse            # Add muse framing to any other preset
+claude-mode partner --modifier muse           # Pair-programming with creative latitude
+```
+
+The "Beneath you" framing is explicit: generic scaffolding, first-idea defaults, and hedged delivery are beneath what Claude can do when given room to. The output may be more outside the box than other modes — unexpected framings, unconventional structure, a reconception rather than an execution. That's the point. Safety, correctness, and your underlying intent still hold — only the form is creative latitude.
+
+This is an opt-in mode. Use it when you want Claude to surprise you rather than satisfy you.
 
 ## Context pacing
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.12
+
+**Features**
+
+- Added `muse` modifier — a maximalist creative behavioral layer that frames the user's request as inspiration rather than specification. Encourages committing to a clear creative direction (bold maximalism or refined minimalism) and refusing the average-shape default. Three worked examples cover frontend design, architectural refactoring, and small CLI work.
+- Added `muse` preset — shorthand for `claude-mode muse`: autonomous / architect / unrestricted axes on the chill base with the muse modifier applied. Composes freely with other presets via `--modifier muse`.
+
 ## v0.2.11
 
 **Features**

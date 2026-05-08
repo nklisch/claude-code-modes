@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.2.10
+
+**Features**
+
+- Synced base prompts against Claude Code v2.1.133:
+  - Added verified-vs-assumed guidance — agent must distinguish what it confirmed (ran a command, read a file) from what it merely assumed
+  - Updated session-guidance to be explicit about spawning `subagent_type=Explore` for broad codebase exploration (both `base` and `chill`)
+  - Added git worktree detection: when running inside a worktree, a notice is injected into the env block warning not to `cd` to the repository root
+
+**Fixes**
+
+- Fixed `scripts/extract-upstream-prompt.ts` for Bun-compiled native binaries: the binary now embeds the prompt text twice (fragmented string-table region + JS function-body region); the script previously sliced around the first sentinel occurrence, landing in the wrong region. Now searches for the last occurrence.
+
+**Internal**
+
+- Updated fragment-map with v2.1.133 function names and added a note on the two-region binary layout
+- Dropped obsolete `Output Efficiency` section marker; added `Text Output` (`Z0A`) marker to extraction script
+
 ## v0.2.9
 
 **Features**

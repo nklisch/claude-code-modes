@@ -42,6 +42,9 @@ jobs:
       - name: Generate embedded prompts
         run: bun scripts/generate-prompts.ts
 
+      - name: Generate build info
+        run: bun scripts/generate-build-info.ts
+
       - name: Build binary
         run: bun build src/cli.ts --compile --target=${{ matrix.target }} --outfile=${{ matrix.artifact }}
 

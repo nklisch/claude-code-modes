@@ -12,8 +12,14 @@ import { BUILD_INFO, type BuildInfo } from "./build-info.js";
 /** Upstream repo slug — also referenced by install.sh and the release workflow. */
 const UPSTREAM_REPO = "nklisch/claude-code-modes";
 
-/** Normalized form of the upstream remote URL captured by build-info. */
-const UPSTREAM_REPO_URL = "https://github.com/nklisch/claude-code-modes.git";
+/**
+ * Canonical form of the upstream remote URL captured by build-info — must
+ * match the output of `normalizeRepoUrl` in `scripts/generate-build-info.ts`
+ * (no `.git` suffix, no trailing slash). `canonicalRepoUrl` below still
+ * normalizes both sides at compare time, so older binaries that embedded the
+ * `.git` form continue to match.
+ */
+const UPSTREAM_REPO_URL = "https://github.com/nklisch/claude-code-modes";
 
 const USER_AGENT = `claude-mode/${VERSION}`;
 

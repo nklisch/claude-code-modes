@@ -47,23 +47,31 @@ function tryGit(args: string): string | null {
 }
 
 /**
- * Convert ssh-style git URLs (`git@github.com:user/repo.git`) to https
- * (`https://github.com/user/repo.git`). User asked for https in --version.
+ * Canonicalize a git remote URL into a single comparable form. Different
+ * sources produce different shapes for the same repo:
+ *   - local clone via ssh:        git@github.com:owner/repo.git
+ *   - local clone via https+git:  https://github.com/owner/repo.git
+ *   - actions/checkout in CI:     https://github.com/owner/repo
+ * All three normalize to `https://github.com/owner/repo` so `--version` output
+ * is identical across build environments and the upstream-repo equality check
+ * in update.ts works regardless of where the binary was built.
  */
 function normalizeRepoUrl(url: string | null): string | null {
   if (!url) return null;
+  let normalized = url;
   // ssh form: git@host:owner/repo[.git]
-  const sshMatch = url.match(/^git@([^:]+):(.+?)(\.git)?$/);
+  const sshMatch = normalized.match(/^git@([^:]+):(.+?)(?:\.git)?$/);
   if (sshMatch) {
     const [, host, path] = sshMatch;
-    return `https://${host}/${path}.git`;
+    normalized = `https://${host}/${path}`;
   }
   // git:// form
-  if (url.startsWith("git://")) {
-    return "https://" + url.slice("git://".length);
+  if (normalized.startsWith("git://")) {
+    normalized = "https://" + normalized.slice("git://".length);
   }
-  // already https or other — return unchanged
-  return url;
+  // Strip `.git` suffix and any trailing slashes
+  normalized = normalized.replace(/\.git$/, "").replace(/\/+$/, "");
+  return normalized;
 }
 
 function captureBuildInfo(): BuildInfo {

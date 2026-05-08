@@ -215,6 +215,62 @@ describe("resolveConfig", () => {
     const config = resolveConfig({ ...baseParsed, preset: "create", customModifiers: ["methodical"] }, null);
     expect(config.modifiers).toContain("modifiers/methodical.md");
   });
+
+  // muse preset tests
+  test("muse preset resolves to autonomous/architect/unrestricted axes", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse" }, null);
+    expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
+  });
+
+  test("muse preset resolves base to chill", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse" }, null);
+    expect(config.base).toBe("chill");
+  });
+
+  test("muse preset includes modifiers/muse.md", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse" }, null);
+    expect(config.modifiers).toContain("modifiers/muse.md");
+  });
+
+  test("muse --base standard overrides preset base but keeps muse modifier", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse", base: "standard" }, null);
+    expect(config.base).toBe("standard");
+    expect(config.modifiers).toContain("modifiers/muse.md");
+  });
+
+  test("muse --agency collaborative overrides preset agency", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse", overrides: { agency: "collaborative" } }, null);
+    expect(config.axes?.agency).toBe("collaborative");
+    expect(config.modifiers).toContain("modifiers/muse.md");
+  });
+
+  test("config defaultBase standard overrides muse preset base", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir: "/tmp/test",
+      config: { defaultBase: "standard" },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "muse" }, loadedConfig);
+    expect(config.base).toBe("standard");
+  });
+
+  test("create --modifier muse adds muse modifier on standard base", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "create", customModifiers: ["muse"] }, null);
+    expect(config.base).toBe("standard");
+    expect(config.modifiers).toContain("modifiers/muse.md");
+  });
+
+  test("partner --modifier muse stacks with partner's built-in modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "partner", customModifiers: ["muse"] }, null);
+    expect(config.modifiers).toContain("modifiers/speak-plain.md");
+    expect(config.modifiers).toContain("modifiers/tdd.md");
+    expect(config.modifiers).toContain("modifiers/muse.md");
+  });
+
+  test("muse modifier deduplicates if specified twice (preset + --modifier)", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "muse", customModifiers: ["muse"] }, null);
+    const museOccurrences = config.modifiers.filter((m) => m === "modifiers/muse.md").length;
+    expect(museOccurrences).toBe(1);
+  });
 });
 
 describe("resolveConfig with LoadedConfig", () => {

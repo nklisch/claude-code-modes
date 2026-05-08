@@ -46,11 +46,12 @@ const EXPECTED_FRAGMENTS = [
   "modifiers/bold.md",
   "modifiers/speak-plain.md",
   "modifiers/tdd.md",
+  "modifiers/muse.md",
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 33 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(33);
+  test("contains exactly 34 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(34);
   });
 
   test("all expected fragment keys are present", () => {
@@ -137,6 +138,12 @@ describe("EMBEDDED_PROMPTS", () => {
         base: "chill",
         axes: { agency: "partner", quality: "pragmatic", scope: "adjacent" },
         modifiers: ["modifiers/speak-plain.md", "modifiers/tdd.md"],
+      },
+      // muse preset — chill base, autonomous/architect/unrestricted, muse modifier
+      {
+        base: "chill",
+        axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        modifiers: ["modifiers/muse.md"],
       },
     ];
     for (const mode of modes) {

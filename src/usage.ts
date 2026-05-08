@@ -27,6 +27,7 @@ Presets:
   methodical      surgical / architect / narrow (chill base, step-by-step)
   director        collaborative / architect / unrestricted (chill base, agent delegation)
   partner         partner / pragmatic / adjacent (chill base, speak-plain + tdd)
+  muse            autonomous / architect / unrestricted (chill base, maximalist creative)
 
 Base:
   --base <name|path>      Built-in: standard, chill
@@ -65,6 +66,8 @@ Examples:
   claude-mode director                        # delegate to sub-agents
   claude-mode partner                         # equal-pair: speak plainly, TDD by default
   claude-mode create --modifier bold          # confident, idiomatic code
+  claude-mode muse                            # maximalist creative — your best version of the work
+  claude-mode create --modifier muse          # layer maximalist creative onto any preset
   claude-mode create -- --verbose --model sonnet
   claude-mode update                          # update to the latest release
   claude-mode update --check                  # check for updates without installing

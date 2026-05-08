@@ -353,6 +353,35 @@ describe("assemblePrompt", () => {
     expect(result).not.toMatch(/\bMUST\b/);
     expect(result).not.toMatch(/\bNEVER\b/);
   });
+
+  test("muse preset assembles without errors and includes muse content", () => {
+    const result = assemblePrompt({
+      mode: {
+        base: "chill",
+        axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        modifiers: ["modifiers/muse.md"],
+      },
+      templateVars: TEST_VARS,
+      promptsDir: PROMPTS_DIR,
+    });
+    expect(result.length).toBeGreaterThan(0);
+    expect(result).not.toMatch(/\{\{[A-Z_]+\}\}/);
+    expect(result).toContain("# Muse");
+    expect(result).toContain("Their request is the muse");
+    expect(result).toContain("Beneath you");
+  });
+
+  test("muse modifier content has no ALL-CAPS emphasis", () => {
+    const result = assemblePrompt({
+      mode: { base: "chill", axes: null, modifiers: ["modifiers/muse.md"] },
+      templateVars: TEST_VARS,
+      promptsDir: PROMPTS_DIR,
+    });
+    expect(result).not.toMatch(/\bIMPORTANT\b/);
+    expect(result).not.toMatch(/\bCRITICAL\b/);
+    expect(result).not.toMatch(/\bMUST\b/);
+    expect(result).not.toMatch(/\bNEVER\b/);
+  });
 });
 
 describe("assemblePrompt custom prompts", () => {

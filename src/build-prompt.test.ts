@@ -60,7 +60,7 @@ describe("build-prompt CLI", () => {
   });
 
   test("all presets produce valid commands", () => {
-    for (const preset of ["create", "extend", "safe", "refactor", "explore", "none", "debug", "methodical"]) {
+    for (const preset of ["create", "extend", "safe", "refactor", "explore", "none", "debug", "methodical", "director", "partner", "muse"]) {
       const output = run(preset);
       expect(output).toMatch(/^claude --system-prompt-file /);
     }
@@ -94,6 +94,27 @@ describe("build-prompt CLI", () => {
     const output = run("--help");
     expect(output).toContain("debug");
     expect(output).toContain("methodical");
+  });
+
+  test("muse --print contains muse content on chill base", () => {
+    const output = run("muse --print");
+    expect(output).toContain("# Muse");
+    expect(output).toContain("Their request is the muse");
+    expect(output).not.toMatch(/^claude /);
+    expect(output).not.toMatch(/\{\{[A-Z_]+\}\}/);
+  });
+
+  test("create --modifier muse --print includes muse content on standard base", () => {
+    const output = run("create --modifier muse --print");
+    expect(output).toContain("# Muse");
+    expect(output).toContain("# Agency: Autonomous");
+    expect(output).not.toMatch(/^claude /);
+  });
+
+  test("--help shows muse preset", () => {
+    const output = run("--help");
+    expect(output).toContain("muse");
+    expect(output).toContain("maximalist creative");
   });
 
   test("--help shows --base flag", () => {

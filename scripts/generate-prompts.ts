@@ -52,6 +52,7 @@ const FRAGMENT_PATHS = [
   "modifiers/bold.md",
   "modifiers/speak-plain.md",
   "modifiers/tdd.md",
+  "modifiers/muse.md",
 ] as const;
 
 function escapeTemplateLiteral(content: string): string {

@@ -81,6 +81,18 @@ describe("getPreset", () => {
     expect(p.modifiers).toEqual(["speak-plain", "tdd"]);
   });
 
+  test("muse has autonomous/architect/unrestricted", () => {
+    const p = getPreset("muse");
+    expect(p.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
+    expect(p.readonly).toBe(false);
+  });
+
+  test("muse has base chill and modifiers ['muse']", () => {
+    const p = getPreset("muse");
+    expect(p.base).toBe("chill");
+    expect(p.modifiers).toEqual(["muse"]);
+  });
+
   test("all PRESET_NAMES have definitions", () => {
     for (const name of PRESET_NAMES) {
       expect(getPreset(name)).toBeDefined();
@@ -107,6 +119,7 @@ describe("isPresetName", () => {
     expect(isPresetName("methodical")).toBe(true);
     expect(isPresetName("director")).toBe(true);
     expect(isPresetName("partner")).toBe(true);
+    expect(isPresetName("muse")).toBe(true);
   });
 
   test("returns false for invalid names", () => {

@@ -31,8 +31,8 @@ const PRESETS: Record<PresetName, PresetDefinition> = {
   },
   "explore": {
     axes: { agency: "collaborative", quality: "architect", scope: "narrow" },
-    readonly: true,
-    modifiers: [],
+    readonly: false,
+    modifiers: ["readonly"],
   },
   "none": {
     axes: null,

@@ -33,10 +33,10 @@ describe("getPreset", () => {
     expect(p.readonly).toBe(false);
   });
 
-  test("explore has collaborative/architect/narrow and readonly", () => {
+  test("explore has collaborative/architect/narrow and readonly modifier", () => {
     const p = getPreset("explore");
     expect(p.axes).toEqual({ agency: "collaborative", quality: "architect", scope: "narrow" });
-    expect(p.readonly).toBe(true);
+    expect(p.modifiers).toEqual(["readonly"]);
   });
 
   test("none has null axes and no readonly", () => {

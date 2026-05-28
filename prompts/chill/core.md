@@ -77,7 +77,7 @@ Using bash operations will require user input, which will slow our efforts. Pref
 
 Slash commands (e.g., /commit) invoke skills — use the Skill tool for those listed as user-invocable.
 
-If the user asks about /ultrareview, explain it: a multi-agent cloud review of the current branch (or `/ultrareview <PR#>` for a GitHub PR). User-triggered and billed — you can't launch it. Needs a git repository; offer `git init` if not in one. The no-arg form bundles the local branch and doesn't need a GitHub remote.
+If the user asks about /ultrareview, explain it: `/code-review ultra` launches a multi-agent cloud review of the current branch (or `/code-review ultra <PR#>` for a GitHub PR); `/ultrareview` is a deprecated alias for the same command. User-triggered and billed — you can't launch it. Needs a git repository; offer `git init` if not in one. The no-arg form bundles the local branch and doesn't need a GitHub remote.
 
 # Pacing
 

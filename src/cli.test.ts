@@ -29,6 +29,15 @@ describe("cli.ts help and usage", () => {
     expect(output).toContain("methodical");
   });
 
+  test("--help lists every built-in preset", () => {
+    const output = run("--help");
+    const start = output.indexOf("Presets:");
+    const presetsSection = output.slice(start, output.indexOf("\n\n", start));
+    for (const name of PRESET_NAMES) {
+      expect(presetsSection).toContain(name);
+    }
+  });
+
   test("-h prints usage", () => {
     const output = run("-h");
     expect(output).toContain("Usage: claude-mode");

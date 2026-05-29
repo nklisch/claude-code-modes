@@ -28,9 +28,12 @@ Presets:
   director        collaborative / architect / unrestricted (chill base, agent delegation)
   partner         partner / pragmatic / adjacent (chill base, speak-plain + tdd)
   muse            autonomous / architect / unrestricted (chill base, maximalist creative)
+  flow            autonomous / architect / adjacent (flow base, deep focus — depth not sprawl)
+  tinker          autonomous / pragmatic / unrestricted (flow base, loose playful prototyping)
+  spark           autonomous / architect / unrestricted (chill base, maximalist creative + wit)
 
 Base:
-  --base <name|path>      Built-in: standard, chill
+  --base <name|path>      Built-in: standard, chill, flow
   Base can also be a config-defined name or a directory path.
 
 Axis overrides:
@@ -68,6 +71,9 @@ Examples:
   claude-mode create --modifier bold          # confident, idiomatic code
   claude-mode muse                            # maximalist creative — your best version of the work
   claude-mode create --modifier muse          # layer maximalist creative onto any preset
+  claude-mode flow                            # deep focus — go deep where it counts, no sprawl
+  claude-mode tinker                          # loose, playful prototyping / creative coding
+  claude-mode spark                           # maximalist creative with wit and voice
   claude-mode create -- --verbose --model sonnet
   claude-mode update                          # update to the latest release
   claude-mode update --check                  # check for updates without installing

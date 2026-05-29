@@ -148,6 +148,18 @@ describe("loadConfig", () => {
     expect(() => loadConfig()).toThrow('"methodical" is a built-in modifier name');
   });
 
+  test("throws when flow modifier name collides with built-in", () => {
+    writeConfig(tempDir, ".claude-mode.json", { modifiers: { "flow": "./path.md" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"flow" is a built-in modifier name');
+  });
+
+  test("throws when playful modifier name collides with built-in", () => {
+    writeConfig(tempDir, ".claude-mode.json", { modifiers: { "playful": "./path.md" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"playful" is a built-in modifier name');
+  });
+
   test("throws when preset name collides with built-in", () => {
     writeConfig(tempDir, ".claude-mode.json", { presets: { "create": { agency: "collaborative" } } });
     process.chdir(tempDir);
@@ -273,6 +285,12 @@ describe("loadConfig — bases and defaultBase", () => {
     expect(() => loadConfig()).toThrow('"chill" is a built-in base name');
   });
 
+  test("throws when base name collides with built-in flow", () => {
+    writeConfig(tempDir, ".claude-mode.json", { bases: { "flow": "./x" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"flow" is a built-in base name');
+  });
+
   test("loads config with preset that has base field", () => {
     writeConfig(tempDir, ".claude-mode.json", {
       presets: { "my-preset": { base: "chill", agency: "collaborative" } },
@@ -299,6 +317,10 @@ describe("checkBaseNameCollision", () => {
 
   test("throws for chill", () => {
     expect(() => checkBaseNameCollision("chill")).toThrow('"chill" is a built-in base name');
+  });
+
+  test("throws for flow", () => {
+    expect(() => checkBaseNameCollision("flow")).toThrow('"flow" is a built-in base name');
   });
 
   test("does not throw for custom name", () => {

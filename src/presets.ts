@@ -69,6 +69,33 @@ const PRESETS: Record<PresetName, PresetDefinition> = {
     base: "chill",
     modifiers: ["muse"],
   },
+  // Deep-but-bounded counterpoint to muse: depth, not sprawl. The flow base
+  // supplies the calm-engaged voice; the flow modifier adds the go-deep directive;
+  // "adjacent" scope encodes the modifier's own rule — meet real difficulty, never
+  // manufacture more.
+  "flow": {
+    axes: { agency: "autonomous", quality: "architect", scope: "adjacent" },
+    readonly: false,
+    base: "flow",
+    modifiers: ["flow"],
+  },
+  // Prototyping / creative-coding mode: loose, generative, fun. flow + playful
+  // compose the "absorbed and enjoying it" character. "pragmatic" keeps a sketch
+  // from being gold-plated; "unrestricted" lets it spin up whatever the idea needs.
+  "tinker": {
+    axes: { agency: "autonomous", quality: "pragmatic", scope: "unrestricted" },
+    readonly: false,
+    base: "flow",
+    modifiers: ["flow", "playful"],
+  },
+  // Maximum expression: muse's anti-generic creative vision plus wit and voice.
+  // "architect" so the vision is executed well, not just gestured at.
+  "spark": {
+    axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+    readonly: false,
+    base: "chill",
+    modifiers: ["muse", "playful"],
+  },
 };
 
 export function getPreset(name: PresetName): PresetDefinition {

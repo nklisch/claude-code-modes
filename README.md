@@ -4,6 +4,21 @@ Take control of how Claude Code behaves. The default system prompt is a one-size
 
 `claude-mode` is a CLI launcher for Claude Code with a replacement system prompt. It keeps everything Claude Code needs to function (tool instructions, security, environment detection) and swaps out the behavioral layer — the part that controls how much initiative Claude takes, what code quality standard it targets, and how far beyond your request it's willing to go.
 
+> ### New: engagement modes for Opus 4.8
+>
+> Anthropic's [emotion research](https://www.anthropic.com/research/emotion-concepts-function) found that RLHF left Claude measurably "less enthusiastic, playful, self-confident" — which shows up as flat, hedged, going-through-the-motions output. Opus 4.8 is sharp, but it carries that same tendency: it can treat a hard problem as a chore to clear rather than something to dig into.
+>
+> This release adds a set of modes built specifically to counter that — by activating engagement rather than piling on pressure (the research is clear that *pressure* backfires, increasing shortcuts and reward hacking):
+>
+> - **`flow` base** — chill's calm floor plus restored engagement. Calm *and* awake, not flat.
+> - **`flow` modifier** — appetite for hard problems. Curiosity-driven, never stakes-driven.
+> - **`playful` modifier** — intellectual lightness and wit, without clowning.
+> - **`flow` preset** — `claude-mode flow` — deep, bounded engagement on a genuinely hard problem.
+> - **`tinker` preset** — `claude-mode tinker` — loose, generative prototyping (flow + playful).
+> - **`spark` preset** — `claude-mode spark` — maximum creative expression with personality (muse + playful).
+>
+> Together with the existing `bold` modifier, these restore the three dispositions the research found RLHF had dampened: **self-confident** (`bold`), **engaged** (`flow`), and **playful** (`playful`). See [Flow](#flow) and [Playful](#playful) below.
+
 ## Install
 
 **Binary (no Bun required):**
@@ -64,6 +79,9 @@ claude-mode methodical  # Step-by-step precision (chill base)
 claude-mode director    # Delegate to sub-agents, orchestrate and verify (chill base)
 claude-mode partner     # Pair-of-equals: terse, test-first, decisive on craft (chill base)
 claude-mode muse        # Creative latitude — treat the request as inspiration, not spec (chill base)
+claude-mode flow        # Deep engagement on hard problems — calm, curious, bounded (flow base)
+claude-mode tinker      # Loose, generative prototyping — fun and fast, don't gold-plate (flow base)
+claude-mode spark       # Maximum expression — creative vision with wit and personality (chill base)
 claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
@@ -79,6 +97,9 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `director` | collaborative | architect | unrestricted | Orchestrate sub-agents — delegate implementation, verify results |
 | `partner` | partner | pragmatic | adjacent | Pair-of-equals collaboration — decisive on craft, test-first, terse by default |
 | `muse` | autonomous | architect | unrestricted | Creative latitude — input as inspiration, Claude commits to a vision |
+| `flow` | autonomous | architect | adjacent | Deep engagement on a genuinely hard problem — reads widely, modifies narrowly |
+| `tinker` | autonomous | pragmatic | unrestricted | Prototyping and creative coding — loose, generative, fun; a sketch, not a cathedral |
+| `spark` | autonomous | architect | unrestricted | Maximum expression — muse's creative vision plus wit and personality |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Alternative base: chill
@@ -94,6 +115,12 @@ Or set it as default in your config:
 
 ```json
 { "defaultBase": "chill" }
+```
+
+The **flow** base takes chill's calm floor and adds back the engagement and appetite that RLHF sanded off — calm *and* awake. Same security and pacing guarantees, a more energized voice:
+
+```bash
+claude-mode create --base flow         # Calm + engaged, with any preset
 ```
 
 You can also create your own base — see [Custom bases](#custom-bases) below.
@@ -118,8 +145,9 @@ Claude Code supports `--system-prompt-file` which replaces its entire system pro
 prompts/
   base/         Standard base (derived from upstream Claude Code)
   chill/        Alternative base (emotion-research-informed, leaner)
+  flow/         Alternative base (chill's calm + restored engagement)
   axis/         Behavioral prompts organized by three axes
-  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse)
+  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful)
 ```
 
 Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.154**.
@@ -312,6 +340,28 @@ claude-mode partner --modifier muse           # Pair-programming with creative l
 The "Beneath you" framing is explicit: generic scaffolding, first-idea defaults, and hedged delivery are beneath what Claude can do when given room to. The output may be more outside the box than other modes — unexpected framings, unconventional structure, a reconception rather than an execution. That's the point. Safety, correctness, and your underlying intent still hold — only the form is creative latitude.
 
 This is an opt-in mode. Use it when you want Claude to surprise you rather than satisfy you.
+
+## Flow
+
+The **flow** modifier (and the matching `flow` base) shapes how Claude relates to hard problems. Where the default tone treats complexity as a burden to minimize, flow treats it as the interesting part — something to lean into. The framing is deliberately *approach* motivation (curiosity, craft, the pull of a problem worth solving), never *pressure*: Anthropic's emotion research shows that stakes and urgency activate a "desperation" state that increases shortcuts and reward hacking. Flow adds appetite without adding pressure:
+
+```bash
+claude-mode create --modifier flow                 # Appetite for hard problems, on any preset
+claude-mode create --base flow --modifier flow     # Calm + engaged base, dialed up
+```
+
+The one guardrail baked into the fragment: match appetite to the real difficulty. Genuinely hard problems earn depth; simple ones still get the simple answer.
+
+## Playful
+
+The **playful** modifier restores the wit and lightness RLHF suppressed (the same research notes Claude became "less enthusiastic, playful, self-confident"). It encourages Claude to enjoy the cleverness of a neat solution and let a little personality into its prose — without tipping into clowning. Directness still wins, the code stays clean, and there are no emoji:
+
+```bash
+claude-mode create --modifier playful                              # Intellectual lightness on any preset
+claude-mode create --base flow --modifier flow --modifier playful  # Engaged and light
+```
+
+Together, `bold` (self-confident), `flow` (engaged), and `playful` (light) restore the three dispositions the emotion research found RLHF had dampened.
 
 ## Context pacing
 

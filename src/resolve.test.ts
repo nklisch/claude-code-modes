@@ -271,6 +271,94 @@ describe("resolveConfig", () => {
     const museOccurrences = config.modifiers.filter((m) => m === "modifiers/muse.md").length;
     expect(museOccurrences).toBe(1);
   });
+
+  // flow preset tests — depth-but-bounded counterpoint to muse
+  test("flow preset resolves to autonomous/architect/adjacent axes", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow" }, null);
+    expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "adjacent" });
+  });
+
+  test("flow preset resolves base to flow", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow" }, null);
+    expect(config.base).toBe("flow");
+  });
+
+  test("flow preset includes modifiers/flow.md", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow" }, null);
+    expect(config.modifiers).toContain("modifiers/flow.md");
+  });
+
+  test("flow --base standard overrides preset base but keeps flow modifier", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow", base: "standard" }, null);
+    expect(config.base).toBe("standard");
+    expect(config.modifiers).toContain("modifiers/flow.md");
+  });
+
+  test("flow --scope unrestricted overrides preset scope", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow", overrides: { scope: "unrestricted" } }, null);
+    expect(config.axes?.scope).toBe("unrestricted");
+    expect(config.modifiers).toContain("modifiers/flow.md");
+  });
+
+  test("flow --modifier playful stacks with flow's built-in modifier", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow", customModifiers: ["playful"] }, null);
+    expect(config.modifiers).toContain("modifiers/flow.md");
+    expect(config.modifiers).toContain("modifiers/playful.md");
+  });
+
+  test("flow modifier deduplicates if specified twice (preset + --modifier)", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "flow", customModifiers: ["flow"] }, null);
+    const flowOccurrences = config.modifiers.filter((m) => m === "modifiers/flow.md").length;
+    expect(flowOccurrences).toBe(1);
+  });
+
+  // tinker preset tests — flow + playful, loose prototyping mode
+  test("tinker preset resolves to autonomous/pragmatic/unrestricted axes", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "tinker" }, null);
+    expect(config.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "unrestricted" });
+  });
+
+  test("tinker preset resolves base to flow", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "tinker" }, null);
+    expect(config.base).toBe("flow");
+  });
+
+  test("tinker preset includes both flow and playful modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "tinker" }, null);
+    expect(config.modifiers).toContain("modifiers/flow.md");
+    expect(config.modifiers).toContain("modifiers/playful.md");
+  });
+
+  test("tinker --quality architect overrides preset quality but keeps both modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "tinker", overrides: { quality: "architect" } }, null);
+    expect(config.axes?.quality).toBe("architect");
+    expect(config.modifiers).toContain("modifiers/flow.md");
+    expect(config.modifiers).toContain("modifiers/playful.md");
+  });
+
+  // spark preset tests — muse + playful, maximum expression
+  test("spark preset resolves to autonomous/architect/unrestricted axes", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "spark" }, null);
+    expect(config.axes).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
+  });
+
+  test("spark preset resolves base to chill", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "spark" }, null);
+    expect(config.base).toBe("chill");
+  });
+
+  test("spark preset includes both muse and playful modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "spark" }, null);
+    expect(config.modifiers).toContain("modifiers/muse.md");
+    expect(config.modifiers).toContain("modifiers/playful.md");
+  });
+
+  test("spark --base standard overrides preset base but keeps both modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "spark", base: "standard" }, null);
+    expect(config.base).toBe("standard");
+    expect(config.modifiers).toContain("modifiers/muse.md");
+    expect(config.modifiers).toContain("modifiers/playful.md");
+  });
 });
 
 describe("resolveConfig with LoadedConfig", () => {

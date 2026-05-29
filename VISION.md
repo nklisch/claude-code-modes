@@ -37,6 +37,9 @@ Named presets cover common workflows:
 | `debug` | collaborative | pragmatic | narrow | Investigation-first debugging — gather evidence, present findings, ask for guidance when stuck |
 | `methodical` | surgical | architect | narrow | Step-by-step craftsmanship — follow instructions precisely, attend to details, stop when done |
 | `muse` | autonomous | architect | unrestricted | Maximalist creative work — when you want bold ideas, distinctive design, or refusal of generic defaults; output may be more outside-the-box but interesting |
+| `flow` | autonomous | architect | adjacent | Deep engagement on a genuinely hard problem — calm and curious, reads widely but modifies narrowly; the depth-not-sprawl counterpoint to muse |
+| `tinker` | autonomous | pragmatic | unrestricted | Prototyping and creative coding — loose, generative, and fun; composes flow + playful for an absorbed, enjoying-it character; a sketch, not a cathedral |
+| `spark` | autonomous | architect | unrestricted | Maximum expression — muse's anti-generic creative vision plus wit and voice; composes muse + playful for the most personality-forward mode |
 
 Presets are starting points. Any axis can be overridden: `claude-mode create --quality pragmatic`. Some presets — like `muse` — lean into expressive creative latitude as a deliberate design choice, pairing a modifier with axes to produce a specific behavioral character rather than just a position on each dimension.
 

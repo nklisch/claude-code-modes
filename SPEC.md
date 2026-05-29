@@ -31,6 +31,9 @@ claude-mode methodical
 claude-mode director
 claude-mode partner
 claude-mode muse
+claude-mode flow
+claude-mode tinker
+claude-mode spark
 claude-mode none
 ```
 
@@ -58,7 +61,7 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 
 ### Base Selection
 
-- `--base <name|path>` — Selects the base prompt. Built-in: `standard` (default), `chill`. Also accepts config-defined names or directory paths containing a `base.json` manifest.
+- `--base <name|path>` — Selects the base prompt. Built-in: `standard` (default), `chill`, `flow`. Also accepts config-defined names or directory paths containing a `base.json` manifest.
 
 Resolution order: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > preset `base` > `"standard"`.
 
@@ -68,9 +71,9 @@ All modifiers are fragment-based — they resolve to markdown files that get ins
 
 - `--readonly` — Shorthand for `--modifier readonly`. Appends readonly instructions.
 - `--context-pacing` — Shorthand for `--modifier context-pacing`. Appends context pacing instructions.
-- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`), config-defined names, or file paths.
+- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`, `flow`, `playful`), config-defined names, or file paths.
 
-Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`. The `debug`, `methodical`, `director`, `partner`, and `muse` presets include their respective modifiers automatically.
+Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`, `flow`, `playful`. The `debug`, `methodical`, `director`, `partner`, and `muse` presets include their respective modifiers automatically.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
 
@@ -297,6 +300,12 @@ claude-code-modes/
 │   │   ├── actions.md
 │   │   ├── tools.md
 │   │   └── env.md
+│   ├── flow/                      # flow base (chill's calm + restored engagement)
+│   │   ├── base.json              # manifest
+│   │   ├── core.md
+│   │   ├── actions.md
+│   │   ├── tools.md
+│   │   └── env.md
 │   ├── axis/
 │   │   ├── agency/
 │   │   │   ├── autonomous.md
@@ -320,7 +329,9 @@ claude-code-modes/
 │       ├── bold.md
 │       ├── speak-plain.md
 │       ├── tdd.md
-│       └── muse.md
+│       ├── muse.md
+│       ├── flow.md
+│       └── playful.md
 ├── VISION.md
 ├── SPEC.md
 └── PROMPT-AUDIT.md

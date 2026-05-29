@@ -36,8 +36,9 @@ src/
 prompts/
   base/            # standard base: base.json manifest + 8 fragments
   chill/           # chill base: base.json manifest + 4 fragments (emotion-research-informed)
+  flow/            # flow base: base.json manifest + 4 fragments (chill's calm + restored engagement)
   axis/            # 10 fragments: agency/{autonomous,collaborative,surgical,partner}, quality/{architect,pragmatic,minimal}, scope/{unrestricted,adjacent,narrow}
-  modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md, director.md, bold.md, speak-plain.md, tdd.md, muse.md
+  modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md, director.md, bold.md, speak-plain.md, tdd.md, muse.md, flow.md, playful.md
 scripts/
   generate-prompts.ts         # embeds prompt fragments into src/embedded-prompts.ts
   extract-upstream-prompt.ts  # downloads CC npm package, extracts system prompt functions
@@ -94,7 +95,7 @@ Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream p
 - `none` mode strips all behavioral instructions, leaving only infrastructure
 - Axis values accept built-in names, config-defined names, or file paths — resolution order: built-in → config → path
 - Bases are manifest-driven: `base.json` declares fragment order with `"axes"` and `"modifiers"` as reserved insertion points
-- Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner)
+- Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner), "flow" (chill's calm floor + restored engagement/appetite)
 - `--base` flag selects a base; resolution order: built-in → config → directory path
 - Config: project-local wins entirely if present (no merging with global)
 - Model name/ID hardcoded in `env.ts` — update on Claude Code releases

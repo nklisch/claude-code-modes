@@ -19,6 +19,9 @@ export const PRESET_NAMES = [
   "director",
   "partner",
   "muse",
+  "flow",
+  "tinker",
+  "spark",
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 export function isPresetName(value: string): value is PresetName {
@@ -26,14 +29,14 @@ export function isPresetName(value: string): value is PresetName {
 }
 
 // Built-in modifier names — used for collision checking in config validation
-export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold", "speak-plain", "tdd", "muse"] as const;
+export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold", "speak-plain", "tdd", "muse", "flow", "playful"] as const;
 export type BuiltinModifier = (typeof BUILTIN_MODIFIER_NAMES)[number];
 export function isBuiltinModifier(value: string): value is BuiltinModifier {
   return (BUILTIN_MODIFIER_NAMES as readonly string[]).includes(value);
 }
 
-// Built-in base names — "standard" is the existing base, "chill" is the new alternative
-export const BUILTIN_BASE_NAMES = ["standard", "chill"] as const;
+// Built-in base names — "standard" (upstream-derived), "chill" (calm), "flow" (calm + engaged)
+export const BUILTIN_BASE_NAMES = ["standard", "chill", "flow"] as const;
 export type BuiltinBaseName = (typeof BUILTIN_BASE_NAMES)[number];
 export function isBuiltinBase(value: string): value is BuiltinBaseName {
   return (BUILTIN_BASE_NAMES as readonly string[]).includes(value);

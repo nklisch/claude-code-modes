@@ -26,6 +26,12 @@ const EXPECTED_FRAGMENTS = [
   "chill/actions.md",
   "chill/tools.md",
   "chill/env.md",
+  // Flow base
+  "flow/base.json",
+  "flow/core.md",
+  "flow/actions.md",
+  "flow/tools.md",
+  "flow/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -47,11 +53,13 @@ const EXPECTED_FRAGMENTS = [
   "modifiers/speak-plain.md",
   "modifiers/tdd.md",
   "modifiers/muse.md",
+  "modifiers/flow.md",
+  "modifiers/playful.md",
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 34 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(34);
+  test("contains exactly 41 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(41);
   });
 
   test("all expected fragment keys are present", () => {
@@ -88,6 +96,11 @@ describe("EMBEDDED_PROMPTS", () => {
     expect(Array.isArray(chillManifest)).toBe(true);
     expect(chillManifest).toContain("axes");
     expect(chillManifest).toContain("modifiers");
+
+    const flowManifest = JSON.parse(EMBEDDED_PROMPTS["flow/base.json"]);
+    expect(Array.isArray(flowManifest)).toBe(true);
+    expect(flowManifest).toContain("axes");
+    expect(flowManifest).toContain("modifiers");
   });
 
   test("all fragment keys used by getFragmentOrder are in EMBEDDED_PROMPTS", () => {
@@ -144,6 +157,20 @@ describe("EMBEDDED_PROMPTS", () => {
         base: "chill",
         axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
         modifiers: ["modifiers/muse.md"],
+      },
+      // none mode — flow base
+      { base: "flow", axes: null, modifiers: [] },
+      // flow base with flow + playful modifiers
+      {
+        base: "flow",
+        axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        modifiers: ["modifiers/flow.md", "modifiers/playful.md"],
+      },
+      // flow + playful modifiers on the standard base (modifiers compose anywhere)
+      {
+        base: "standard",
+        axes: { agency: "collaborative", quality: "pragmatic", scope: "adjacent" },
+        modifiers: ["modifiers/flow.md", "modifiers/playful.md"],
       },
     ];
     for (const mode of modes) {

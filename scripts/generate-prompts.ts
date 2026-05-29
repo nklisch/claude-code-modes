@@ -32,6 +32,12 @@ const FRAGMENT_PATHS = [
   "chill/actions.md",
   "chill/tools.md",
   "chill/env.md",
+  // Flow base manifest and fragments
+  "flow/base.json",
+  "flow/core.md",
+  "flow/actions.md",
+  "flow/tools.md",
+  "flow/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -53,6 +59,8 @@ const FRAGMENT_PATHS = [
   "modifiers/speak-plain.md",
   "modifiers/tdd.md",
   "modifiers/muse.md",
+  "modifiers/flow.md",
+  "modifiers/playful.md",
 ] as const;
 
 function escapeTemplateLiteral(content: string): string {

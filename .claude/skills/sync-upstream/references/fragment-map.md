@@ -11,17 +11,17 @@ change between releases but the marker should remain stable.
 
 ## Prompt fragments
 
-| Local file | Upstream section | Marker | Function (v2.1.161) | Expected diff |
+| Local file | Upstream section | Marker | Function (v2.1.170) | Expected diff |
 |---|---|---|---|---|
-| `prompts/base/intro.md` | Intro | `an interactive agent that helps users` | `xxA` | Verbatim match (local prepends "You are Claude Code...") |
-| `prompts/base/system.md` | System Rules | `rendered in a monospace font using the CommonMark specification` | `uxA` | Verbatim match |
-| `prompts/base/doing-tasks.md` | Doing Tasks | `primarily request you to perform software engineering tasks` | `mxA` | Intentional omissions (see intentional-omissions.md); local additions for read-before-edit, no-time-estimates, diagnose-failures |
-| `prompts/base/actions.md` | Executing Actions with Care | `Carefully consider the reversibility and blast radius` | `BxA` | Merged from upstream cautious variant; autonomous variant removed (agency axis handles behavioral difference) |
-| `prompts/base/tools.md` | Using Your Tools | `planning your work and helping the user track your progress` | `pxA` | Local paraphrase — same intent as upstream but rewritten for tool-agnostic phrasing |
-| `prompts/base/tone.md` | Tone and Style | `file_path:line_number to allow the user to easily navigate` | `QxA` | Intentional omission: "short and concise" (see intentional-omissions.md) |
-| `prompts/base/text-output.md` | Text Output | `Assume users can't see most tool calls` | `ExA` | Verbatim match (ExA returns this content when `bY(H)` is false — default for most models) |
-| `prompts/base/session-guidance.md` | Session Guidance | `Session-specific guidance` | `FxA` | Local paraphrase; intentionally skips feature-flagged `/schedule` offer guidance |
-| `prompts/base/env.md` | Environment Info | `You have been invoked in the following environment` | `nxA` | Local additions: gitStatus block, tool-result note. Worktree notice via `{{WORKTREE_NOTICE}}` |
+| `prompts/base/intro.md` | Intro | `an interactive agent that helps users` | `jtf` | Verbatim match (local prepends "You are Claude Code...") |
+| `prompts/base/system.md` | System Rules | `rendered in a monospace font using the CommonMark specification` | `Dtf` | Verbatim match |
+| `prompts/base/doing-tasks.md` | Doing Tasks | `primarily request you to perform software engineering tasks` | `Jtf` | Intentional omissions (see intentional-omissions.md); local additions for read-before-edit, no-time-estimates, diagnose-failures |
+| `prompts/base/actions.md` | Executing Actions with Care | `Carefully consider the reversibility and blast radius` | `Xtf` | Merged from upstream cautious variant; autonomous variant removed (agency axis handles behavioral difference) |
+| `prompts/base/tools.md` | Using Your Tools | `planning your work and helping the user track your progress` | `Ltf` | Local paraphrase — same intent as upstream but rewritten for tool-agnostic phrasing |
+| `prompts/base/tone.md` | Tone and Style | `file_path:line_number to allow the user to easily navigate` | `Ztf` | Intentional omission: "short and concise" (see intentional-omissions.md) |
+| `prompts/base/text-output.md` | Text Output | `Assume users can't see most tool calls` | `_tf` | Verbatim match against the **default branch** (returned when `sY(H)` is false; `sY` was `bY` pre-v2.1.170). v2.1.170 added a feature-flagged first branch (`x8H(H)||yX9(H)`) returning a longer "# Communicating with the user" block — a gated variant we deliberately do not track (see intentional-omissions.md) |
+| `prompts/base/session-guidance.md` | Session Guidance | `Session-specific guidance` | `Wtf` | Local paraphrase; intentionally skips feature-flagged `/schedule` offer guidance |
+| `prompts/base/env.md` | Environment Info | `You have been invoked in the following environment` | `ytf` | Local additions: gitStatus block, tool-result note. Worktree notice via `{{WORKTREE_NOTICE}}`. Model-family line tracks upstream (Fable 5 added v2.1.170) |
 
 ## Model metadata (env.ts)
 

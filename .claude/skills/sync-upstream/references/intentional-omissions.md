@@ -55,6 +55,25 @@ and `minimal` axes align more closely with this upstream guidance.
 includes this exact sentence. The `architect` axis encourages detailed explanations
 and proposing alternatives, which conflicts with this instruction in the base.
 
+## text-output.md
+
+### 6. "Communicating with the user" gated variant (v2.1.170+)
+
+In v2.1.170 the Text Output function (`_tf`, was `ExA`) gained a **new first branch**
+gated behind `x8H(H)||yX9(H)` that returns a longer `# Communicating with the user`
+block (lead-with-outcome, "teammate who stepped away", readable-vs-concise guidance).
+We continue to track the **default branch** (`# Text output (does not apply to tool
+calls)`, now the third branch), which is unchanged.
+
+> "# Communicating with the user … Write it for a teammate who stepped away and is
+> catching up, not for a log file … Lead with the outcome … Being readable and being
+> concise are different things, and readable matters more …"
+
+**Reason:** It's a feature-flagged/gated variant, not the baseline most models receive
+(verified absent from a live Opus 4.8 session prompt during the v2.1.170 sync). The
+chill/flow bases already carry their own emotion-research-informed communication
+guidance. Revisit if this branch becomes the default in a later release.
+
 ## How to maintain this file
 
 When a new intentional omission is decided during a sync:

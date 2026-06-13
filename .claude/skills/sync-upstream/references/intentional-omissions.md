@@ -59,8 +59,9 @@ and proposing alternatives, which conflicts with this instruction in the base.
 
 ### 6. "Communicating with the user" gated variant (v2.1.170+)
 
-In v2.1.170 the Text Output function (`_tf`, was `ExA`) gained a **new first branch**
-gated behind `x8H(H)||yX9(H)` that returns a longer `# Communicating with the user`
+In v2.1.170 the Text Output function (`O5A` as of v2.1.177, was `_tf` in v2.1.170,
+`ExA` earlier) gained a **new first branch** gated behind `Rs(H)||z5A(H)` (was
+`x8H(H)||yX9(H)` in v2.1.170) that returns a longer `# Communicating with the user`
 block (lead-with-outcome, "teammate who stepped away", readable-vs-concise guidance).
 We continue to track the **default branch** (`# Text output (does not apply to tool
 calls)`, now the third branch), which is unchanged.

@@ -11,17 +11,17 @@ change between releases but the marker should remain stable.
 
 ## Prompt fragments
 
-| Local file | Upstream section | Marker | Function (v2.1.177) | Expected diff |
+| Local file | Upstream section | Marker | Function (v2.1.197) | Expected diff |
 |---|---|---|---|---|
-| `prompts/base/intro.md` | Intro | `an interactive agent that helps users` | `Z5A` | Verbatim match (local prepends "You are Claude Code...") |
-| `prompts/base/system.md` | System Rules | `rendered in a monospace font using the CommonMark specification` | `G5A` | Verbatim match |
-| `prompts/base/doing-tasks.md` | Doing Tasks | `primarily request you to perform software engineering tasks` | `V5A` | Intentional omissions (see intentional-omissions.md); local additions for read-before-edit, no-time-estimates, diagnose-failures |
-| `prompts/base/actions.md` | Executing Actions with Care | `Carefully consider the reversibility and blast radius` | `T5A` | Merged from upstream cautious variant; autonomous variant removed (agency axis handles behavioral difference) |
-| `prompts/base/tools.md` | Using Your Tools | `planning your work and helping the user track your progress` | `v5A` | Local paraphrase — same intent as upstream but rewritten for tool-agnostic phrasing |
-| `prompts/base/tone.md` | Tone and Style | `file_path:line_number to allow the user to easily navigate` | `y5A` | Intentional omission: "short and concise" (see intentional-omissions.md) |
-| `prompts/base/text-output.md` | Text Output | `Assume users can't see most tool calls` | `O5A` | Verbatim match against the **default branch** (returned when `V3(H)` is false; this gate was `sY` in v2.1.170, `bY` pre-v2.1.170). The feature-flagged first branch (`Rs(H)||z5A(H)`, was `x8H(H)||yX9(H)` in v2.1.170) returns a longer "# Communicating with the user" block — a gated variant we deliberately do not track (see intentional-omissions.md) |
-| `prompts/base/session-guidance.md` | Session Guidance | `Session-specific guidance` | `N5A` | Local paraphrase; intentionally skips feature-flagged `/schedule` offer guidance |
-| `prompts/base/env.md` | Environment Info | `You have been invoked in the following environment` | `x5A` | Local additions: gitStatus block, tool-result note. Worktree notice via `{{WORKTREE_NOTICE}}`. Model-family line tracks upstream (Fable 5 added v2.1.170) |
+| `prompts/base/intro.md` | Intro | `an interactive agent that helps users` | `Uam` | Verbatim match (local prepends "You are Claude Code...") |
+| `prompts/base/system.md` | System Rules | `rendered in a monospace font using the CommonMark specification` | `Fam` | Verbatim match |
+| `prompts/base/doing-tasks.md` | Doing Tasks | `primarily request you to perform software engineering tasks` | `jam` | Intentional omissions (see intentional-omissions.md); local additions for read-before-edit, no-time-estimates, diagnose-failures, verified-vs-assumed (upstream gates the last behind `tengu_verified_vs_assumed`, local carries it unconditionally) |
+| `prompts/base/actions.md` | Executing Actions with Care | `Carefully consider the reversibility and blast radius` | `Gam` | Merged from upstream cautious variant; autonomous variant removed (agency axis handles behavioral difference). v2.1.197 added a new gated `"compact"` branch (`G9o(e)==="compact"`) with a much shorter version — not tracked, same precedent as other gated variants (see intentional-omissions.md) |
+| `prompts/base/tools.md` | Using Your Tools | `planning your work and helping the user track your progress` | `Wam` | Local paraphrase — same intent as upstream but rewritten for tool-agnostic phrasing. v2.1.197 added a new gated branch (`$I()`) returning task-tool-only guidance — not tracked (see intentional-omissions.md) |
+| `prompts/base/tone.md` | Tone and Style | `file_path:line_number to allow the user to easily navigate` | `zam` | Intentional omission: "short and concise" (see intentional-omissions.md) |
+| `prompts/base/text-output.md` | Text Output | `Assume users can't see most tool calls` | `kam` | Verbatim match against the **default branch** (the third/final branch as of v2.1.197). Two gated variants exist ahead of it and are deliberately not tracked (see intentional-omissions.md): the long "Communicating with the user" block (first branch), and a new one-line `yh(e)`-gated branch ("Write code that reads like the surrounding code...") added in v2.1.197 |
+| `prompts/base/session-guidance.md` | Session Guidance | `Session-specific guidance` | `Vam` | Local paraphrase; intentionally skips feature-flagged `/schedule` offer guidance. An unidentified gated branch `qam(n)` (behind `e.has(is)`) exists in v2.1.197 — did not fire in the live session used for the v2.1.197 sync, content still unknown (see intentional-omissions.md) |
+| `prompts/base/env.md` | Environment Info | `You have been invoked in the following environment` | `elm` | Local additions: gitStatus block, tool-result note. Worktree notice via `{{WORKTREE_NOTICE}}`. Model-family line tracks upstream (updated for Sonnet 5 in v2.1.197). A new field `NRn()??null` was added between OS Version and the model line in v2.1.197 — did not fire in the live session used for the sync, content still unknown (see intentional-omissions.md) |
 
 ## Model metadata (env.ts)
 

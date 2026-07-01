@@ -59,21 +59,92 @@ and proposing alternatives, which conflicts with this instruction in the base.
 
 ### 6. "Communicating with the user" gated variant (v2.1.170+)
 
-In v2.1.170 the Text Output function (`O5A` as of v2.1.177, was `_tf` in v2.1.170,
-`ExA` earlier) gained a **new first branch** gated behind `Rs(H)||z5A(H)` (was
-`x8H(H)||yX9(H)` in v2.1.170) that returns a longer `# Communicating with the user`
-block (lead-with-outcome, "teammate who stepped away", readable-vs-concise guidance).
-We continue to track the **default branch** (`# Text output (does not apply to tool
-calls)`, now the third branch), which is unchanged.
+In v2.1.170 the Text Output function (`kam` as of v2.1.197, was `O5A` in v2.1.177,
+`_tf` in v2.1.170, `ExA` earlier) gained a **first branch** gated behind
+`B_e(t)||Iam(t)` (was `Rs(H)||z5A(H)` in v2.1.177, `x8H(H)||yX9(H)` in v2.1.170)
+that returns a longer `# Communicating with the user` block (lead-with-outcome,
+"teammate who stepped away", readable-vs-concise guidance). As of v2.1.197 this
+block also grows an extra paragraph when a sub-condition `n` is true, about text
+between tool calls not being shown to the user and needing to be restated in the
+final message. We continue to track the **default branch** (`# Text output (does
+not apply to tool calls)`, now the third branch), which is unchanged.
 
 > "# Communicating with the user … Write it for a teammate who stepped away and is
-> catching up, not for a log file … Lead with the outcome … Being readable and being
-> concise are different things, and readable matters more …"
+> catching up, not for a log file: they don't know the codenames or shorthand you
+> created along the way … Lead with the outcome … Being readable and being concise
+> are different things, and readable matters more … Write code that reads like the
+> surrounding code: match its comment density, naming, and idiom. Only write a code
+> comment to state a constraint the code itself can't show …"
 
 **Reason:** It's a feature-flagged/gated variant, not the baseline most models receive
-(verified absent from a live Opus 4.8 session prompt during the v2.1.170 sync). The
-chill/flow bases already carry their own emotion-research-informed communication
-guidance. Revisit if this branch becomes the default in a later release.
+(verified absent from a live Opus 4.8 session prompt during the v2.1.170 sync, and
+still absent from a live session prompt during the v2.1.197 sync). The chill/flow
+bases already carry their own emotion-research-informed communication guidance.
+Revisit if this branch becomes the default in a later release.
+
+### 7. One-line code-comment variant (v2.1.197+)
+
+A new second branch gated behind `yh(e)` returns just:
+
+> "Write code that reads like the surrounding code: match its comment density,
+> naming, and idiom."
+
+**Reason:** Same as #6 — a gated variant not observed in a live session prompt.
+Likely a terser mode for a specific context (short conversations, sub-agents, or
+similar). Revisit if it starts appearing as the default.
+
+## actions.md
+
+### 8. "compact" mode variant (v2.1.197+)
+
+A new branch gated behind `G9o(e)==="compact"` returns a much shorter
+"Executing actions with care" section:
+
+> "Read, search, and investigate freely — looking is not acting. For actions that
+> are hard to reverse, affect shared systems, or are otherwise risky (deleting
+> data, force-pushing, sending messages, modifying shared infrastructure), confirm
+> with the user before proceeding unless durably authorized. Approval in one
+> context doesn't extend to the next."
+
+**Reason:** Gated variant, not observed in a live session prompt during the
+v2.1.197 sync. We continue to track the default (cautious, full-length) branch,
+which matches `actions.md` verbatim. Revisit if `"compact"` mode becomes common.
+
+## tools.md
+
+### 9. Task-tool-only variant (v2.1.197+)
+
+A new branch gated behind `$I()` returns guidance about the task tool only,
+omitting the Bash-vs-dedicated-tools and parallel-tool-use bullets present in the
+default branch.
+
+**Reason:** Gated variant, not observed in a live session prompt during the
+v2.1.197 sync — content depends on session state we couldn't trigger. Revisit if
+it starts appearing as the default.
+
+## session-guidance.md
+
+### 10. Unidentified gated branch `qam(n)` (v2.1.197+)
+
+The Session Guidance function (`Vam` in v2.1.197) has a branch gated behind
+`e.has(is)` that calls an unextracted helper `qam(n)`. It did not fire in the live
+session prompt used during the v2.1.197 sync, so its content is unknown.
+
+**Reason:** Not a documented omission so much as an open question — flagged here
+so future syncs know to investigate rather than assume it's unchanged. If it fires
+in a future sync, extract `qam`'s body and classify properly.
+
+## env.md
+
+### 11. Unidentified new field `NRn()??null` (v2.1.197+)
+
+The Environment Info function (`elm` in v2.1.197) inserts a new field between
+"OS Version" and the model-name line, guarded by `NRn()??null`. It did not fire
+in the live session prompt used during the v2.1.197 sync (produced no visible
+output), so its content is unknown.
+
+**Reason:** Same as #10 — flagged as an open question rather than a settled
+omission. Investigate if it starts appearing in a live session prompt.
 
 ## How to maintain this file
 

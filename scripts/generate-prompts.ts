@@ -49,6 +49,8 @@ const FRAGMENT_PATHS = [
   "axis/scope/unrestricted.md",
   "axis/scope/adjacent.md",
   "axis/scope/narrow.md",
+  // Style fragments
+  "style/declaudified.md",
   // Modifiers
   "modifiers/readonly.md",
   "modifiers/context-pacing.md",

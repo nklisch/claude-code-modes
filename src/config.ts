@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname, resolve, isAbsolute } from "node:path";
 import { homedir } from "node:os";
-import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES, AXIS_BUILTINS, BUILTIN_BASE_NAMES, isBuiltinModifier, isPresetName, isBuiltinBase, isBuiltinAxisValue } from "./types.js";
+import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES, AXIS_BUILTINS, BUILTIN_BASE_NAMES, STYLE_VALUES, isBuiltinModifier, isPresetName, isBuiltinBase, isBuiltinAxisValue, isBuiltinStyle } from "./types.js";
 
 /**
  * Matches paths that reference potentially sensitive files (SSH keys, credentials, etc.).
@@ -33,6 +33,8 @@ function validateConfigDefinedPath(path: string, context: string, configPath: st
 export interface UserConfig {
   defaultBase?: string;
   bases?: Record<string, string>; // name → directory path (relative to config dir)
+  defaultStyle?: string;
+  styles?: Record<string, string>; // name → .md path (relative to config dir)
   defaultModifiers?: string[];
   modifiers?: Record<string, string>;
   axes?: {
@@ -48,6 +50,7 @@ export interface CustomPresetDef {
   agency?: string;
   quality?: string;
   scope?: string;
+  style?: string;
   modifiers?: string[];
   readonly?: boolean;
   contextPacing?: boolean;
@@ -72,6 +75,15 @@ export function checkPresetNameCollision(name: string): void {
   if (isPresetName(name)) {
     throw new Error(
       `"${name}" is a built-in preset name (${PRESET_NAMES.join(", ")}); choose a different name`
+    );
+  }
+}
+
+/** Throws if name collides with a built-in style name. */
+export function checkStyleNameCollision(name: string): void {
+  if (isBuiltinStyle(name)) {
+    throw new Error(
+      `"${name}" is a built-in style name (${STYLE_VALUES.join(", ")}); choose a different name`
     );
   }
 }
@@ -204,6 +216,22 @@ function validateConfig(raw: unknown, configPath: string): UserConfig {
     for (const key of Object.keys(bases)) checkBaseNameCollision(key);
   }
 
+  // Validate defaultStyle
+  if (obj.defaultStyle !== undefined && typeof obj.defaultStyle !== "string") {
+    throw new Error(
+      `Invalid config file ${configPath}: "defaultStyle" must be a string`
+    );
+  }
+
+  // Validate styles map
+  if (obj.styles !== undefined) {
+    const styles = validateStringRecord(obj.styles, "styles", configPath);
+    for (const [key, val] of Object.entries(styles)) {
+      checkStyleNameCollision(key);
+      validateConfigDefinedPath(val, `"styles.${key}"`, configPath);
+    }
+  }
+
   // Validate defaultModifiers
   if (obj.defaultModifiers !== undefined) {
     const defaultModifiers = validateStringArray(obj.defaultModifiers, "defaultModifiers", configPath);
@@ -262,7 +290,7 @@ function validateConfig(raw: unknown, configPath: string): UserConfig {
           `Invalid config file ${configPath}: preset "${presetName}.base" must be a string`
         );
       }
-      for (const field of ["agency", "quality", "scope"] as const) {
+      for (const field of ["agency", "quality", "scope", "style"] as const) {
         if (def[field] !== undefined && typeof def[field] !== "string") {
           throw new Error(
             `Invalid config file ${configPath}: preset "${presetName}.${field}" must be a string`

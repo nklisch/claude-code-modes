@@ -43,6 +43,8 @@ const EXPECTED_FRAGMENTS = [
   "axis/scope/unrestricted.md",
   "axis/scope/adjacent.md",
   "axis/scope/narrow.md",
+  // Style fragments
+  "style/declaudified.md",
   // Modifiers
   "modifiers/readonly.md",
   "modifiers/context-pacing.md",
@@ -58,8 +60,8 @@ const EXPECTED_FRAGMENTS = [
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 41 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(41);
+  test("contains exactly 42 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(42);
   });
 
   test("all expected fragment keys are present", () => {
@@ -107,70 +109,87 @@ describe("EMBEDDED_PROMPTS", () => {
     // Spec: every built-in relative path from getFragmentOrder must be embeddable
     const modes: ModeConfig[] = [
       // none mode — standard base, with built-in modifiers
-      { base: "standard", axes: null, modifiers: ["modifiers/readonly.md", "modifiers/context-pacing.md"] },
+      { base: "standard", axes: null, style: null, modifiers: ["modifiers/readonly.md", "modifiers/context-pacing.md"] },
       // create preset — standard base
       {
         base: "standard",
         axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        style: null,
         modifiers: [],
       },
       // safe preset — standard base
       {
         base: "standard",
         axes: { agency: "collaborative", quality: "minimal", scope: "narrow" },
+        style: null,
         modifiers: [],
       },
       // surgical agency — standard base
       {
         base: "standard",
         axes: { agency: "surgical", quality: "pragmatic", scope: "adjacent" },
+        style: null,
         modifiers: [],
       },
       // none mode — chill base
-      { base: "chill", axes: null, modifiers: [] },
+      { base: "chill", axes: null, style: null, modifiers: [] },
       // create preset — chill base
       {
         base: "chill",
         axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        style: null,
         modifiers: [],
       },
       // debug preset — chill base with debug modifier
       {
         base: "chill",
         axes: { agency: "collaborative", quality: "pragmatic", scope: "narrow" },
+        style: null,
         modifiers: ["modifiers/debug.md"],
       },
       // methodical preset — chill base with methodical modifier
       {
         base: "chill",
         axes: { agency: "surgical", quality: "architect", scope: "narrow" },
+        style: null,
         modifiers: ["modifiers/methodical.md"],
       },
       // partner preset — chill base, partner agency, speak-plain + tdd modifiers
       {
         base: "chill",
         axes: { agency: "partner", quality: "pragmatic", scope: "adjacent" },
+        style: null,
         modifiers: ["modifiers/speak-plain.md", "modifiers/tdd.md"],
       },
       // muse preset — chill base, autonomous/architect/unrestricted, muse modifier
       {
         base: "chill",
         axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        style: null,
         modifiers: ["modifiers/muse.md"],
       },
       // none mode — flow base
-      { base: "flow", axes: null, modifiers: [] },
+      { base: "flow", axes: null, style: null, modifiers: [] },
       // flow base with flow + playful modifiers
       {
         base: "flow",
         axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+        style: null,
         modifiers: ["modifiers/flow.md", "modifiers/playful.md"],
       },
       // flow + playful modifiers on the standard base (modifiers compose anywhere)
       {
         base: "standard",
         axes: { agency: "collaborative", quality: "pragmatic", scope: "adjacent" },
+        style: null,
         modifiers: ["modifiers/flow.md", "modifiers/playful.md"],
+      },
+      // declaudified style — style fragments compose with any base
+      {
+        base: "chill",
+        axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
+        style: "declaudified",
+        modifiers: [],
       },
     ];
     for (const mode of modes) {

@@ -140,6 +140,38 @@ describe("build-prompt CLI", () => {
     const errOutput = runExpectFail("create --base nonexistent-base");
     expect(errOutput).toContain("Unknown --base value");
   });
+
+  test("create --style declaudified --print includes style content after axes", () => {
+    const output = run("create --style declaudified --print");
+    expect(output).toContain("# Style: Declaudified");
+    expect(output).toContain("Lead with the answer.");
+    const scopeIdx = output.indexOf("# Scope: Unrestricted");
+    const styleIdx = output.indexOf("# Style: Declaudified");
+    expect(scopeIdx).toBeGreaterThan(-1);
+    expect(styleIdx).toBeGreaterThan(scopeIdx);
+  });
+
+  test("no style content without --style", () => {
+    const output = run("create --print");
+    expect(output).not.toContain("# Style: Declaudified");
+  });
+
+  test("none --style declaudified --print includes style without axes", () => {
+    const output = run("none --style declaudified --print");
+    expect(output).toContain("# Style: Declaudified");
+    expect(output).not.toContain("# Agency:");
+  });
+
+  test("--style invalid-name produces descriptive error", () => {
+    const errOutput = runExpectFail("create --style nonexistent-style");
+    expect(errOutput).toContain("Unknown --style value");
+  });
+
+  test("--help shows --style flag", () => {
+    const output = run("--help");
+    expect(output).toContain("--style");
+    expect(output).toContain("declaudified");
+  });
 });
 
 describe("routing isolation: inspect vs normal --print", () => {

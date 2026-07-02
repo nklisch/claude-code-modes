@@ -8,6 +8,7 @@ import {
   checkModifierNameCollision,
   checkPresetNameCollision,
   checkAxisValueCollision,
+  checkStyleNameCollision,
 } from "./config.js";
 import { AXIS_BUILTINS } from "./types.js";
 const VALID_AXES = Object.keys(AXIS_BUILTINS) as Array<"agency" | "quality" | "scope">;
@@ -120,6 +121,33 @@ function configRemoveModifier(configPath: string, name: string): void {
   );
 }
 
+function configAddStyle(configPath: string, name: string, mdPath: string): void {
+  checkStyleNameCollision(name);
+  const config = readConfig(configPath);
+  config.styles = { ...config.styles, [name]: mdPath };
+  writeConfig(configPath, config);
+  process.stdout.write(
+    `Registered style "${name}" in ${configFileName(configPath)}\n`
+  );
+}
+
+function configRemoveStyle(configPath: string, name: string): void {
+  const config = readConfig(configPath);
+  const styles = config.styles ?? {};
+  if (!(name in styles)) {
+    throw new Error(
+      `Style "${name}" not found in ${configFileName(configPath)}`
+    );
+  }
+  const updated = { ...styles };
+  delete updated[name];
+  config.styles = updated;
+  writeConfig(configPath, config);
+  process.stdout.write(
+    `Unregistered style "${name}" from ${configFileName(configPath)}\n`
+  );
+}
+
 function configAddAxis(configPath: string, axis: string, name: string, mdPath: string): void {
   if (!VALID_AXES.includes(axis as ValidAxis)) {
     throw new Error(
@@ -173,6 +201,7 @@ function configAddPreset(configPath: string, name: string, flags: string[]): voi
       agency: { type: "string" },
       quality: { type: "string" },
       scope: { type: "string" },
+      style: { type: "string" },
       modifier: { type: "string", multiple: true },
       readonly: { type: "boolean" },
       "context-pacing": { type: "boolean" },
@@ -184,6 +213,7 @@ function configAddPreset(configPath: string, name: string, flags: string[]): voi
   if (values.agency !== undefined) presetDef.agency = values.agency;
   if (values.quality !== undefined) presetDef.quality = values.quality;
   if (values.scope !== undefined) presetDef.scope = values.scope;
+  if (values.style !== undefined) presetDef.style = values.style;
   if (values.modifier !== undefined && values.modifier.length > 0) {
     presetDef.modifiers = values.modifier as string[];
   }
@@ -238,6 +268,8 @@ Subcommands:
   remove-default <name>             Remove from defaultModifiers
   add-modifier <name> <path>        Register a named modifier
   remove-modifier <name>            Unregister a named modifier
+  add-style <name> <path>           Register a named style
+  remove-style <name>               Unregister a named style
   add-axis <axis> <name> <path>     Register custom axis value
   remove-axis <axis> <name>         Unregister custom axis value
   add-preset <name> [flags]         Create a custom preset
@@ -247,6 +279,7 @@ Flags for add-preset:
   --agency <value>
   --quality <value>
   --scope <value>
+  --style <value>
   --modifier <name> (repeatable)
   --readonly
   --context-pacing`;
@@ -284,6 +317,18 @@ Flags for add-preset:
     case "remove-modifier": {
       if (rest.length < 1) throw new Error("remove-modifier requires <name>");
       configRemoveModifier(configPath, rest[0]);
+      break;
+    }
+
+    case "add-style": {
+      if (rest.length < 2) throw new Error("add-style requires <name> <path>");
+      configAddStyle(configPath, rest[0], rest[1]);
+      break;
+    }
+
+    case "remove-style": {
+      if (rest.length < 1) throw new Error("remove-style requires <name>");
+      configRemoveStyle(configPath, rest[0]);
       break;
     }
 

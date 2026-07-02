@@ -15,7 +15,7 @@ The bash entry point never interacts with the terminal beyond launching. The Typ
 ## CLI Interface
 
 ```
-claude-mode <preset|none> [axis-overrides] [modifiers] [-- claude-flags]
+claude-mode <preset|none> [axis-overrides] [--style <value>] [modifiers] [-- claude-flags]
 ```
 
 ### Presets
@@ -65,6 +65,12 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 
 Resolution order: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > preset `base` > `"standard"`.
 
+### Style Selection
+
+- `--style <name|path>` — Selects a writing style, a single fragment inserted after the axis fragments. Built-in: `declaudified` (lead-with-the-answer writing: cut filler and metadiscourse, plain language, no dead tech-metaphors — from the skills-marketplace `declaudified-writing` snippet). Also accepts config-defined names or `.md` file paths.
+
+No style is applied by default. Resolution order: built-in → config → file path heuristic. Priority chain: CLI `--style` > config `defaultStyle` > preset `style` > none. Unlike axes, an explicit style also applies in `none` mode (like explicit modifiers).
+
 ### Modifiers
 
 All modifiers are fragment-based — they resolve to markdown files that get inserted at the manifest's `"modifiers"` marker.
@@ -93,8 +99,10 @@ Loaded from `.claude-mode.json` in CWD, falling back to `~/.config/claude-mode/c
 ```json
 {
   "defaultBase": "<name>",
+  "defaultStyle": "<name>",
   "defaultModifiers": ["<name>"],
   "bases": { "<name>": "<directory-path>" },
+  "styles": { "<name>": "<path>" },
   "modifiers": { "<name>": "<path>" },
   "axes": {
     "agency": { "<name>": "<path>" },
@@ -107,6 +115,7 @@ Loaded from `.claude-mode.json` in CWD, falling back to `~/.config/claude-mode/c
       "agency": "<value>",
       "quality": "<value>",
       "scope": "<value>",
+      "style": "<value>",
       "modifiers": ["<name>"],
       "readonly": true,
       "contextPacing": true
@@ -115,7 +124,7 @@ Loaded from `.claude-mode.json` in CWD, falling back to `~/.config/claude-mode/c
 }
 ```
 
-Custom preset names must not collide with built-in presets. Custom modifier names must not collide with `readonly` or `context-pacing`. Config paths are relative to the config file's directory.
+Custom preset names must not collide with built-in presets. Custom modifier names must not collide with `readonly` or `context-pacing`. Custom style names must not collide with `declaudified`. Config paths are relative to the config file's directory.
 
 ### Config Management CLI
 
@@ -123,7 +132,7 @@ Custom preset names must not collide with built-in presets. Custom modifier name
 claude-mode config <subcommand> [args] [--global]
 ```
 
-Subcommands: `show`, `init`, `add-default`, `remove-default`, `add-modifier`, `remove-modifier`, `add-axis`, `remove-axis`, `add-preset`, `remove-preset`. Defaults to project-local config; `--global` targets `~/.config/claude-mode/config.json`.
+Subcommands: `show`, `init`, `add-default`, `remove-default`, `add-modifier`, `remove-modifier`, `add-style`, `remove-style`, `add-axis`, `remove-axis`, `add-preset`, `remove-preset`. Defaults to project-local config; `--global` targets `~/.config/claude-mode/config.json`.
 
 ### Claude Passthrough
 
@@ -200,7 +209,7 @@ Implemented in `src/version-check.ts`; wired into `src/cli.ts`.
 ### Manifest-Driven Fragment Order
 
 Each base has a `base.json` manifest — a flat JSON array of strings. Two reserved words control insertion:
-- `"axes"` — where axis fragments (agency/quality/scope) are inserted (skipped for `none` mode)
+- `"axes"` — where axis fragments (agency/quality/scope) are inserted (skipped for `none` mode), followed by the style fragment when a style is set (applied even in `none` mode)
 - `"modifiers"` — where modifier fragments are inserted (context-pacing, readonly, custom)
 
 **Standard base manifest** (`prompts/base/base.json`):
@@ -320,6 +329,8 @@ claude-code-modes/
 │   │       ├── unrestricted.md
 │   │       ├── adjacent.md
 │   │       └── narrow.md
+│   ├── style/
+│   │   └── declaudified.md        # lead-with-the-answer writing style
 │   └── modifiers/
 │       ├── context-pacing.md
 │       ├── readonly.md

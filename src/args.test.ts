@@ -21,6 +21,32 @@ describe("parseCliArgs", () => {
     expect(result.overrides).toEqual({ agency: "autonomous", quality: "architect", scope: "unrestricted" });
   });
 
+  test("parses --style with built-in name", () => {
+    const result = parseCliArgs(["create", "--style", "declaudified"]);
+    expect(result.preset).toBe("create");
+    expect(result.style).toBe("declaudified");
+  });
+
+  test("stores raw string for --style (no validation)", () => {
+    const result = parseCliArgs(["--style", "invalid"]);
+    expect(result.style).toBe("invalid");
+  });
+
+  test("stores raw file path for --style", () => {
+    const result = parseCliArgs(["--style", "./my-style.md"]);
+    expect(result.style).toBe("./my-style.md");
+  });
+
+  test("--style is undefined when not passed", () => {
+    const result = parseCliArgs(["create"]);
+    expect(result.style).toBeUndefined();
+  });
+
+  test("--style is not passed through to claude", () => {
+    const result = parseCliArgs(["create", "--style", "declaudified"]);
+    expect(result.passthroughArgs).toEqual([]);
+  });
+
   test("captures passthrough args after --", () => {
     const result = parseCliArgs(["create", "--", "--verbose", "--model", "sonnet"]);
     expect(result.preset).toBe("create");

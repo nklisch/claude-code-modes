@@ -18,7 +18,7 @@ describe("full assembly integration", () => {
     const env = detectEnv();
     const vars = buildTemplateVars(env);
     const result = assemblePrompt({
-      mode: { base: "standard", axes: null, modifiers: [] },
+      mode: { base: "standard", axes: null, style: null, modifiers: [] },
       templateVars: vars,
       promptsDir: PROMPTS_DIR,
     });
@@ -43,7 +43,7 @@ describe("full assembly integration", () => {
     const env = detectEnv();
     const vars = buildTemplateVars(env);
     const result = assemblePrompt({
-      mode: { base: "standard", axes: null, modifiers: ["modifiers/readonly.md"] },
+      mode: { base: "standard", axes: null, style: null, modifiers: ["modifiers/readonly.md"] },
       templateVars: vars,
       promptsDir: PROMPTS_DIR,
     });
@@ -63,6 +63,7 @@ describe("preset assembly integration", () => {
       const mode: ModeConfig = {
         base,
         axes: preset.axes,
+        style: null,
         modifiers: [
           ...presetModifiers(preset.readonly),
           ...preset.modifiers.map((m) => `modifiers/${m}.md`),
@@ -76,7 +77,7 @@ describe("preset assembly integration", () => {
 
   test("create contains architect quality content", () => {
     const preset = getPreset("create");
-    const mode: ModeConfig = { base: "standard", axes: preset.axes, modifiers: [] };
+    const mode: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: [] };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Architect");
     expect(result).toContain("# Agency: Autonomous");
@@ -87,7 +88,7 @@ describe("preset assembly integration", () => {
 
   test("safe contains minimal quality and shared actions content", () => {
     const preset = getPreset("safe");
-    const mode: ModeConfig = { base: "standard", axes: preset.axes, modifiers: [] };
+    const mode: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: [] };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Quality: Minimal");
     expect(result).toContain("# Agency: Collaborative");
@@ -97,7 +98,7 @@ describe("preset assembly integration", () => {
 
   test("create contains actions content", () => {
     const preset = getPreset("create");
-    const mode: ModeConfig = { base: "standard", axes: preset.axes, modifiers: [] };
+    const mode: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: [] };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("# Executing actions with care");
     expect(result).toContain("# Agency: Autonomous");
@@ -105,7 +106,7 @@ describe("preset assembly integration", () => {
 
   test("explore includes readonly modifier", () => {
     const preset = getPreset("explore");
-    const mode: ModeConfig = { base: "standard", axes: preset.axes, modifiers: ["modifiers/readonly.md"] };
+    const mode: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: ["modifiers/readonly.md"] };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).toContain("Read-only mode");
     expect(result).toContain("Do NOT create, edit, move, or delete any files");
@@ -113,7 +114,7 @@ describe("preset assembly integration", () => {
 
   test("none mode has no axis headers", () => {
     const preset = getPreset("none");
-    const mode: ModeConfig = { base: "standard", axes: preset.axes, modifiers: [] };
+    const mode: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: [] };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
     expect(result).not.toContain("# Agency:");
     expect(result).not.toContain("# Quality:");
@@ -122,10 +123,10 @@ describe("preset assembly integration", () => {
 
   test("presets exclude context pacing by default, include when opted in", () => {
     const preset = getPreset("create");
-    const without: ModeConfig = { base: "standard", axes: preset.axes, modifiers: [] };
+    const without: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: [] };
     expect(assemblePrompt({ mode: without, templateVars: vars, promptsDir: PROMPTS_DIR })).not.toContain("# Context and pacing");
 
-    const withPacing: ModeConfig = { base: "standard", axes: preset.axes, modifiers: ["modifiers/context-pacing.md"] };
+    const withPacing: ModeConfig = { base: "standard", axes: preset.axes, style: null, modifiers: ["modifiers/context-pacing.md"] };
     expect(assemblePrompt({ mode: withPacing, templateVars: vars, promptsDir: PROMPTS_DIR })).toContain("# Context and pacing");
   });
 
@@ -135,6 +136,7 @@ describe("preset assembly integration", () => {
     const mode: ModeConfig = {
       base: "standard",
       axes: { ...preset.axes!, quality: "pragmatic" },
+      style: null,
       modifiers: [],
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -150,6 +152,7 @@ describe("preset assembly integration", () => {
     const mode: ModeConfig = {
       base: preset.base ?? "standard",
       axes: preset.axes,
+      style: null,
       modifiers: preset.modifiers.map((m) => `modifiers/${m}.md`),
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -165,6 +168,7 @@ describe("preset assembly integration", () => {
     const mode: ModeConfig = {
       base: preset.base ?? "standard",
       axes: preset.axes,
+      style: null,
       modifiers: preset.modifiers.map((m) => `modifiers/${m}.md`),
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -186,6 +190,7 @@ describe("chill base integration", () => {
       const mode: ModeConfig = {
         base: "chill",
         axes: preset.axes,
+        style: null,
         modifiers: presetModifiers(preset.readonly),
       };
       const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -198,6 +203,7 @@ describe("chill base integration", () => {
     const mode: ModeConfig = {
       base: "chill",
       axes: { agency: "collaborative", quality: "pragmatic", scope: "adjacent" },
+      style: null,
       modifiers: [],
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -212,12 +218,12 @@ describe("chill base integration", () => {
     const modifiers: string[] = [];
 
     const standard = assemblePrompt({
-      mode: { base: "standard", axes, modifiers },
+      mode: { base: "standard", axes, style: null, modifiers },
       templateVars: vars,
       promptsDir: PROMPTS_DIR,
     });
     const chill = assemblePrompt({
-      mode: { base: "chill", axes, modifiers },
+      mode: { base: "chill", axes, style: null, modifiers },
       templateVars: vars,
       promptsDir: PROMPTS_DIR,
     });
@@ -229,6 +235,7 @@ describe("chill base integration", () => {
     const mode: ModeConfig = {
       base: "chill",
       axes: { agency: "autonomous", quality: "architect", scope: "unrestricted" },
+      style: null,
       modifiers: [],
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });
@@ -241,6 +248,7 @@ describe("chill base integration", () => {
     const mode: ModeConfig = {
       base: "chill",
       axes: null,
+      style: null,
       modifiers: [],
     };
     const result = assemblePrompt({ mode, templateVars: vars, promptsDir: PROMPTS_DIR });

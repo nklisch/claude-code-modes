@@ -762,3 +762,130 @@ describe("resolveConfig — base resolution", () => {
     expect(config.base).toBe("standard");
   });
 });
+
+describe("resolveConfig — style resolution", () => {
+  const configDir = "/tmp/test-config";
+
+  test("no --style, no config resolves to null", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "create" }, null);
+    expect(config.style).toBeNull();
+  });
+
+  test("--style declaudified resolves to built-in name", () => {
+    const config = resolveConfig({ ...baseParsed, style: "declaudified", preset: "create" }, null);
+    expect(config.style).toBe("declaudified");
+  });
+
+  test("--style with file path resolves to absolute path", () => {
+    const config = resolveConfig({ ...baseParsed, style: "/absolute/my-style.md" }, null);
+    expect(config.style).toBe("/absolute/my-style.md");
+  });
+
+  test("--style with relative path resolves to absolute path", () => {
+    const config = resolveConfig({ ...baseParsed, style: "./my-style.md" }, null);
+    expect(config.style).toMatch(/^\/.*my-style\.md$/);
+  });
+
+  test("config-defined style name resolves to absolute path", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: { styles: { "team": "./team-style.md" } },
+    };
+    const config = resolveConfig({ ...baseParsed, style: "team" }, loadedConfig);
+    expect(config.style).toBe(`${configDir}/team-style.md`);
+  });
+
+  test("config defaultStyle used when no CLI --style", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: { defaultStyle: "declaudified" },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "create" }, loadedConfig);
+    expect(config.style).toBe("declaudified");
+  });
+
+  test("CLI --style overrides config defaultStyle", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: { defaultStyle: "declaudified", styles: { "team": "./team-style.md" } },
+    };
+    const config = resolveConfig({ ...baseParsed, style: "team", preset: "create" }, loadedConfig);
+    expect(config.style).toBe(`${configDir}/team-style.md`);
+  });
+
+  test("unknown style name throws descriptive error listing built-in names", () => {
+    expect(() =>
+      resolveConfig({ ...baseParsed, style: "nonexistent-style" }, null)
+    ).toThrow('Unknown --style value: "nonexistent-style"');
+  });
+
+  test("unknown style error mentions built-in names", () => {
+    expect(() =>
+      resolveConfig({ ...baseParsed, style: "nonexistent-style" }, null)
+    ).toThrow("declaudified");
+  });
+
+  test("none preset resolves style to null by default", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "none" }, null);
+    expect(config.style).toBeNull();
+  });
+
+  test("none preset honors explicit --style", () => {
+    const config = resolveConfig({ ...baseParsed, style: "declaudified", preset: "none" }, null);
+    expect(config.style).toBe("declaudified");
+  });
+
+  test("none preset honors config defaultStyle", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: { defaultStyle: "declaudified" },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "none" }, loadedConfig);
+    expect(config.style).toBe("declaudified");
+  });
+
+  test("config-defined preset style field is used when no CLI --style", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        styles: { "team": "./team-style.md" },
+        presets: {
+          "team-preset": {
+            agency: "collaborative",
+            style: "team",
+          },
+        },
+      },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "team-preset" }, loadedConfig);
+    expect(config.style).toBe(`${configDir}/team-style.md`);
+  });
+
+  test("CLI --style overrides config preset style field", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        presets: {
+          "team-preset": { style: "declaudified" },
+        },
+      },
+    };
+    const config = resolveConfig({ ...baseParsed, style: "/cli/style.md", preset: "team-preset" }, loadedConfig);
+    expect(config.style).toBe("/cli/style.md");
+  });
+
+  test("config defaultStyle overrides preset style field", () => {
+    const loadedConfig: LoadedConfig = {
+      configDir,
+      config: {
+        defaultStyle: "declaudified",
+        styles: { "team": "./team-style.md" },
+        presets: {
+          "team-preset": { style: "team" },
+        },
+      },
+    };
+    const config = resolveConfig({ ...baseParsed, preset: "team-preset" }, loadedConfig);
+    expect(config.style).toBe("declaudified");
+  });
+});

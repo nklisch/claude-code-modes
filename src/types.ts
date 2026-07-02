@@ -7,6 +7,13 @@ export type Quality = (typeof QUALITY_VALUES)[number];
 export const SCOPE_VALUES = ["unrestricted", "adjacent", "narrow"] as const;
 export type Scope = (typeof SCOPE_VALUES)[number];
 
+// Built-in style names — writing styles applied on top of any base/axes
+export const STYLE_VALUES = ["declaudified"] as const;
+export type Style = (typeof STYLE_VALUES)[number];
+export function isBuiltinStyle(value: string): value is Style {
+  return (STYLE_VALUES as readonly string[]).includes(value);
+}
+
 export const PRESET_NAMES = [
   "create",
   "extend",
@@ -69,6 +76,7 @@ export interface AxisConfig {
 export interface ModeConfig {
   base: string; // built-in name ("standard", "chill") or absolute path to base directory
   axes: AxisConfig | null; // null for "none" mode
+  style: string | null; // built-in name or absolute path to a custom fragment; null = no style
   modifiers: string[]; // ordered list of modifier fragment paths (embedded keys or absolute paths)
 }
 

@@ -7,11 +7,13 @@ import {
   AGENCY_VALUES,
   QUALITY_VALUES,
   SCOPE_VALUES,
+  STYLE_VALUES,
   BUILTIN_MODIFIER_NAMES,
   BUILTIN_BASE_NAMES,
   PRESET_NAMES,
   isBuiltinModifier,
   isBuiltinBase,
+  isBuiltinStyle,
 } from "./types.js";
 import { resolve as pathResolve, isAbsolute } from "node:path";
 
@@ -129,6 +131,51 @@ function applyModifiers(
 }
 
 /**
+ * Resolves a style value to either a built-in name or an absolute path.
+ * Resolution order: built-in values → config-defined names → file path heuristic.
+ * Throws with descriptive error if unresolvable.
+ */
+function resolveStyleValue(raw: string, loadedConfig: LoadedConfig | null): string {
+  // 1. Built-in value
+  if (isBuiltinStyle(raw)) return raw;
+
+  // 2. Config-defined custom name
+  const configStyles = loadedConfig?.config.styles;
+  if (configStyles && raw in configStyles) {
+    return resolveConfigPath(loadedConfig!.configDir, configStyles[raw]);
+  }
+
+  // 3. File path
+  if (looksLikeFilePath(raw)) {
+    return isAbsolute(raw) ? raw : pathResolve(raw);
+  }
+
+  // 4. Unknown
+  const configHint = loadedConfig
+    ? ` Config loaded from: ${loadedConfig.configDir}`
+    : " No config file found.";
+  throw new Error(
+    `Unknown --style value: "${raw}". ` +
+    `Must be one of: ${STYLE_VALUES.join(", ")}, ` +
+    `a name defined in your config, or a file path.${configHint}`
+  );
+}
+
+/**
+ * Resolves the active style, or null when none applies.
+ * Priority: CLI --style > config defaultStyle > preset style > none
+ */
+function resolveStyle(
+  raw: string | undefined,
+  loadedConfig: LoadedConfig | null,
+  presetStyle: string | undefined,
+): string | null {
+  const value = raw ?? loadedConfig?.config.defaultStyle ?? presetStyle;
+  if (value === undefined) return null;
+  return resolveStyleValue(value, loadedConfig);
+}
+
+/**
  * Resolves a base reference to a built-in name or absolute directory path.
  * Priority: CLI --base > config defaultBase > preset base > "standard"
  */
@@ -190,12 +237,14 @@ export function resolveConfig(
   // 3. CLI --modifier flags — appended after defaults
   applyModifiers(parsed.customModifiers, loadedConfig, modifierPaths, "append");
 
-  // Handle "none" preset — resolve base before early return
+  // Handle "none" preset — resolve base before early return.
+  // Explicit --style (or config defaultStyle) still applies, like modifiers.
   if (parsed.preset === "none") {
     const base = resolveBase(parsed.base, loadedConfig, undefined);
     return {
       base,
       axes: null,
+      style: resolveStyle(parsed.style, loadedConfig, undefined),
       modifiers: modifierPaths,
     };
   }
@@ -204,6 +253,7 @@ export function resolveConfig(
   let quality: string;
   let scope: string;
   let presetBase: string | undefined;
+  let presetStyle: string | undefined;
 
   if (parsed.preset) {
     // Check built-in presets first, then config presets
@@ -220,6 +270,7 @@ export function resolveConfig(
         ? resolveAxisValue(parsed.overrides.scope, "scope", SCOPE_VALUES, loadedConfig)
         : preset.axes.scope;
       presetBase = preset.base;
+      presetStyle = preset.style;
 
       // Apply preset's readonly flag as a modifier
       if (preset.readonly) {
@@ -233,6 +284,7 @@ export function resolveConfig(
       // Config-defined preset
       const customPreset = config.presets[parsed.preset];
       presetBase = customPreset.base;
+      presetStyle = customPreset.style;
       agency = parsed.overrides.agency
         ? resolveAxisValue(parsed.overrides.agency, "agency", AGENCY_VALUES, loadedConfig)
         : customPreset.agency
@@ -284,10 +336,12 @@ export function resolveConfig(
   }
 
   const base = resolveBase(parsed.base, loadedConfig, presetBase);
+  const style = resolveStyle(parsed.style, loadedConfig, presetStyle);
 
   return {
     base,
     axes: { agency, quality, scope },
+    style,
     modifiers: modifierPaths,
   };
 }

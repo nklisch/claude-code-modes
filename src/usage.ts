@@ -42,6 +42,11 @@ Axis overrides:
   --scope <value>         Built-in: unrestricted, adjacent, narrow
   Axis values can also be config-defined names or file paths (.md files).
 
+Style:
+  --style <value>         Writing style for output. Built-in: declaudified
+  Style can also be a config-defined name or a file path (.md file).
+  No style is applied unless set via --style, config defaultStyle, or a preset.
+
 Modifiers:
   --readonly              Prevent file modifications
   --context-pacing        Include context pacing prompt
@@ -60,6 +65,7 @@ Examples:
   claude-mode create
   claude-mode create --base chill             # use the chill base
   claude-mode create --quality pragmatic
+  claude-mode create --style declaudified      # lead-with-the-answer writing, no filler
   claude-mode create --modifier ./my-rules.md
   claude-mode --agency autonomous --quality ./team-quality.md
   claude-mode team-default                    # custom preset from config

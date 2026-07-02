@@ -116,6 +116,15 @@ export function getFragmentOrder(mode: ModeConfig, promptsDir: string): string[]
           }
         }
       }
+      // Style fragment rides the axes insertion point but applies even in
+      // none mode — an explicit --style is honored like explicit modifiers
+      if (mode.style) {
+        if (isAbsolute(mode.style)) {
+          fragments.push(mode.style);
+        } else {
+          fragments.push(`style/${mode.style}.md`);
+        }
+      }
     } else if (entry === "modifiers") {
       // All modifiers are fragment paths — just add them
       for (const modPath of mode.modifiers) {

@@ -192,6 +192,55 @@ describe("config add-modifier / remove-modifier", () => {
   });
 });
 
+describe("config add-style / remove-style", () => {
+  let tempDir: string;
+  let configPath: string;
+  let originalCwd: string;
+
+  beforeEach(() => {
+    tempDir = makeTempDir("config-cli-test-");
+    configPath = join(tempDir, ".claude-mode.json");
+    originalCwd = process.cwd();
+    process.chdir(tempDir);
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test("add-style registers a named style", () => {
+    runConfigCommand(["add-style", "team", "./prompts/team-style.md"]);
+    const data = readJson(configPath) as any;
+    expect(data.styles["team"]).toBe("./prompts/team-style.md");
+  });
+
+  test("add-style rejects built-in name 'declaudified'", () => {
+    expect(() =>
+      runConfigCommand(["add-style", "declaudified", "./path.md"])
+    ).toThrow("built-in style name");
+  });
+
+  test("remove-style unregisters an existing style", () => {
+    runConfigCommand(["add-style", "team", "./prompts/team-style.md"]);
+    runConfigCommand(["remove-style", "team"]);
+    const data = readJson(configPath) as any;
+    expect(data.styles["team"]).toBeUndefined();
+  });
+
+  test("remove-style throws if not found", () => {
+    expect(() => runConfigCommand(["remove-style", "nonexistent"])).toThrow(
+      'Style "nonexistent" not found'
+    );
+  });
+
+  test("add-style throws if missing args", () => {
+    expect(() => runConfigCommand(["add-style", "only-name"])).toThrow(
+      "add-style requires"
+    );
+  });
+});
+
 describe("config add-axis / remove-axis", () => {
   let tempDir: string;
   let configPath: string;
@@ -315,6 +364,16 @@ describe("config add-preset / remove-preset", () => {
     ]);
     const data = readJson(configPath) as any;
     expect(data.presets.team.modifiers).toEqual(["rust-style"]);
+  });
+
+  test("add-preset with --style flag", () => {
+    runConfigCommand([
+      "add-preset", "team",
+      "--agency", "collaborative",
+      "--style", "declaudified",
+    ]);
+    const data = readJson(configPath) as any;
+    expect(data.presets.team.style).toBe("declaudified");
   });
 
   test("add-preset with multiple --modifier flags", () => {

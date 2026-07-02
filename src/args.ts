@@ -3,6 +3,7 @@ import { parseArgs } from "node:util";
 export interface ParsedArgs {
   base?: string;
   preset: string | null;
+  style?: string;
   overrides: {
     agency?: string;
     quality?: string;
@@ -34,6 +35,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
       agency: { type: "string" },
       quality: { type: "string" },
       scope: { type: "string" },
+      style: { type: "string" },
       modifier: { type: "string", multiple: true },
       readonly: { type: "boolean" },
       print: { type: "boolean" },
@@ -78,7 +80,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
 
   // Collect unknown flags for passthrough
   const knownFlags = new Set([
-    "base", "agency", "quality", "scope", "modifier", "readonly", "print", "context-pacing",
+    "base", "agency", "quality", "scope", "style", "modifier", "readonly", "print", "context-pacing",
     "append-system-prompt", "append-system-prompt-file",
     "system-prompt", "system-prompt-file", "help", "version",
   ]);
@@ -102,6 +104,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
   return {
     base: values.base as string | undefined,
     preset,
+    style: values.style as string | undefined,
     overrides,
     modifiers: {
       readonly: values.readonly === true,

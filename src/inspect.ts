@@ -66,6 +66,13 @@ function collectConfigDefinedPaths(loadedConfig: LoadedConfig | null): Set<strin
     }
   }
 
+  // Style definitions
+  if (config.styles) {
+    for (const val of Object.values(config.styles)) {
+      paths.add(resolveConfigPath(configDir, val));
+    }
+  }
+
   // Axis definitions
   if (config.axes) {
     for (const axisName of ["agency", "quality", "scope"] as const) {

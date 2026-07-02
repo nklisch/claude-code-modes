@@ -5,6 +5,7 @@ export interface PresetDefinition {
   axes: AxisConfig | null;
   readonly: boolean;
   base?: string;       // default base for this preset
+  style?: string;      // default style for this preset
   modifiers: string[]; // built-in modifier names to apply
 }
 

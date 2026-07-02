@@ -310,6 +310,91 @@ describe("loadConfig — bases and defaultBase", () => {
   });
 });
 
+describe("loadConfig — styles and defaultStyle", () => {
+  let originalCwd: string;
+  let tempDir: string;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tempDir = makeTempDir("claude-mode-config-test-styles-");
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  test("loads config with defaultStyle field", () => {
+    writeConfig(tempDir, ".claude-mode.json", { defaultStyle: "declaudified" });
+    process.chdir(tempDir);
+    const result = loadConfig();
+    expect(result).not.toBeNull();
+    expect(result!.config.defaultStyle).toBe("declaudified");
+  });
+
+  test("loads config with styles field", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: { "team": "./team-style.md" } });
+    process.chdir(tempDir);
+    const result = loadConfig();
+    expect(result).not.toBeNull();
+    expect(result!.config.styles).toEqual({ "team": "./team-style.md" });
+  });
+
+  test("throws when defaultStyle is not a string", () => {
+    writeConfig(tempDir, ".claude-mode.json", { defaultStyle: 42 });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"defaultStyle" must be a string');
+  });
+
+  test("throws when styles is not an object", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: "declaudified" });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"styles" must be an object');
+  });
+
+  test("throws when styles value is not a string", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: { "team": 42 } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"styles.team" must be a string');
+  });
+
+  test("throws when style name collides with built-in declaudified", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: { "declaudified": "./x.md" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"declaudified" is a built-in style name');
+  });
+
+  test("throws when style path is not a .md file", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: { "team": "./team-style.txt" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('"styles.team" must be a .md file');
+  });
+
+  test("throws when style path references a sensitive file", () => {
+    writeConfig(tempDir, ".claude-mode.json", { styles: { "team": "../.ssh/id_rsa.md" } });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow("potentially sensitive path");
+  });
+
+  test("loads config with preset that has style field", () => {
+    writeConfig(tempDir, ".claude-mode.json", {
+      presets: { "my-preset": { style: "declaudified", agency: "collaborative" } },
+    });
+    process.chdir(tempDir);
+    const result = loadConfig();
+    expect(result).not.toBeNull();
+    expect(result!.config.presets?.["my-preset"]?.style).toBe("declaudified");
+  });
+
+  test("throws when preset style is not a string", () => {
+    writeConfig(tempDir, ".claude-mode.json", {
+      presets: { "my-preset": { style: 42 } },
+    });
+    process.chdir(tempDir);
+    expect(() => loadConfig()).toThrow('preset "my-preset.style" must be a string');
+  });
+});
+
 describe("checkBaseNameCollision", () => {
   test("throws for standard", () => {
     expect(() => checkBaseNameCollision("standard")).toThrow('"standard" is a built-in base name');

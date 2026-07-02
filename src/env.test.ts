@@ -99,4 +99,10 @@ describe("buildTemplateVars", () => {
     expect(vars.WORKTREE_NOTICE).toContain("git worktree");
     expect(vars.WORKTREE_NOTICE).toContain("Do NOT");
   });
+
+  test("worktree notice includes shared stash-stack warning (v2.1.198)", () => {
+    const vars = buildTemplateVars({ ...mockEnv, isWorktree: true });
+    expect(vars.WORKTREE_NOTICE).toContain("stash stack is shared");
+    expect(vars.WORKTREE_NOTICE).toContain("git stash apply <sha>");
+  });
 });

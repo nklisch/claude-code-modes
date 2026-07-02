@@ -44,8 +44,8 @@ export function detectEnv(): EnvInfo {
 }
 
 // Hardcoded model info — update when Claude Code updates
-const MODEL_NAME = "Claude Opus 4.8";
-const MODEL_ID = "claude-opus-4-8";
+const MODEL_NAME = "Fable 5";
+const MODEL_ID = "claude-fable-5";
 const KNOWLEDGE_CUTOFF = "January 2026";
 
 export function buildTemplateVars(env: EnvInfo): TemplateVars {
@@ -63,7 +63,8 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
   }
 
   const worktreeNotice = env.isWorktree
-    ? "\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root."
+    ? "\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root." +
+      "\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first."
     : "";
 
   return {

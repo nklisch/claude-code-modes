@@ -159,11 +159,13 @@ export function classifyInstall(
   execPath: string = process.execPath,
   buildInfo: BuildInfo = BUILD_INFO,
 ): InstallClassification {
-  // 1. Runtime interpreter → source mode
-  if (SOURCE_EXEC_NAMES.has(basename(execPath))) {
+  // 1. Runtime interpreter → source mode. The npm distribution of bun names
+  // its binary "bun.exe" on every platform, so strip the suffix before matching.
+  const execName = basename(execPath).replace(/\.exe$/, "");
+  if (SOURCE_EXEC_NAMES.has(execName)) {
     return {
       kind: "source",
-      reason: `Running as ${basename(execPath)} runtime (source mode)`,
+      reason: `Running as ${execName} runtime (source mode)`,
     };
   }
 

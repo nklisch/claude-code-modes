@@ -179,6 +179,18 @@ describe("classifyInstall", () => {
     expect(classifyInstall("/usr/bin/node", CLEAN_RELEASE_BUILD).kind).toBe("source");
   });
 
+  // Regression: the npm distribution of bun names its binary "bun.exe" on
+  // every platform. Without suffix stripping, source mode goes undetected and
+  // a self-update would overwrite the bun runtime itself.
+  test("bun.exe (npm-installed bun) is source", () => {
+    const c = classifyInstall("/opt/homebrew/lib/node_modules/bun/bin/bun.exe", { ...CLEAN_RELEASE_BUILD, dirty: true });
+    expect(c.kind).toBe("source");
+  });
+
+  test("node.exe is source", () => {
+    expect(classifyInstall("/usr/lib/node_modules/node/bin/node.exe", CLEAN_RELEASE_BUILD).kind).toBe("source");
+  });
+
   test("dirty worktree is dirty", () => {
     const c = classifyInstall(FAKE_BIN_PATH, { ...CLEAN_RELEASE_BUILD, dirty: true });
     expect(c.kind).toBe("dirty");

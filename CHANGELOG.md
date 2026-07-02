@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.4.0
+
+**Features**
+
+- Added `--style` — a writing-style dial alongside the axes. Selects a single fragment inserted after the axis fragments; no style is applied by default. Built-in style: `declaudified` (lead-with-the-answer writing: cut filler and metadiscourse, plain language, no dead tech-metaphors — from the orderlymeds skills-marketplace `declaudified-writing` snippet). Values resolve like axis values (built-in → config-defined name → `.md` file path); precedence mirrors bases (CLI `--style` > config `defaultStyle` > preset `style` > none). An explicit style applies even in `none` mode, like explicit modifiers.
+- Config support for styles: `styles` map and `defaultStyle` field in `.claude-mode.json`, `style` field on presets, and `claude-mode config add-style` / `remove-style` subcommands plus `--style` on `add-preset`.
+
+**Upstream sync (Claude Code v2.1.198)**
+
+- `actions.md` picked up two new upstream sentences: prefer a reversible step (move aside, rename, stash) over deleting when unsure, and run `git status` before any command that could discard uncommitted work.
+- The worktree notice now includes upstream's new worktree-only warning that the git stash stack is shared across worktrees, with WIP-commit / tagged-stash guidance.
+- Model metadata updated to Fable 5 (`claude-fable-5`, knowledge cutoff January 2026), matching what current Claude Code sessions report.
+
+**Fixes**
+
+- `claude-mode update` now detects source mode when running under npm-installed bun, whose binary is named `bun.exe` on every platform. Previously the source check missed it, and on a clean upstream tree the self-update would have targeted the bun runtime binary itself.
+
 ## v0.2.13
 
 **Fixes**

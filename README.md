@@ -147,11 +147,10 @@ prompts/
   chill/        Alternative base (emotion-research-informed, leaner)
   flow/         Alternative base (chill's calm + restored engagement)
   axis/         Behavioral prompts organized by three axes
-  style/        Writing styles (declaudified)
   modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful)
 ```
 
-Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.198**.
+Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.217**.
 
 The behavioral layer is composed from three independent axes — **agency** (how much initiative), **quality** (what code standard), and **scope** (how far beyond the request). Presets are just named combinations of these three values.
 
@@ -185,15 +184,6 @@ Axis values can also be file paths or config-defined names:
 claude-mode create --quality ./team-quality.md     # Use a custom quality fragment
 claude-mode create --quality team-standard          # Resolve from config
 ```
-
-Set a writing style — a single fragment that shapes how Claude writes to you (answers, summaries, commit messages), independent of the behavioral axes:
-
-```bash
-claude-mode create --style declaudified            # Built-in: lead with the answer, cut filler and stock phrases
-claude-mode create --style ./house-style.md        # Or a custom fragment / config-defined name
-```
-
-No style is applied unless you pass `--style`, set `defaultStyle` in config, or use a preset that declares one.
 
 Add modifiers:
 
@@ -259,9 +249,6 @@ Example `.claude-mode.json`:
   "modifiers": {
     "team-rules": "./prompts/team-rules.md"
   },
-  "styles": {
-    "house": "./prompts/house-style.md"
-  },
   "axes": {
     "quality": {
       "team-standard": "./prompts/team-quality.md"
@@ -272,7 +259,6 @@ Example `.claude-mode.json`:
       "agency": "collaborative",
       "quality": "team-standard",
       "scope": "adjacent",
-      "style": "house",
       "modifiers": ["team-rules"]
     }
   }
@@ -281,15 +267,13 @@ Example `.claude-mode.json`:
 
 - **`defaultModifiers`** — always applied to every invocation (no flag needed)
 - **`modifiers`** — named modifiers referencing markdown files
-- **`styles`** — named writing styles referencing markdown files
 - **`axes`** — custom axis values (replace built-in fragments)
 - **`presets`** — named presets composing built-in and custom values
 
-Config also supports bases and a default style:
+Config also supports bases:
 
 - **`defaultBase`** — base to use when `--base` isn't specified
 - **`bases`** — named bases referencing directories with `base.json` manifests
-- **`defaultStyle`** — style to apply when `--style` isn't specified
 
 Config searches `.claude-mode.json` in the current directory first, then `~/.config/claude-mode/config.json` as a global fallback. All commands accept `--global` to target the global config.
 
@@ -302,8 +286,6 @@ claude-mode config add-default <name-or-path>        # Add to defaultModifiers
 claude-mode config remove-default <name>             # Remove from defaultModifiers
 claude-mode config add-modifier <name> <path>        # Register named modifier
 claude-mode config remove-modifier <name>            # Unregister named modifier
-claude-mode config add-style <name> <path>           # Register named style
-claude-mode config remove-style <name>               # Unregister named style
 claude-mode config add-axis <axis> <name> <path>     # Register custom axis value
 claude-mode config remove-axis <axis> <name>         # Unregister custom axis value
 claude-mode config add-preset <name> [flags]         # Create custom preset

@@ -84,7 +84,7 @@ Revisit if this branch becomes the default in a later release.
 
 ### 7. One-line code-comment variant (v2.1.197+)
 
-A new second branch gated behind `yh(e)` returns just:
+A new second branch gated behind `yh(e)` (`tE(e)` in v2.1.217) returns just:
 
 > "Write code that reads like the surrounding code: match its comment density,
 > naming, and idiom."
@@ -97,8 +97,8 @@ similar). Revisit if it starts appearing as the default.
 
 ### 8. "compact" mode variant (v2.1.197+)
 
-A new branch gated behind `G9o(e)==="compact"` returns a much shorter
-"Executing actions with care" section:
+A new branch gated behind `G9o(e)==="compact"` (`YNs(e)==="compact"` in
+v2.1.217) returns a much shorter "Executing actions with care" section:
 
 > "Read, search, and investigate freely — looking is not acting. For actions that
 > are hard to reverse, affect shared systems, or are otherwise risky (deleting
@@ -114,9 +114,9 @@ which matches `actions.md` verbatim. Revisit if `"compact"` mode becomes common.
 
 ### 9. Task-tool-only variant (v2.1.197+)
 
-A new branch gated behind `$I()` returns guidance about the task tool only,
-omitting the Bash-vs-dedicated-tools and parallel-tool-use bullets present in the
-default branch.
+A new branch gated behind `$I()` (`uO()` in v2.1.217) returns guidance about the
+task tool only, omitting the Bash-vs-dedicated-tools and parallel-tool-use
+bullets present in the default branch.
 
 **Reason:** Gated variant, not observed in a live session prompt during the
 v2.1.197 sync — content depends on session state we couldn't trigger. Revisit if
@@ -124,27 +124,79 @@ it starts appearing as the default.
 
 ## session-guidance.md
 
-### 10. Unidentified gated branch `qam(n)` (v2.1.197+)
+### 10. Sub-agent guidance helper `qam(n)` → `Ka_(r)` (identified in v2.1.217)
 
-The Session Guidance function (`Vam` in v2.1.197) has a branch gated behind
-`e.has(is)` that calls an unextracted helper `qam(n)`. It did not fire in the live
-session prompt used during the v2.1.197 sync, so its content is unknown.
+The Session Guidance function has a branch gated on the Agent tool being present
+that calls a helper (`qam` in v2.1.197, `Ka_` in v2.1.217). Resolved during the
+v2.1.217 sync by extracting the helper body from the binary: it returns sub-agent
+guidance —
 
-**Reason:** Not a documented omission so much as an open question — flagged here
-so future syncs know to investigate rather than assume it's unchanged. If it fires
-in a future sync, extract `qam`'s body and classify properly.
+> "Use the Agent tool with specialized agents when the task at hand matches the
+> agent's description. Subagents are valuable for parallelizing independent
+> queries or for protecting the main context window from excessive results, but
+> they should not be used excessively when not needed. Importantly, avoid
+> duplicating work that subagents are already doing - if you delegate research to
+> a subagent, do not also perform the same searches yourself."
+
+— with a fork-mode variant (subagent_type: "fork" inherits full conversation
+context, runs in background) behind a separate gate.
+
+**Reason:** The local session-guidance sub-agent bullet already paraphrases the
+default branch (delegate broad exploration, don't duplicate delegated searches).
+The fork variant is session-state-gated and not tracked.
+
+### 10b. Removed upstream: `/schedule` offer blocks (gone in v2.1.217)
+
+The feature-flagged `/schedule` offer guidance (`tengu_orchid_mantis` /
+`tengu_orchid_mantis_v2`) that local session-guidance intentionally skipped was
+removed upstream in v2.1.217. No longer an omission — kept here for history.
 
 ## env.md
 
-### 11. Unidentified new field `NRn()??null` (v2.1.197+)
+### 11. Unidentified new field `NRn()??null` (v2.1.197+, `joo()??null` in v2.1.217)
 
-The Environment Info function (`elm` in v2.1.197) inserts a new field between
-"OS Version" and the model-name line, guarded by `NRn()??null`. It did not fire
-in the live session prompt used during the v2.1.197 sync (produced no visible
-output), so its content is unknown.
+The Environment Info function inserts a field between "OS Version" and the
+model-name line, guarded by `NRn()??null` (v2.1.197) / `joo()??null` (v2.1.217).
+It has not fired in any live session prompt observed so far. Binary context in
+v2.1.217 shows `joo()` returns a variable set alongside cloud/remote-session
+strings ("Never push to main/master, force-push, or merge.", draft-PR
+instructions), suggesting it is remote/cloud-environment guidance that never
+fires in local CLI sessions.
 
-**Reason:** Same as #10 — flagged as an open question rather than a settled
-omission. Investigate if it starts appearing in a live session prompt.
+**Reason:** Environment-gated content not applicable to local sessions.
+Investigate further only if it starts appearing in a local session prompt.
+
+### 12. Gated `<system-reminder>` bullet variant in System Rules (v2.1.217+)
+
+In v2.1.217 the `<system-reminder>` bullet in System Rules comes from a helper
+`Pjd(e,"standard")`. The standard branch returns the same text local system.md
+carries. A gated branch (`Djd(e)`) instead returns:
+
+> "The system may send updates, reminders, or modifications to rules via
+> mid-conversation system turns. These are system-controlled, unlike function
+> results."
+
+**Reason:** Gated variant (likely tied to the `mid_conv_system` model
+capability), not the standard path. Revisit if it becomes the default.
+
+### 13. Lean/restructured prompt path (observed v2.1.217)
+
+The v2.1.217 binary carries a substantially restructured "lean" prompt
+assembly alongside the standard functions this project tracks: a `# Harness`
+section replacing `# System` (terser bullets, e.g. "`<system-reminder>` tags in
+messages and tool results are injected by the harness, not the user"), a compact
+executing-actions block ("For actions that are hard to reverse or
+outward-facing, confirm first unless durably authorized…"), an
+act-without-re-deriving block ("When you have enough information to act, act…"),
+pronoun guidance, a "# Delivering work" section, and more. Live Opus 4.8
+sessions have been observed receiving this lean path instead of the standard
+assembly (some model configs carry a `lean_prompt` capability).
+
+**Reason:** Out of scope for the current base fragments, which track the
+standard assembly. This is a project-direction question: if the lean path
+becomes the norm for the models this launcher targets, consider re-basing
+`prompts/base/` on it. The extraction script does not currently extract these
+sections.
 
 ## How to maintain this file
 

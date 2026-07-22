@@ -38,7 +38,6 @@ prompts/
   chill/           # chill base: base.json manifest + 4 fragments (emotion-research-informed)
   flow/            # flow base: base.json manifest + 4 fragments (chill's calm + restored engagement)
   axis/            # 10 fragments: agency/{autonomous,collaborative,surgical,partner}, quality/{architect,pragmatic,minimal}, scope/{unrestricted,adjacent,narrow}
-  style/           # writing styles: declaudified.md (lead-with-the-answer, from skills-marketplace declaudified-writing snippet)
   modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md, director.md, bold.md, speak-plain.md, tdd.md, muse.md, flow.md, playful.md
 scripts/
   generate-prompts.ts         # embeds prompt fragments into src/embedded-prompts.ts
@@ -65,10 +64,8 @@ Parse (args.ts) → Load config (config.ts) → Resolve (resolve.ts) → Detect 
 ```json
 {
   "defaultBase": "chill",
-  "defaultStyle": "declaudified",
   "defaultModifiers": ["team-rules"],
   "bases": { "custom-base": "./prompts/my-base" },
-  "styles": { "house": "./prompts/house-style.md" },
   "modifiers": { "team-rules": "./prompts/team-rules.md" },
   "axes": { "quality": { "team-standard": "./prompts/team-quality.md" } },
   "presets": {
@@ -77,7 +74,6 @@ Parse (args.ts) → Load config (config.ts) → Resolve (resolve.ts) → Detect 
       "agency": "collaborative",
       "quality": "team-standard",
       "scope": "adjacent",
-      "style": "house",
       "modifiers": ["team-rules"]
     }
   }
@@ -88,7 +84,7 @@ Managed via `claude-mode config` subcommand (init, show, add/remove for defaults
 
 ## Upstream Tracking
 
-**Validated against:** Claude Code v2.1.198
+**Validated against:** Claude Code v2.1.217
 
 Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream prompts for diffing.
 
@@ -98,7 +94,6 @@ Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream p
 - `explore` preset defaults to `readonly: true`
 - `none` mode strips all behavioral instructions, leaving only infrastructure
 - Axis values accept built-in names, config-defined names, or file paths — resolution order: built-in → config → path
-- `--style` selects a single writing-style fragment inserted after the axis fragments; off by default; same resolution order as axes; applies even in `none` mode when explicitly set
 - Bases are manifest-driven: `base.json` declares fragment order with `"axes"` and `"modifiers"` as reserved insertion points
 - Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner), "flow" (chill's calm floor + restored engagement/appetite)
 - `--base` flag selects a base; resolution order: built-in → config → directory path

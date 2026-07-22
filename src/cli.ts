@@ -119,7 +119,7 @@ async function main(): Promise<void> {
   }
 
   // Detect environment and build template vars
-  const env = detectEnv();
+  const env = detectEnv(parsed.modelHint);
   const templateVars = buildTemplateVars(env);
 
   // Assemble the prompt
@@ -149,6 +149,9 @@ async function main(): Promise<void> {
   }
   if (parsed.forwarded.appendSystemPromptFile) {
     claudeArgs.push("--append-system-prompt-file", parsed.forwarded.appendSystemPromptFile);
+  }
+  if (parsed.forwarded.model) {
+    claudeArgs.push("--model", parsed.forwarded.model);
   }
 
   // Add passthrough args

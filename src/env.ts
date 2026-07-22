@@ -1,6 +1,8 @@
 import { execSync } from "node:child_process";
-import { basename } from "node:path";
-import type { EnvInfo, TemplateVars } from "./types.js";
+import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
+import type { EnvInfo, ModelInfo, TemplateVars } from "./types.js";
 
 function exec(command: string): string | null {
   try {
@@ -18,7 +20,77 @@ function exec(command: string): string | null {
   }
 }
 
-export function detectEnv(): EnvInfo {
+// Model metadata table extracted from the Claude Code binary — update when Claude Code updates.
+// Extraction: grep the native binary for `{id:"claude-...,display_name:...,knowledge_cutoff:...`
+const MODEL_TABLE: readonly ModelInfo[] = [
+  { id: "claude-fable-5", name: "Fable 5", cutoff: "January 2026" },
+  { id: "claude-mythos-5", name: "Mythos 5", cutoff: "January 2026" },
+  { id: "claude-opus-4-8", name: "Opus 4.8", cutoff: "January 2026" },
+  { id: "claude-opus-4-7", name: "Opus 4.7", cutoff: "January 2026" },
+  { id: "claude-opus-4-6", name: "Opus 4.6", cutoff: "May 2025" },
+  { id: "claude-opus-4-5", name: "Opus 4.5", cutoff: "May 2025" },
+  { id: "claude-opus-4-1", name: "Opus 4.1", cutoff: "January 2025" },
+  { id: "claude-opus-4-0", name: "Opus 4", cutoff: "January 2025" },
+  { id: "claude-sonnet-5", name: "Sonnet 5", cutoff: "January 2026" },
+  { id: "claude-sonnet-4-6", name: "Sonnet 4.6", cutoff: "August 2025" },
+  { id: "claude-sonnet-4-5", name: "Sonnet 4.5", cutoff: "January 2025" },
+  { id: "claude-sonnet-4-0", name: "Sonnet 4", cutoff: "January 2025" },
+  { id: "claude-haiku-4-5", name: "Haiku 4.5", cutoff: "February 2025" },
+] as const;
+
+// Aliases resolve to the newest model of the family; opusplan executes on opus
+const MODEL_ALIASES: Record<string, string> = {
+  opus: "claude-opus-4-8",
+  opusplan: "claude-opus-4-8",
+  sonnet: "claude-sonnet-5",
+  haiku: "claude-haiku-4-5",
+  fable: "claude-fable-5",
+};
+
+const DEFAULT_MODEL: ModelInfo = MODEL_TABLE[0];
+
+export function resolveModel(raw: string | null | undefined): ModelInfo {
+  if (!raw || raw === "default") return DEFAULT_MODEL;
+
+  const has1m = raw.endsWith("[1m]");
+  const base = has1m ? raw.slice(0, -"[1m]".length) : raw;
+  const id = MODEL_ALIASES[base] ?? base;
+
+  // Exact id first, then dated variants like claude-haiku-4-5-20251001
+  const entry =
+    MODEL_TABLE.find((m) => m.id === id) ?? MODEL_TABLE.find((m) => id.startsWith(`${m.id}-`));
+  if (!entry) {
+    // Unknown model — likely newer than the table; surface the id as the name
+    // and keep the newest known cutoff rather than inventing one
+    return { name: id, id: has1m ? `${id}[1m]` : id, cutoff: DEFAULT_MODEL.cutoff };
+  }
+
+  return {
+    name: has1m ? `${entry.name} (1M context)` : entry.name,
+    id: has1m ? `${id}[1m]` : id,
+    cutoff: entry.cutoff,
+  };
+}
+
+// Claude Code reads its model setting from these files, most specific first
+function readConfiguredModel(cwd: string): string | null {
+  const candidates = [
+    join(cwd, ".claude", "settings.local.json"),
+    join(cwd, ".claude", "settings.json"),
+    join(homedir(), ".claude", "settings.json"),
+  ];
+  for (const path of candidates) {
+    try {
+      const settings = JSON.parse(readFileSync(path, "utf8"));
+      if (typeof settings.model === "string" && settings.model !== "") return settings.model;
+    } catch {
+      // Missing or malformed settings file — try the next candidate
+    }
+  }
+  return null;
+}
+
+export function detectEnv(modelArg?: string | null): EnvInfo {
   const cwd = process.cwd();
   const isGit = exec("git rev-parse --is-inside-work-tree") === "true";
 
@@ -39,14 +111,10 @@ export function detectEnv(): EnvInfo {
   const platform = exec("uname -s")?.toLowerCase() ?? "unknown";
   const shell = basename(process.env.SHELL || "bash");
   const osVersion = exec("uname -sr") ?? "unknown";
+  const model = resolveModel(modelArg ?? process.env.ANTHROPIC_MODEL ?? readConfiguredModel(cwd));
 
-  return { cwd, isGit, isWorktree, gitBranch, gitStatus, gitLog, platform, shell, osVersion };
+  return { cwd, isGit, isWorktree, gitBranch, gitStatus, gitLog, platform, shell, osVersion, model };
 }
-
-// Hardcoded model info — update when Claude Code updates
-const MODEL_NAME = "Fable 5";
-const MODEL_ID = "claude-fable-5";
-const KNOWLEDGE_CUTOFF = "January 2026";
 
 export function buildTemplateVars(env: EnvInfo): TemplateVars {
   let gitStatusBlock = "";
@@ -73,9 +141,9 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
     PLATFORM: env.platform,
     SHELL: env.shell,
     OS_VERSION: env.osVersion,
-    MODEL_NAME,
-    MODEL_ID,
-    KNOWLEDGE_CUTOFF,
+    MODEL_NAME: env.model.name,
+    MODEL_ID: env.model.id,
+    KNOWLEDGE_CUTOFF: env.model.cutoff,
     GIT_STATUS: gitStatusBlock,
     WORKTREE_NOTICE: worktreeNotice,
   };

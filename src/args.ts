@@ -18,8 +18,20 @@ export interface ParsedArgs {
   forwarded: {
     appendSystemPrompt?: string;
     appendSystemPromptFile?: string;
+    model?: string;
   };
+  /** Model claude will run — from --model, or peeked from after `--`; drives env detection */
+  modelHint: string | null;
   passthroughArgs: string[];
+}
+
+// After `--` everything is passed verbatim, but the model choice still shapes
+// the environment section — peek without disturbing the passthrough list
+function peekModelAfterDashDash(args: string[]): string | null {
+  const flagIdx = args.indexOf("--model");
+  if (flagIdx >= 0 && flagIdx + 1 < args.length) return args[flagIdx + 1];
+  const inline = args.find((arg) => arg.startsWith("--model="));
+  return inline ? inline.slice("--model=".length) : null;
 }
 
 export function parseCliArgs(argv: string[]): ParsedArgs {
@@ -42,6 +54,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
       "context-pacing": { type: "boolean" },
       "append-system-prompt": { type: "string" },
       "append-system-prompt-file": { type: "string" },
+      model: { type: "string" },
       "system-prompt": { type: "string" },
       "system-prompt-file": { type: "string" },
       help: { type: "boolean" },
@@ -81,7 +94,7 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
   // Collect unknown flags for passthrough
   const knownFlags = new Set([
     "base", "agency", "quality", "scope", "style", "modifier", "readonly", "print", "context-pacing",
-    "append-system-prompt", "append-system-prompt-file",
+    "append-system-prompt", "append-system-prompt-file", "model",
     "system-prompt", "system-prompt-file", "help", "version",
   ]);
   const unknownPassthrough: string[] = [];
@@ -115,7 +128,9 @@ export function parseCliArgs(argv: string[]): ParsedArgs {
     forwarded: {
       appendSystemPrompt: values["append-system-prompt"] as string | undefined,
       appendSystemPromptFile: values["append-system-prompt-file"] as string | undefined,
+      model: values.model as string | undefined,
     },
+    modelHint: (values.model as string | undefined) ?? peekModelAfterDashDash(afterDashDash),
     passthroughArgs,
   };
 }

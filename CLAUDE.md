@@ -98,7 +98,7 @@ Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream p
 - Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner), "flow" (chill's calm floor + restored engagement/appetite)
 - `--base` flag selects a base; resolution order: built-in → config → directory path
 - Config: project-local wins entirely if present (no merging with global)
-- Model name/ID hardcoded in `env.ts` — update on Claude Code releases
+- Model metadata resolved dynamically in `env.ts`: `--model` flag (or after-`--` peek) → `ANTHROPIC_MODEL` → Claude settings files, against a model table extracted from the Claude Code binary (fallback: newest model) — update the table on Claude Code releases
 - `cli.ts` uses `Bun.spawn` with inherited stdio for direct TTY ownership; `build-prompt.ts` outputs command string for scripting
 
 ## Conventions

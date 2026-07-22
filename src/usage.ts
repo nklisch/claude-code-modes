@@ -56,6 +56,8 @@ Modifiers:
 Forwarded to claude:
   --append-system-prompt <text>
   --append-system-prompt-file <path>
+  --model <alias|id>      Also sets the model info in the prompt's environment section.
+  Without --model, model info comes from ANTHROPIC_MODEL or Claude settings files.
 
 Config: .claude-mode.json (project) or ~/.config/claude-mode/config.json (global)
 

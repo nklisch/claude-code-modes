@@ -80,6 +80,13 @@ export interface ModeConfig {
   modifiers: string[]; // ordered list of modifier fragment paths (embedded keys or absolute paths)
 }
 
+/** Resolved model metadata for env.md substitution */
+export interface ModelInfo {
+  name: string;
+  id: string;
+  cutoff: string;
+}
+
 export interface EnvInfo {
   cwd: string;
   isGit: boolean;
@@ -90,6 +97,7 @@ export interface EnvInfo {
   platform: string;
   shell: string;
   osVersion: string;
+  model: ModelInfo;
 }
 
 /** Template variables for env.md substitution */

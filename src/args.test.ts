@@ -53,6 +53,32 @@ describe("parseCliArgs", () => {
     expect(result.passthroughArgs).toEqual(["--verbose", "--model", "sonnet"]);
   });
 
+  test("--model is captured as a forwarded flag, not passthrough", () => {
+    const result = parseCliArgs(["create", "--model", "sonnet"]);
+    expect(result.forwarded.model).toBe("sonnet");
+    expect(result.modelHint).toBe("sonnet");
+    expect(result.passthroughArgs).toEqual([]);
+  });
+
+  test("--model after -- stays in passthrough but sets the model hint", () => {
+    const result = parseCliArgs(["create", "--", "--model", "opus"]);
+    expect(result.forwarded.model).toBeUndefined();
+    expect(result.modelHint).toBe("opus");
+    expect(result.passthroughArgs).toEqual(["--model", "opus"]);
+  });
+
+  test("--model=value after -- sets the model hint", () => {
+    const result = parseCliArgs(["create", "--", "--model=claude-sonnet-5"]);
+    expect(result.modelHint).toBe("claude-sonnet-5");
+    expect(result.passthroughArgs).toEqual(["--model=claude-sonnet-5"]);
+  });
+
+  test("modelHint is null when no model is given", () => {
+    const result = parseCliArgs(["create"]);
+    expect(result.modelHint).toBeNull();
+    expect(result.forwarded.model).toBeUndefined();
+  });
+
   test("passes through unknown boolean flags", () => {
     const result = parseCliArgs(["create", "--verbose"]);
     expect(result.passthroughArgs).toContain("--verbose");

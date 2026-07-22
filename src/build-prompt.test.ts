@@ -49,6 +49,17 @@ describe("build-prompt CLI", () => {
     expect(output).toContain("--append-system-prompt");
   });
 
+  test("--model forwarded to claude and reflected in the prompt", () => {
+    const output = run("create --model claude-sonnet-5");
+    expect(output).toContain("--model claude-sonnet-5");
+  });
+
+  test("--model sets model info in printed prompt", () => {
+    const output = run("create --print --model 'claude-opus-4-8[1m]'");
+    expect(output).toContain("Opus 4.8 (1M context)");
+    expect(output).toContain("claude-opus-4-8[1m]");
+  });
+
   test("--system-prompt rejected", () => {
     const errOutput = runExpectFail("create --system-prompt foo");
     expect(errOutput).toContain("Cannot use --system-prompt");

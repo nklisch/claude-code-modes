@@ -198,8 +198,11 @@ claude-mode create --append-system-prompt "Use Rust, not TypeScript"
 Pass flags through to Claude Code:
 
 ```bash
-claude-mode create -- --verbose --model sonnet
+claude-mode create --model sonnet          # model choice also lands in the prompt's environment info
+claude-mode create -- --verbose            # anything after -- goes to claude verbatim
 ```
+
+The environment section of the assembled prompt reports the model claude will actually run: from `--model` (before or after `--`), else the `ANTHROPIC_MODEL` env var, else Claude settings files (`.claude/settings.local.json`, `.claude/settings.json`, `~/.claude/settings.json`), else the newest known model.
 
 Debug the assembled prompt:
 

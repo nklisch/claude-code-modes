@@ -37,7 +37,7 @@ describe("inspect — provenance", () => {
   });
 
   test("built-in preset shows all built-in provenance", () => {
-    const output = captureStdout(() => runInspectCommand(["create"], PROMPTS_DIR));
+    const output = captureStdout(() => runInspectCommand(["create", "--base", "standard"], PROMPTS_DIR));
     expect(output).toContain("=== Fragments ===");
     // All base fragments should be built-in
     expect(output).toContain("built-in         base/intro.md");
@@ -95,7 +95,7 @@ describe("inspect — provenance", () => {
     );
 
     const output = captureStdout(() =>
-      runInspectCommand(["create", "--modifier", cliMod], PROMPTS_DIR),
+      runInspectCommand(["create", "--base", "standard", "--modifier", cliMod], PROMPTS_DIR),
     );
     // Verify each provenance label is on the correct fragment
     expect(output).toMatch(/built-in\s+base\/intro\.md/);
@@ -290,7 +290,7 @@ describe("inspect — none preset", () => {
   });
 
   test("none preset shows no axis fragments", () => {
-    const output = captureStdout(() => runInspectCommand(["none"], PROMPTS_DIR));
+    const output = captureStdout(() => runInspectCommand(["none", "--base", "standard"], PROMPTS_DIR));
     expect(output).toContain("base/intro.md");
     expect(output).toContain("base/env.md");
     expect(output).not.toContain("axis/");
@@ -313,7 +313,9 @@ describe("inspect --print (verbose)", () => {
   });
 
   test("shows fragment content between separators", () => {
-    const output = captureStdout(() => runInspectCommand(["create", "--print"], PROMPTS_DIR));
+    const output = captureStdout(() =>
+      runInspectCommand(["create", "--base", "standard", "--print"], PROMPTS_DIR),
+    );
     expect(output).toContain("--- #1 [built-in] base/intro.md ---");
     // Verify content appears between separator and next separator (structural, not content-specific)
     const firstSep = output.indexOf("--- #1 [built-in]");
@@ -372,8 +374,8 @@ describe("inspect — base section", () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test("shows Base section with standard base by default", () => {
-    const output = captureStdout(() => runInspectCommand(["create"], PROMPTS_DIR));
+  test("shows Base section with the explicitly selected standard base", () => {
+    const output = captureStdout(() => runInspectCommand(["create", "--base", "standard"], PROMPTS_DIR));
     expect(output).toContain("=== Base ===");
     expect(output).toContain("Active: standard");
   });

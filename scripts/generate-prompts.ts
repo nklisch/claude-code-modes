@@ -22,22 +22,36 @@ const FRAGMENT_PATHS = [
   "base/tools.md",
   "base/tone.md",
   "base/text-output.md",
+  "base/pronouns.md",
   "base/session-guidance.md",
+  "base/context-management.md",
   "base/env.md",
   // Standard base manifest
   "base/base.json",
   // Chill base manifest and fragments
   "chill/base.json",
   "chill/core.md",
+  "chill/pronouns.md",
   "chill/actions.md",
   "chill/tools.md",
+  "chill/context-management.md",
   "chill/env.md",
   // Flow base manifest and fragments
   "flow/base.json",
   "flow/core.md",
+  "flow/pronouns.md",
   "flow/actions.md",
   "flow/tools.md",
+  "flow/context-management.md",
   "flow/env.md",
+  // Lean base manifest and fragments
+  "lean/base.json",
+  "lean/core.md",
+  "lean/pronouns.md",
+  "lean/actions.md",
+  "lean/session-guidance.md",
+  "lean/context-management.md",
+  "lean/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -63,6 +77,9 @@ const FRAGMENT_PATHS = [
   "modifiers/muse.md",
   "modifiers/flow.md",
   "modifiers/playful.md",
+  "modifiers/delivering-work.md",
+  "modifiers/corrections.md",
+  "modifiers/tool-restraint.md",
 ] as const;
 
 function escapeTemplateLiteral(content: string): string {

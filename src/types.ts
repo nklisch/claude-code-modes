@@ -36,18 +36,22 @@ export function isPresetName(value: string): value is PresetName {
 }
 
 // Built-in modifier names — used for collision checking in config validation
-export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold", "speak-plain", "tdd", "muse", "flow", "playful"] as const;
+export const BUILTIN_MODIFIER_NAMES = ["readonly", "context-pacing", "debug", "methodical", "director", "bold", "speak-plain", "tdd", "muse", "flow", "playful", "delivering-work", "corrections", "tool-restraint"] as const;
 export type BuiltinModifier = (typeof BUILTIN_MODIFIER_NAMES)[number];
 export function isBuiltinModifier(value: string): value is BuiltinModifier {
   return (BUILTIN_MODIFIER_NAMES as readonly string[]).includes(value);
 }
 
-// Built-in base names — "standard" (upstream-derived), "chill" (calm), "flow" (calm + engaged)
-export const BUILTIN_BASE_NAMES = ["standard", "chill", "flow"] as const;
+// Built-in base names — "standard" (upstream-derived), "chill" (calm), "flow" (calm + engaged),
+// "lean" (upstream's lean assembly, sent to models carrying the lean-prompt capability)
+export const BUILTIN_BASE_NAMES = ["standard", "chill", "flow", "lean"] as const;
 export type BuiltinBaseName = (typeof BUILTIN_BASE_NAMES)[number];
 export function isBuiltinBase(value: string): value is BuiltinBaseName {
   return (BUILTIN_BASE_NAMES as readonly string[]).includes(value);
 }
+
+// Not a base directory — a selector that picks a base from the session's model
+export const BASE_AUTO = "auto";
 
 // Reserved manifest entries — "axes" and "modifiers" trigger insertion
 export const MANIFEST_RESERVED = ["axes", "modifiers"] as const;
@@ -81,10 +85,20 @@ export interface ModeConfig {
 }
 
 /** Resolved model metadata for env.md substitution */
+/**
+ * Prompt-shaping capabilities Claude Code reads off the session model.
+ * - "lean-prompt": upstream sends the lean assembly instead of the standard one
+ * - "prompt-bundle": upstream additionally sends the delivering-work, corrections,
+ *   and tool-restraint sections (the `opus_5_prompt_bundle` capability)
+ */
+export const MODEL_CAPABILITIES = ["lean-prompt", "prompt-bundle"] as const;
+export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
+
 export interface ModelInfo {
   name: string;
   id: string;
   cutoff: string;
+  capabilities?: readonly ModelCapability[];
 }
 
 export interface EnvInfo {

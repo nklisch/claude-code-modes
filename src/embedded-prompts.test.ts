@@ -16,22 +16,36 @@ const EXPECTED_FRAGMENTS = [
   "base/tools.md",
   "base/tone.md",
   "base/text-output.md",
+  "base/pronouns.md",
   "base/session-guidance.md",
+  "base/context-management.md",
   "base/env.md",
   // Standard base manifest
   "base/base.json",
   // Chill base
   "chill/base.json",
   "chill/core.md",
+  "chill/pronouns.md",
   "chill/actions.md",
   "chill/tools.md",
+  "chill/context-management.md",
   "chill/env.md",
   // Flow base
   "flow/base.json",
   "flow/core.md",
+  "flow/pronouns.md",
   "flow/actions.md",
   "flow/tools.md",
+  "flow/context-management.md",
   "flow/env.md",
+  // Lean base
+  "lean/base.json",
+  "lean/core.md",
+  "lean/pronouns.md",
+  "lean/actions.md",
+  "lean/session-guidance.md",
+  "lean/context-management.md",
+  "lean/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -57,11 +71,14 @@ const EXPECTED_FRAGMENTS = [
   "modifiers/muse.md",
   "modifiers/flow.md",
   "modifiers/playful.md",
+  "modifiers/delivering-work.md",
+  "modifiers/corrections.md",
+  "modifiers/tool-restraint.md",
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 42 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(42);
+  test("contains exactly 58 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(58);
   });
 
   test("all expected fragment keys are present", () => {

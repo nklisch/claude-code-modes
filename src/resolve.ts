@@ -1,13 +1,15 @@
-import type { ModeConfig } from "./types.js";
+import type { ModeConfig, ModelInfo } from "./types.js";
 import type { ParsedArgs } from "./args.js";
 import type { LoadedConfig } from "./config.js";
 import { resolveConfigPath } from "./config.js";
+import { modelHasCapability } from "./env.js";
 import { getPreset, isPresetName } from "./presets.js";
 import {
   AGENCY_VALUES,
   QUALITY_VALUES,
   SCOPE_VALUES,
   STYLE_VALUES,
+  BASE_AUTO,
   BUILTIN_MODIFIER_NAMES,
   BUILTIN_BASE_NAMES,
   PRESET_NAMES,
@@ -115,6 +117,8 @@ function applyModifiers(
   resolvedPaths: string[],
   position: "append" | "prepend",
 ): void {
+  // Prepending walks an insertion point forward so the batch keeps its own order
+  let insertAt = 0;
   for (const raw of modifiers) {
     const resolved = resolveModifier(raw, loadedConfig);
     let path: string;
@@ -124,7 +128,7 @@ function applyModifiers(
       path = resolved.path;
     }
     if (!resolvedPaths.includes(path)) {
-      if (position === "prepend") resolvedPaths.unshift(path);
+      if (position === "prepend") resolvedPaths.splice(insertAt++, 0, path);
       else resolvedPaths.push(path);
     }
   }
@@ -175,32 +179,47 @@ function resolveStyle(
   return resolveStyleValue(value, loadedConfig);
 }
 
+/** Picks the base Claude Code itself would assemble for this model. */
+function selectBaseForModel(model: ModelInfo): string {
+  return modelHasCapability(model, "lean-prompt") ? "lean" : "standard";
+}
+
+interface ResolvedBase {
+  base: string;
+  /** True when the base came from model detection rather than an explicit choice */
+  fromModel: boolean;
+}
+
 /**
  * Resolves a base reference to a built-in name or absolute directory path.
- * Priority: CLI --base > config defaultBase > preset base > "standard"
+ * Priority: CLI --base > config defaultBase > preset base > "auto"
  */
 function resolveBase(
   raw: string | undefined,
   loadedConfig: LoadedConfig | null,
   presetBase: string | undefined,
-): string {
+  model: ModelInfo,
+): ResolvedBase {
   const config = loadedConfig?.config ?? null;
 
-  // Priority: CLI --base > config defaultBase > preset base > "standard"
-  const value = raw ?? config?.defaultBase ?? presetBase ?? "standard";
+  // Priority: CLI --base > config defaultBase > preset base > "auto"
+  const value = raw ?? config?.defaultBase ?? presetBase ?? BASE_AUTO;
+
+  // 0. Model-driven selection — mirrors which assembly Claude Code would send this model
+  if (value === BASE_AUTO) return { base: selectBaseForModel(model), fromModel: true };
 
   // 1. Built-in name
-  if (isBuiltinBase(value)) return value;
+  if (isBuiltinBase(value)) return { base: value, fromModel: false };
 
   // 2. Config-defined name
   const configBases = config?.bases;
   if (configBases && value in configBases) {
-    return resolveConfigPath(loadedConfig!.configDir, configBases[value]);
+    return { base: resolveConfigPath(loadedConfig!.configDir, configBases[value]), fromModel: false };
   }
 
   // 3. Directory path
   if (looksLikeFilePath(value)) {
-    return isAbsolute(value) ? value : pathResolve(value);
+    return { base: isAbsolute(value) ? value : pathResolve(value), fromModel: false };
   }
 
   // 4. Unknown
@@ -209,14 +228,18 @@ function resolveBase(
     : " No config file found.";
   throw new Error(
     `Unknown --base value: "${value}". ` +
-    `Must be one of: ${BUILTIN_BASE_NAMES.join(", ")}, ` +
+    `Must be one of: ${BASE_AUTO}, ${BUILTIN_BASE_NAMES.join(", ")}, ` +
     `a name defined in your config, or a directory path.${configHint}`
   );
 }
 
+// Sections upstream ships alongside the lean assembly for models carrying prompt-bundle
+const PROMPT_BUNDLE_MODIFIERS = ["delivering-work", "corrections", "tool-restraint"];
+
 export function resolveConfig(
   parsed: ParsedArgs,
   loadedConfig: LoadedConfig | null,
+  model: ModelInfo,
 ): ModeConfig {
   const config = loadedConfig?.config ?? null;
   const modifierPaths: string[] = [];
@@ -240,9 +263,8 @@ export function resolveConfig(
   // Handle "none" preset — resolve base before early return.
   // Explicit --style (or config defaultStyle) still applies, like modifiers.
   if (parsed.preset === "none") {
-    const base = resolveBase(parsed.base, loadedConfig, undefined);
     return {
-      base,
+      base: resolveBase(parsed.base, loadedConfig, undefined, model).base,
       axes: null,
       style: resolveStyle(parsed.style, loadedConfig, undefined),
       modifiers: modifierPaths,
@@ -335,8 +357,14 @@ export function resolveConfig(
       : DEFAULT_SCOPE;
   }
 
-  const base = resolveBase(parsed.base, loadedConfig, presetBase);
+  const { base, fromModel } = resolveBase(parsed.base, loadedConfig, presetBase, model);
   const style = resolveStyle(parsed.style, loadedConfig, presetStyle);
+
+  // When the base was chosen for us, also mirror the extra sections upstream would
+  // send this model. An explicit --base means the user picked the shape themselves.
+  if (fromModel && modelHasCapability(model, "prompt-bundle")) {
+    applyModifiers(PROMPT_BUNDLE_MODIFIERS, loadedConfig, modifierPaths, "prepend");
+  }
 
   return {
     base,

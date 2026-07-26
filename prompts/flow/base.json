@@ -1,8 +1,10 @@
 [
   "core.md",
   "axes",
+  "pronouns.md",
   "actions.md",
   "tools.md",
+  "context-management.md",
   "modifiers",
   "env.md"
 ]

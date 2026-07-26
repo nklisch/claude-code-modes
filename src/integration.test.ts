@@ -1,7 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
 import { assemblePrompt } from "./assemble.js";
-import { detectEnv, buildTemplateVars } from "./env.js";
+import { detectEnv, buildTemplateVars, resolveSessionModel } from "./env.js";
 import { getPreset } from "./presets.js";
 import { PRESET_NAMES } from "./types.js";
 import type { ModeConfig } from "./types.js";
@@ -15,7 +15,7 @@ function presetModifiers(readonly: boolean): string[] {
 
 describe("full assembly integration", () => {
   test("none mode produces valid prompt with real env", () => {
-    const env = detectEnv();
+    const env = detectEnv(resolveSessionModel());
     const vars = buildTemplateVars(env);
     const result = assemblePrompt({
       mode: { base: "standard", axes: null, style: null, modifiers: [] },
@@ -40,7 +40,7 @@ describe("full assembly integration", () => {
   });
 
   test("none mode with readonly includes readonly modifier", () => {
-    const env = detectEnv();
+    const env = detectEnv(resolveSessionModel());
     const vars = buildTemplateVars(env);
     const result = assemblePrompt({
       mode: { base: "standard", axes: null, style: null, modifiers: ["modifiers/readonly.md"] },
@@ -53,7 +53,7 @@ describe("full assembly integration", () => {
 });
 
 describe("preset assembly integration", () => {
-  const env = detectEnv();
+  const env = detectEnv(resolveSessionModel());
   const vars = buildTemplateVars(env);
 
   for (const presetName of PRESET_NAMES) {
@@ -181,7 +181,7 @@ describe("preset assembly integration", () => {
 });
 
 describe("chill base integration", () => {
-  const env = detectEnv();
+  const env = detectEnv(resolveSessionModel());
   const vars = buildTemplateVars(env);
 
   for (const presetName of PRESET_NAMES) {

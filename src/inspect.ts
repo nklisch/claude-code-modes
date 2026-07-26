@@ -4,7 +4,7 @@ import { parseCliArgs } from "./args.js";
 import { loadConfig, resolveConfigPath, type LoadedConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
 import { getFragmentOrder } from "./assemble.js";
-import { detectEnv, buildTemplateVars } from "./env.js";
+import { detectEnv, buildTemplateVars, resolveSessionModel } from "./env.js";
 import { EMBEDDED_PROMPTS } from "./embedded-prompts.js";
 import type { TemplateVars } from "./types.js";
 
@@ -299,9 +299,10 @@ export function runInspectCommand(argv: string[], promptsDir: string): void {
 
   const parsed = parseCliArgs(filteredArgv);
   const loadedConfig = loadConfig();
-  const config = resolveConfig(parsed, loadedConfig);
+  const model = resolveSessionModel(parsed.modelHint);
+  const config = resolveConfig(parsed, loadedConfig, model);
 
-  const env = detectEnv();
+  const env = detectEnv(model);
   const templateVars = buildTemplateVars(env);
 
   const fragmentPaths = getFragmentOrder(config, promptsDir);

@@ -102,9 +102,27 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `spark` | autonomous | architect | unrestricted | Maximum expression — muse's creative vision plus wit and personality |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
-### Alternative base: chill
+### Bases
 
-The default "standard" base is derived from upstream Claude Code. The **chill** base is an alternative informed by Anthropic's [emotion research](https://www.anthropic.com/research/emotion-concepts-function) — shorter (~65% the size), calmer framing, no ALL-CAPS emphasis, with worked examples and a priority hierarchy:
+By default the base is chosen for you. `claude-mode` reads which model the session will
+run on and assembles the same *shape* of prompt Claude Code itself would send that model:
+the **lean** base for models that receive upstream's lean assembly (Opus 5, Opus 4.8,
+Fable 5, Mythos 5), and **standard** for everything else. On Opus 5 it also layers on the
+three extra sections upstream sends that model — delivering-work, corrections, and
+tool-restraint.
+
+```bash
+claude-mode create                     # auto — picks lean or standard from your model
+claude-mode create --base lean         # force the lean base
+claude-mode create --base standard     # force the full upstream-derived base
+```
+
+Naming a base explicitly opts out of detection entirely, including the Opus 5 extras.
+The lean base is roughly a sixth the size of standard's head: one `# Harness` block in
+place of the separate System, Doing tasks, Executing actions, Using your tools, and
+Tone and style sections.
+
+The "standard" base is derived from upstream Claude Code. The **chill** base is an alternative informed by Anthropic's [emotion research](https://www.anthropic.com/research/emotion-concepts-function) — shorter (~65% the size), calmer framing, no ALL-CAPS emphasis, with worked examples and a priority hierarchy:
 
 ```bash
 claude-mode create --base chill        # Use chill base with any preset
@@ -146,11 +164,12 @@ prompts/
   base/         Standard base (derived from upstream Claude Code)
   chill/        Alternative base (emotion-research-informed, leaner)
   flow/         Alternative base (chill's calm + restored engagement)
+  lean/         Upstream's lean assembly (what Opus 5 / 4.8 / Fable 5 actually receive)
   axis/         Behavioral prompts organized by three axes
-  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful)
+  modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful, delivering-work, corrections, tool-restraint)
 ```
 
-Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard base is validated against Claude Code **v2.1.217**.
+Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard and lean bases are validated against Claude Code **v2.1.220**.
 
 The behavioral layer is composed from three independent axes — **agency** (how much initiative), **quality** (what code standard), and **scope** (how far beyond the request). Presets are just named combinations of these three values.
 
@@ -275,7 +294,7 @@ Example `.claude-mode.json`:
 
 Config also supports bases:
 
-- **`defaultBase`** — base to use when `--base` isn't specified
+- **`defaultBase`** — base to use when `--base` isn't specified; set it to `"auto"` to restore model-driven selection
 - **`bases`** — named bases referencing directories with `base.json` manifests
 
 Config searches `.claude-mode.json` in the current directory first, then `~/.config/claude-mode/config.json` as a global fallback. All commands accept `--global` to target the global config.

@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import type { EnvInfo, ModelInfo, TemplateVars } from "./types.js";
+import type { EnvInfo, ModelCapability, ModelInfo, TemplateVars } from "./types.js";
 
 function exec(command: string): string | null {
   try {
@@ -22,10 +22,13 @@ function exec(command: string): string | null {
 
 // Model metadata table extracted from the Claude Code binary — update when Claude Code updates.
 // Extraction: grep the native binary for `{id:"claude-...,display_name:...,knowledge_cutoff:...`
+// Capabilities come from the same entry's `capabilities` array: "lean-prompt" mirrors
+// upstream's `lean_prompt`, "prompt-bundle" mirrors `opus_5_prompt_bundle`.
 const MODEL_TABLE: readonly ModelInfo[] = [
-  { id: "claude-fable-5", name: "Fable 5", cutoff: "January 2026" },
-  { id: "claude-mythos-5", name: "Mythos 5", cutoff: "January 2026" },
-  { id: "claude-opus-4-8", name: "Opus 4.8", cutoff: "January 2026" },
+  { id: "claude-fable-5", name: "Fable 5", cutoff: "January 2026", capabilities: ["lean-prompt"] },
+  { id: "claude-mythos-5", name: "Mythos 5", cutoff: "January 2026", capabilities: ["lean-prompt"] },
+  { id: "claude-opus-5", name: "Opus 5", cutoff: "May 2026", capabilities: ["lean-prompt", "prompt-bundle"] },
+  { id: "claude-opus-4-8", name: "Opus 4.8", cutoff: "January 2026", capabilities: ["lean-prompt"] },
   { id: "claude-opus-4-7", name: "Opus 4.7", cutoff: "January 2026" },
   { id: "claude-opus-4-6", name: "Opus 4.6", cutoff: "May 2025" },
   { id: "claude-opus-4-5", name: "Opus 4.5", cutoff: "May 2025" },
@@ -40,8 +43,8 @@ const MODEL_TABLE: readonly ModelInfo[] = [
 
 // Aliases resolve to the newest model of the family; opusplan executes on opus
 const MODEL_ALIASES: Record<string, string> = {
-  opus: "claude-opus-4-8",
-  opusplan: "claude-opus-4-8",
+  opus: "claude-opus-5",
+  opusplan: "claude-opus-5",
   sonnet: "claude-sonnet-5",
   haiku: "claude-haiku-4-5",
   fable: "claude-fable-5",
@@ -60,16 +63,26 @@ export function resolveModel(raw: string | null | undefined): ModelInfo {
   const entry =
     MODEL_TABLE.find((m) => m.id === id) ?? MODEL_TABLE.find((m) => id.startsWith(`${m.id}-`));
   if (!entry) {
-    // Unknown model — likely newer than the table; surface the id as the name
-    // and keep the newest known cutoff rather than inventing one
-    return { name: id, id: has1m ? `${id}[1m]` : id, cutoff: DEFAULT_MODEL.cutoff };
+    // Unknown model — likely newer than the table, so assume it inherits the newest
+    // known model's cutoff and prompt capabilities rather than inventing either
+    return {
+      name: id,
+      id: has1m ? `${id}[1m]` : id,
+      cutoff: DEFAULT_MODEL.cutoff,
+      capabilities: DEFAULT_MODEL.capabilities,
+    };
   }
 
   return {
     name: has1m ? `${entry.name} (1M context)` : entry.name,
     id: has1m ? `${id}[1m]` : id,
     cutoff: entry.cutoff,
+    capabilities: entry.capabilities,
   };
+}
+
+export function modelHasCapability(model: ModelInfo, capability: ModelCapability): boolean {
+  return model.capabilities?.includes(capability) ?? false;
 }
 
 // Claude Code reads its model setting from these files, most specific first
@@ -90,7 +103,15 @@ function readConfiguredModel(cwd: string): string | null {
   return null;
 }
 
-export function detectEnv(modelArg?: string | null): EnvInfo {
+/**
+ * Resolves the model this session will run on, using the same precedence Claude Code
+ * itself applies. Runs before base resolution so `--base auto` can key off the result.
+ */
+export function resolveSessionModel(modelArg?: string | null): ModelInfo {
+  return resolveModel(modelArg ?? process.env.ANTHROPIC_MODEL ?? readConfiguredModel(process.cwd()));
+}
+
+export function detectEnv(model: ModelInfo): EnvInfo {
   const cwd = process.cwd();
   const isGit = exec("git rev-parse --is-inside-work-tree") === "true";
 
@@ -111,7 +132,6 @@ export function detectEnv(modelArg?: string | null): EnvInfo {
   const platform = exec("uname -s")?.toLowerCase() ?? "unknown";
   const shell = basename(process.env.SHELL || "bash");
   const osVersion = exec("uname -sr") ?? "unknown";
-  const model = resolveModel(modelArg ?? process.env.ANTHROPIC_MODEL ?? readConfiguredModel(cwd));
 
   return { cwd, isGit, isWorktree, gitBranch, gitStatus, gitLog, platform, shell, osVersion, model };
 }

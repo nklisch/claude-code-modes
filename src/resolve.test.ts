@@ -1,7 +1,32 @@
 import { describe, test, expect } from "bun:test";
-import { resolveConfig } from "./resolve.js";
+import { resolveConfig as resolveWithModel } from "./resolve.js";
 import type { ParsedArgs } from "./args.js";
 import type { LoadedConfig } from "./config.js";
+import type { ModelInfo } from "./types.js";
+
+// Carries no prompt capabilities, so `auto` lands on the standard base
+const PLAIN_MODEL: ModelInfo = { name: "Sonnet 5", id: "claude-sonnet-5", cutoff: "January 2026" };
+const LEAN_MODEL: ModelInfo = {
+  name: "Opus 4.8",
+  id: "claude-opus-4-8",
+  cutoff: "January 2026",
+  capabilities: ["lean-prompt"],
+};
+const BUNDLE_MODEL: ModelInfo = {
+  name: "Opus 5",
+  id: "claude-opus-5",
+  cutoff: "May 2026",
+  capabilities: ["lean-prompt", "prompt-bundle"],
+};
+
+// Most cases don't care about the model; default to one that keeps the standard base
+function resolveConfig(
+  parsed: ParsedArgs,
+  loadedConfig: LoadedConfig | null = null,
+  model: ModelInfo = PLAIN_MODEL,
+) {
+  return resolveWithModel(parsed, loadedConfig, model);
+}
 
 const baseParsed: ParsedArgs = {
   base: undefined,
@@ -887,5 +912,73 @@ describe("resolveConfig — style resolution", () => {
     };
     const config = resolveConfig({ ...baseParsed, preset: "team-preset" }, loadedConfig);
     expect(config.style).toBe("declaudified");
+  });
+});
+
+describe("resolveBase — model-driven selection", () => {
+  test("defaults to lean for a model carrying the lean-prompt capability", () => {
+    expect(resolveConfig(baseParsed, null, LEAN_MODEL).base).toBe("lean");
+  });
+
+  test("defaults to standard for a model without the capability", () => {
+    expect(resolveConfig(baseParsed, null, PLAIN_MODEL).base).toBe("standard");
+  });
+
+  test("an explicit --base auto resolves the same way as no --base", () => {
+    const auto = resolveConfig({ ...baseParsed, base: "auto" }, null, LEAN_MODEL);
+    expect(auto.base).toBe(resolveConfig(baseParsed, null, LEAN_MODEL).base);
+  });
+
+  test("an explicit --base wins over model detection", () => {
+    expect(resolveConfig({ ...baseParsed, base: "chill" }, null, LEAN_MODEL).base).toBe("chill");
+  });
+
+  test("config defaultBase wins over model detection", () => {
+    const loadedConfig: LoadedConfig = { configDir: "/cfg", config: { defaultBase: "flow" } };
+    expect(resolveConfig(baseParsed, loadedConfig, LEAN_MODEL).base).toBe("flow");
+  });
+
+  test("config defaultBase can opt back into model detection", () => {
+    const loadedConfig: LoadedConfig = { configDir: "/cfg", config: { defaultBase: "auto" } };
+    expect(resolveConfig(baseParsed, loadedConfig, LEAN_MODEL).base).toBe("lean");
+  });
+
+  test("none preset still gets a model-selected base", () => {
+    expect(resolveConfig({ ...baseParsed, preset: "none" }, null, LEAN_MODEL).base).toBe("lean");
+  });
+});
+
+describe("resolveConfig — prompt-bundle modifiers", () => {
+  test("a bundle-capable model adds the three bundle modifiers in upstream order", () => {
+    const config = resolveConfig(baseParsed, null, BUNDLE_MODEL);
+    expect(config.modifiers).toEqual([
+      "modifiers/delivering-work.md",
+      "modifiers/corrections.md",
+      "modifiers/tool-restraint.md",
+    ]);
+  });
+
+  test("a lean model without the bundle capability gets none of them", () => {
+    expect(resolveConfig(baseParsed, null, LEAN_MODEL).modifiers).toEqual([]);
+  });
+
+  test("an explicit --base opts out of the bundle", () => {
+    const config = resolveConfig({ ...baseParsed, base: "lean" }, null, BUNDLE_MODEL);
+    expect(config.modifiers).toEqual([]);
+  });
+
+  test("bundle modifiers come before user modifiers", () => {
+    const config = resolveConfig(
+      { ...baseParsed, customModifiers: ["debug"] },
+      null,
+      BUNDLE_MODEL,
+    );
+    expect(config.modifiers[0]).toBe("modifiers/delivering-work.md");
+    expect(config.modifiers.at(-1)).toBe("modifiers/debug.md");
+  });
+
+  test("none preset does not pull in bundle modifiers", () => {
+    const config = resolveConfig({ ...baseParsed, preset: "none" }, null, BUNDLE_MODEL);
+    expect(config.modifiers).toEqual([]);
   });
 });

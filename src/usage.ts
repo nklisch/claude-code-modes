@@ -33,7 +33,10 @@ Presets:
   spark           autonomous / architect / unrestricted (chill base, maximalist creative + wit)
 
 Base:
-  --base <name|path>      Built-in: standard, chill, flow
+  --base <name|path>      Built-in: auto (default), standard, chill, flow, lean
+  "auto" picks the base Claude Code itself would use for the session model:
+  lean for Opus 5 / Opus 4.8 / Fable 5, standard otherwise. On Opus 5 it also
+  adds the delivering-work, corrections, and tool-restraint modifiers.
   Base can also be a config-defined name or a directory path.
 
 Axis overrides:

@@ -316,7 +316,7 @@ describe("cli.ts none mode", () => {
   });
 
   test("none still includes base infrastructure sections", () => {
-    const output = run("none --print");
+    const output = run("none --base standard --print");
     expect(output).toContain("Claude Code");
     expect(output).toContain("# System");
     expect(output).toContain("# Doing tasks");

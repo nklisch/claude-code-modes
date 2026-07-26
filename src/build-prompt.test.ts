@@ -141,10 +141,36 @@ describe("build-prompt CLI", () => {
     expect(output).not.toMatch(/^claude /);
   });
 
-  test("--base standard --print produces same output as no --base", () => {
-    const withBase = run("create --base standard --print");
-    const withoutBase = run("create --print");
-    expect(withBase).toBe(withoutBase);
+  test("--base auto picks lean for a lean-capable model", () => {
+    const output = run("create --base auto --model claude-opus-5 --print");
+    expect(output).toContain("# Harness");
+    expect(output).not.toContain("# Doing tasks");
+  });
+
+  test("--base auto picks standard for a model without the capability", () => {
+    const output = run("create --base auto --model claude-sonnet-5 --print");
+    expect(output).toContain("# Doing tasks");
+    expect(output).not.toContain("# Harness");
+  });
+
+  test("no --base behaves like --base auto", () => {
+    const withAuto = run("create --base auto --model claude-sonnet-5 --print");
+    const withoutBase = run("create --model claude-sonnet-5 --print");
+    expect(withoutBase).toBe(withAuto);
+  });
+
+  test("auto adds the prompt-bundle sections only for a bundle-capable model", () => {
+    const opus5 = run("create --model claude-opus-5 --print");
+    const opus48 = run("create --model claude-opus-4-8 --print");
+    expect(opus5).toContain("# Delivering work");
+    expect(opus5).toContain("# Corrections");
+    expect(opus48).not.toContain("# Delivering work");
+  });
+
+  test("an explicit --base lean skips the prompt-bundle sections", () => {
+    const output = run("create --base lean --model claude-opus-5 --print");
+    expect(output).toContain("# Harness");
+    expect(output).not.toContain("# Delivering work");
   });
 
   test("--base invalid-name produces descriptive error", () => {

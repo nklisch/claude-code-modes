@@ -59,14 +59,15 @@ describe("resolveModel", () => {
       name: "Opus 4.8",
       id: "claude-opus-4-8",
       cutoff: "January 2026",
+      capabilities: ["lean-prompt"],
     });
   });
 
   test("resolves aliases to the newest model of the family", () => {
-    expect(resolveModel("opus").id).toBe("claude-opus-4-8");
+    expect(resolveModel("opus").id).toBe("claude-opus-5");
     expect(resolveModel("sonnet").id).toBe("claude-sonnet-5");
     expect(resolveModel("haiku").id).toBe("claude-haiku-4-5");
-    expect(resolveModel("opusplan").id).toBe("claude-opus-4-8");
+    expect(resolveModel("opusplan").id).toBe("claude-opus-5");
   });
 
   test("resolves dated model ids by prefix", () => {
@@ -81,8 +82,9 @@ describe("resolveModel", () => {
       name: "Opus 4.8 (1M context)",
       id: "claude-opus-4-8[1m]",
       cutoff: "January 2026",
+      capabilities: ["lean-prompt"],
     });
-    expect(resolveModel("opus[1m]").id).toBe("claude-opus-4-8[1m]");
+    expect(resolveModel("opus[1m]").id).toBe("claude-opus-5[1m]");
   });
 
   test("falls back to the default model for null, empty, and 'default'", () => {

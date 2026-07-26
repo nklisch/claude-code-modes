@@ -5,7 +5,7 @@ import { parseCliArgs } from "./args.js";
 import { loadConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
 import { assemblePrompt, writeTempPrompt } from "./assemble.js";
-import { detectEnv, buildTemplateVars } from "./env.js";
+import { detectEnv, buildTemplateVars, resolveSessionModel } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
 import { runUpdateCommand } from "./update.js";
@@ -109,17 +109,20 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Resolve the session model first — `--base auto` selects from it
+  const model = resolveSessionModel(parsed.modelHint);
+
   // Resolve with config
   let config;
   try {
-    config = resolveConfig(parsed, loadedConfig);
+    config = resolveConfig(parsed, loadedConfig, model);
   } catch (err) {
     process.stderr.write(`Error: ${(err as Error).message}\n`);
     process.exit(1);
   }
 
   // Detect environment and build template vars
-  const env = detectEnv(parsed.modelHint);
+  const env = detectEnv(model);
   const templateVars = buildTemplateVars(env);
 
   // Assemble the prompt

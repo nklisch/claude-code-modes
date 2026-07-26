@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname, resolve, isAbsolute } from "node:path";
 import { homedir } from "node:os";
-import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES, AXIS_BUILTINS, BUILTIN_BASE_NAMES, STYLE_VALUES, isBuiltinModifier, isPresetName, isBuiltinBase, isBuiltinAxisValue, isBuiltinStyle } from "./types.js";
+import { PRESET_NAMES, BUILTIN_MODIFIER_NAMES, AXIS_BUILTINS, BASE_AUTO, BUILTIN_BASE_NAMES, STYLE_VALUES, isBuiltinModifier, isPresetName, isBuiltinBase, isBuiltinAxisValue, isBuiltinStyle } from "./types.js";
 
 /**
  * Matches paths that reference potentially sensitive files (SSH keys, credentials, etc.).
@@ -88,8 +88,13 @@ export function checkStyleNameCollision(name: string): void {
   }
 }
 
-/** Throws if name collides with a built-in base name. */
+/** Throws if name collides with a built-in base name or the model-driven selector. */
 export function checkBaseNameCollision(name: string): void {
+  if (name === BASE_AUTO) {
+    throw new Error(
+      `"${BASE_AUTO}" selects a base from the session model; choose a different name`
+    );
+  }
   if (isBuiltinBase(name)) {
     throw new Error(
       `"${name}" is a built-in base name (${BUILTIN_BASE_NAMES.join(", ")}); choose a different name`

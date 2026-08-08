@@ -38,7 +38,9 @@ prompts/
   chill/           # chill base: base.json manifest + 6 fragments (emotion-research-informed)
   flow/            # flow base: base.json manifest + 6 fragments (chill's calm + restored engagement)
   lean/            # lean base: base.json manifest + 6 fragments (upstream's lean assembly)
+  straight/        # straight base: base.json manifest + 6 fragments (direct, anti-sycophantic)
   axis/            # 10 fragments: agency/{autonomous,collaborative,surgical,partner}, quality/{architect,pragmatic,minimal}, scope/{unrestricted,adjacent,narrow}
+  style/           # user-visible writing: declaudified.md, straight.md
   modifiers/       # readonly.md, context-pacing.md, debug.md, methodical.md, director.md, bold.md, speak-plain.md, tdd.md, muse.md, flow.md, playful.md, delivering-work.md, corrections.md, tool-restraint.md
 scripts/
   generate-prompts.ts         # embeds prompt fragments into src/embedded-prompts.ts
@@ -55,7 +57,7 @@ Parse (args.ts) → Load config (config.ts) → Resolve model (env.ts) → Resol
 - **Parse**: extracts raw strings from argv — no validation, no I/O
 - **Load config**: reads `.claude-mode.json` from CWD or `~/.config/claude-mode/config.json`
 - **Resolve model**: `resolveSessionModel` applies Claude Code's own precedence (`--model` → `ANTHROPIC_MODEL` → settings files); runs before Resolve because `--base auto` keys off the result
-- **Resolve**: validates axis values, resolves custom names against config, merges presets + overrides, selects the base
+- **Resolve**: validates axis and style values, resolves custom names against config, merges presets + overrides, selects the base and response style
 - **Detect env**: shell commands for git, platform, shell
 - **Assemble**: reads fragments, substitutes template vars, writes temp file
 
@@ -66,8 +68,10 @@ Parse (args.ts) → Load config (config.ts) → Resolve model (env.ts) → Resol
 ```json
 {
   "defaultBase": "chill",
+  "defaultStyle": "declaudified",
   "defaultModifiers": ["team-rules"],
   "bases": { "custom-base": "./prompts/my-base" },
+  "styles": { "team-voice": "./prompts/team-voice.md" },
   "modifiers": { "team-rules": "./prompts/team-rules.md" },
   "axes": { "quality": { "team-standard": "./prompts/team-quality.md" } },
   "presets": {
@@ -82,7 +86,7 @@ Parse (args.ts) → Load config (config.ts) → Resolve model (env.ts) → Resol
 }
 ```
 
-Managed via `claude-mode config` subcommand (init, show, add/remove for defaults, modifiers, axes, presets).
+Managed via `claude-mode config` subcommand (init, show, add/remove for defaults, styles, modifiers, axes, presets; custom bases are edited in JSON).
 
 ## Upstream Tracking
 
@@ -97,11 +101,14 @@ Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream p
 - `none` mode strips all behavioral instructions, leaving only infrastructure
 - Axis values accept built-in names, config-defined names, or file paths — resolution order: built-in → config → path
 - Bases are manifest-driven: `base.json` declares fragment order with `"axes"` and `"modifiers"` as reserved insertion points
-- Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner), "flow" (chill's calm floor + restored engagement/appetite), "lean" (upstream's lean assembly)
+- Built-in bases: "standard" (upstream-derived), "chill" (emotion-research-informed, leaner), "flow" (chill's calm floor + restored engagement/appetite), "lean" (upstream's lean assembly), "straight" (direct, anti-sycophantic technical communication)
+- Built-in response styles: "declaudified" (plain writing without Claude-shaped filler) and "straight" (declaudified principles plus direct judgment and self-contained explanations)
+- `straight` preset selects the straight base and style with autonomous/pragmatic/adjacent axes; base and style remain independently selectable
 - `--base` flag selects a base; resolution order: `auto` → built-in → config → directory path
+- `--style` selects one response fragment after the axes; resolution order: built-in → config → file path; explicit styles also apply in `none` mode
 - `auto` is the default: it picks the base Claude Code itself would assemble for the session model — "lean" when the model carries the `lean-prompt` capability (Opus 5, Opus 4.8, Fable 5, Mythos 5), "standard" otherwise. Models with `prompt-bundle` (Opus 5) additionally get the delivering-work, corrections, and tool-restraint modifiers. An explicit `--base` opts out of both, since the user has chosen the shape themselves
 - Model prompt capabilities live in `MODEL_TABLE` in `env.ts`, mirroring the binary's `lean_prompt` / `opus_5_prompt_bundle`
-- Upstream's shared tail (pronouns, context-management, act-don't-re-derive) is emitted for every model regardless of prompt shape, so all four bases carry it — standard/lean verbatim, chill/flow reworked into their own voice
+- Upstream's shared tail (pronouns, context-management, act-don't-re-derive) is emitted for every model regardless of prompt shape, so all five bases carry it — standard/lean/straight use the lean-compatible fragments, chill/flow rework them into their own voice
 - Config: project-local wins entirely if present (no merging with global)
 - Model metadata resolved dynamically in `env.ts`: `--model` flag (or after-`--` peek) → `ANTHROPIC_MODEL` → Claude settings files, against a model table extracted from the Claude Code binary (fallback: newest model) — update the table on Claude Code releases
 - `cli.ts` uses `Bun.spawn` with inherited stdio for direct TTY ownership; `build-prompt.ts` outputs command string for scripting

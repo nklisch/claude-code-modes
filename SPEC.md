@@ -2,15 +2,7 @@
 
 ## Architecture
 
-Two-layer design to preserve Claude Code's TUI:
-
-```
-claude-mode (bash)
-  └─ bun run build-prompt.ts "$@"   → outputs full claude command
-  └─ exec <command>                  → replaces process, claude owns TTY
-```
-
-The bash entry point never interacts with the terminal beyond launching. The TypeScript binary does all argument parsing, prompt assembly, and env detection, then prints a complete `claude` invocation to stdout. The bash script `exec`s it.
+The TypeScript CLI parses arguments, resolves the model and mode, assembles a temporary system-prompt file, then launches Claude Code with `Bun.spawn` and inherited stdio so Claude owns the TTY directly. `src/build-prompt.ts` is the scripting alternative: it prints the assembled Claude command instead of launching it.
 
 ## CLI Interface
 
@@ -34,6 +26,7 @@ claude-mode muse
 claude-mode flow
 claude-mode tinker
 claude-mode spark
+claude-mode straight
 claude-mode none
 ```
 
@@ -61,15 +54,17 @@ When no preset and not all three axes specified, defaults are: `agency=collabora
 
 ### Base Selection
 
-- `--base <name|path>` — Selects the base prompt. Built-in: `standard` (default), `chill`, `flow`. Also accepts config-defined names or directory paths containing a `base.json` manifest.
+- `--base <name|path>` — Selects the base prompt. Built-in: `auto` (default), `standard`, `chill`, `flow`, `lean`, `straight`. Also accepts config-defined names or directory paths containing a `base.json` manifest.
 
-Resolution order: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > preset `base` > `"standard"`.
+`auto` selects `lean` for models with the `lean-prompt` capability and `standard` otherwise; models with `prompt-bundle` also receive the delivering-work, corrections, and tool-restraint modifiers. Resolution order for explicit values: built-in → config → directory path heuristic. Priority chain: CLI `--base` > config `defaultBase` > preset `base` > `auto`.
 
 ### Style Selection
 
-- `--style <name|path>` — Selects a writing style, a single fragment inserted after the axis fragments. Built-in: `declaudified` (lead-with-the-answer writing: cut filler and metadiscourse, plain language, no dead tech-metaphors — from the skills-marketplace `declaudified-writing` snippet). Also accepts config-defined names or `.md` file paths.
+- `--style <name|path>` — Selects one writing-style fragment inserted after the axis fragments. Built-ins:
+  - `declaudified` — leads with the answer; removes filler, metadiscourse, invented labels, and dead technical metaphors
+  - `straight` — includes declaudified's plain technical writing principles, then adds direct judgment, anti-sycophancy, and self-contained explanations that do not rely on private tool or repository context
 
-No style is applied by default. Resolution order: built-in → config → file path heuristic. Priority chain: CLI `--style` > config `defaultStyle` > preset `style` > none. Unlike axes, an explicit style also applies in `none` mode (like explicit modifiers).
+Styles also accept config-defined names or `.md` file paths. No style is applied by default. Resolution order: built-in → config → file path heuristic. Priority chain: CLI `--style` > config `defaultStyle` > preset `style` > none. Unlike axes, an explicit style also applies in `none` mode. The `straight` preset selects both the straight base and straight style with autonomous/pragmatic/adjacent axes; either part can be selected independently.
 
 ### Modifiers
 
@@ -77,9 +72,9 @@ All modifiers are fragment-based — they resolve to markdown files that get ins
 
 - `--readonly` — Shorthand for `--modifier readonly`. Appends readonly instructions.
 - `--context-pacing` — Shorthand for `--modifier context-pacing`. Appends context pacing instructions.
-- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`, `flow`, `playful`), config-defined names, or file paths.
+- `--modifier <name|path>` — Appends a modifier fragment. Repeatable. Accepts built-in names (`readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`, `flow`, `playful`, `delivering-work`, `corrections`, `tool-restraint`), config-defined names, or file paths.
 
-Built-in modifiers: `readonly`, `context-pacing`, `debug`, `methodical`, `director`, `bold`, `speak-plain`, `tdd`, `muse`, `flow`, `playful`. The `debug`, `methodical`, `director`, `partner`, and `muse` presets include their respective modifiers automatically.
+The `debug`, `methodical`, `director`, `partner`, `muse`, `flow`, `tinker`, and `spark` presets include their respective modifiers automatically.
 - `--append-system-prompt <text>` — Forwarded directly to `claude`.
 - `--append-system-prompt-file <path>` — Forwarded directly to `claude`.
 
@@ -124,7 +119,7 @@ Loaded from `.claude-mode.json` in CWD, falling back to `~/.config/claude-mode/c
 }
 ```
 
-Custom preset names must not collide with built-in presets. Custom modifier names must not collide with `readonly` or `context-pacing`. Custom style names must not collide with `declaudified`. Config paths are relative to the config file's directory.
+Custom names must not collide with built-in names in the same category. Built-in styles are `declaudified` and `straight`; built-in bases are `standard`, `chill`, `flow`, `lean`, and `straight`. Config paths are relative to the config file's directory.
 
 ### Config Management CLI
 
@@ -214,13 +209,20 @@ Each base has a `base.json` manifest — a flat JSON array of strings. Two reser
 
 **Standard base manifest** (`prompts/base/base.json`):
 ```json
-["intro.md", "system.md", "axes", "doing-tasks.md", "actions.md", "tools.md", "tone.md", "session-guidance.md", "modifiers", "env.md"]
+["intro.md", "system.md", "axes", "doing-tasks.md", "actions.md", "tools.md", "tone.md", "text-output.md", "pronouns.md", "session-guidance.md", "context-management.md", "modifiers", "env.md"]
 ```
 
-**Chill base manifest** (`prompts/chill/base.json`):
+**Chill and flow manifest shape**:
 ```json
-["core.md", "axes", "actions.md", "tools.md", "modifiers", "env.md"]
+["core.md", "axes", "pronouns.md", "actions.md", "tools.md", "context-management.md", "modifiers", "env.md"]
 ```
+
+**Lean and straight manifest shape**:
+```json
+["core.md", "axes", "pronouns.md", "actions.md", "session-guidance.md", "context-management.md", "modifiers", "env.md"]
+```
+
+The straight base uses the lean prompt shape but replaces its core with direct, anti-sycophantic task and communication rules. The straight style remains a separate fragment so it can be applied to any base.
 
 Fragment filenames are relative to the base directory. The assembler walks the manifest top to bottom, expanding `"axes"` and `"modifiers"` entries into the appropriate fragments based on the resolved mode config.
 
@@ -315,6 +317,12 @@ claude-code-modes/
 │   │   ├── actions.md
 │   │   ├── tools.md
 │   │   └── env.md
+│   ├── lean/                      # upstream lean prompt shape
+│   │   ├── base.json
+│   │   └── core.md
+│   ├── straight/                  # direct, anti-sycophantic lean-shaped base
+│   │   ├── base.json
+│   │   └── core.md
 │   ├── axis/
 │   │   ├── agency/
 │   │   │   ├── autonomous.md
@@ -330,7 +338,8 @@ claude-code-modes/
 │   │       ├── adjacent.md
 │   │       └── narrow.md
 │   ├── style/
-│   │   └── declaudified.md        # lead-with-the-answer writing style
+│   │   ├── declaudified.md        # plain writing without Claude-shaped filler
+│   │   └── straight.md            # direct judgment and self-contained technical prose
 │   └── modifiers/
 │       ├── context-pacing.md
 │       ├── readonly.md

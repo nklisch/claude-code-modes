@@ -40,8 +40,19 @@ Named presets cover common workflows:
 | `flow` | autonomous | architect | adjacent | Deep engagement on a genuinely hard problem — calm and curious, reads widely but modifies narrowly; the depth-not-sprawl counterpoint to muse |
 | `tinker` | autonomous | pragmatic | unrestricted | Prototyping and creative coding — loose, generative, and fun; composes flow + playful for an absorbed, enjoying-it character; a sketch, not a cathedral |
 | `spark` | autonomous | architect | unrestricted | Maximum expression — muse's anti-generic creative vision plus wit and voice; composes muse + playful for the most personality-forward mode |
+| `straight` | autonomous | pragmatic | adjacent | Candid technical work — challenge bad premises, state negative judgments plainly, and explain results without private repository shorthand |
 
 Presets are starting points. Any axis can be overridden: `claude-mode create --quality pragmatic`. Some presets — like `muse` — lean into expressive creative latitude as a deliberate design choice, pairing a modifier with axes to produce a specific behavioral character rather than just a position on each dimension.
+
+## Bases and Response Styles
+
+Axes control initiative, code quality, and scope. Bases control the full system-prompt framing, while response styles control only user-visible writing. They are independent: `--base straight` changes the agent's behavioral posture, and `--style straight` applies direct writing to any base.
+
+The **straight** base makes reaching the correct result more important than validating the user's assumptions. It checks premises, identifies bad or unnecessary approaches directly, recommends the better option, and does not manufacture disagreement.
+
+The **straight** response style uses plain technical English without sugarcoating, metaphors, praise padding, or false balance. It criticizes the work rather than the person. It also keeps prose self-contained: users are not assumed to have seen private tool calls, file contents, or internal repository shorthand. The narrower **declaudified** style removes filler and stock Claude prose without adding straight's stronger anti-sycophancy rules.
+
+`claude-mode straight` combines the straight base and style with autonomous/pragmatic/adjacent axes. Each part remains independently selectable.
 
 ## The `none` Mode
 
@@ -57,7 +68,7 @@ No opinions on agency, quality, scope, output style, or coding approach. The use
 
 ## Custom Prompts & Config
 
-Beyond presets and axis overrides, teams can define their own prompt fragments and presets in a `.claude-mode.json` config file. Custom modifiers append team-specific instructions (coding standards, review checklists, domain rules). Custom axis values replace built-in behavioral fragments entirely. Custom presets compose any mix of built-in and custom values into a named shortcut.
+Beyond presets and axis overrides, teams can define their own prompt fragments and presets in a `.claude-mode.json` config file. Custom bases replace the full prompt framing, custom styles control user-visible writing, custom modifiers append team-specific instructions, and custom axis values replace built-in behavioral fragments entirely. Custom presets compose any mix of built-in and custom values into a named shortcut.
 
 `defaultModifiers` in the config are always applied — useful for team rules that should be active on every invocation without remembering a flag.
 

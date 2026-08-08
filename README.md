@@ -82,6 +82,7 @@ claude-mode muse        # Creative latitude — treat the request as inspiration
 claude-mode flow        # Deep engagement on hard problems — calm, curious, bounded (flow base)
 claude-mode tinker      # Loose, generative prototyping — fun and fast, don't gold-plate (flow base)
 claude-mode spark       # Maximum expression — creative vision with wit and personality (chill base)
+claude-mode straight    # Direct judgment, no sugarcoating or private shorthand (straight base + style)
 claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 ```
 
@@ -100,6 +101,7 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 | `flow` | autonomous | architect | adjacent | Deep engagement on a genuinely hard problem — reads widely, modifies narrowly |
 | `tinker` | autonomous | pragmatic | unrestricted | Prototyping and creative coding — loose, generative, fun; a sketch, not a cathedral |
 | `spark` | autonomous | architect | unrestricted | Maximum expression — muse's creative vision plus wit and personality |
+| `straight` | autonomous | pragmatic | adjacent | Candid technical work — challenge bad premises, state judgments plainly, keep explanations self-contained |
 | `none` | — | — | — | Strip all behavioral instructions, use your own |
 
 ### Bases
@@ -141,7 +143,26 @@ The **flow** base takes chill's calm floor and adds back the engagement and appe
 claude-mode create --base flow         # Calm + engaged, with any preset
 ```
 
+The **straight** base makes correctness more important than agreement. It checks the user's premise, calls out bad or unnecessary approaches directly, and uses literal technical English without turning rudeness into a persona:
+
+```bash
+claude-mode create --base straight     # Direct behavioral base with any preset
+```
+
 You can also create your own base — see [Custom bases](#custom-bases) below.
+
+### Response styles
+
+A response style changes user-visible writing without replacing the selected base or axes:
+
+```bash
+claude-mode create --style declaudified  # Answer first; remove filler and stock technical prose
+claude-mode create --style straight      # Add direct judgment and self-contained technical explanations
+```
+
+`declaudified` removes Claude-shaped prose: filler, metadiscourse, invented labels, and dead technical metaphors. `straight` includes those principles and adds anti-sycophancy: no sugarcoating, praise padding, false balance, or agreement for its own sake. It criticizes the work rather than the person.
+
+Both styles treat the response as the shared record. They do not assume the user saw private tool calls or file output, and they explain repository-specific names before relying on them. The `straight` preset selects both the straight base and straight style; `--base straight` and `--style straight` remain independently usable.
 
 ## What problems does this solve?
 
@@ -165,7 +186,9 @@ prompts/
   chill/        Alternative base (emotion-research-informed, leaner)
   flow/         Alternative base (chill's calm + restored engagement)
   lean/         Upstream's lean assembly (what Opus 5 / 4.8 / Fable 5 actually receive)
+  straight/     Direct, anti-sycophantic base derived from the lean prompt shape
   axis/         Behavioral prompts organized by three axes
+  style/        User-visible writing styles (declaudified, straight)
   modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful, delivering-work, corrections, tool-restraint)
 ```
 
@@ -245,11 +268,12 @@ claude-mode -- --version    # Forwards --version to claude
 
 ## Config file
 
-Create a `.claude-mode.json` in your project root to define reusable custom modifiers, axis values, and presets. Manage it with the CLI or edit directly.
+Create a `.claude-mode.json` in your project root to define reusable bases, response styles, modifiers, axis values, and presets. Manage supported entries with the CLI or edit the JSON directly.
 
 ```bash
 claude-mode config init                              # Create scaffold
 claude-mode config add-modifier team-rules ./prompts/team-rules.md
+claude-mode config add-style team-voice ./prompts/team-voice.md
 claude-mode config add-default team-rules            # Always include this modifier
 claude-mode config add-axis quality team-standard ./prompts/team-quality.md
 claude-mode config add-preset team --agency collaborative --quality team-standard --modifier team-rules
@@ -267,7 +291,11 @@ Example `.claude-mode.json`:
 
 ```json
 {
+  "defaultStyle": "team-voice",
   "defaultModifiers": ["team-rules"],
+  "styles": {
+    "team-voice": "./prompts/team-voice.md"
+  },
   "modifiers": {
     "team-rules": "./prompts/team-rules.md"
   },
@@ -292,10 +320,12 @@ Example `.claude-mode.json`:
 - **`axes`** — custom axis values (replace built-in fragments)
 - **`presets`** — named presets composing built-in and custom values
 
-Config also supports bases:
+Config also supports bases and response styles:
 
 - **`defaultBase`** — base to use when `--base` isn't specified; set it to `"auto"` to restore model-driven selection
 - **`bases`** — named bases referencing directories with `base.json` manifests
+- **`defaultStyle`** — response style to apply when `--style` and the selected preset do not set one
+- **`styles`** — named response styles referencing markdown files
 
 Config searches `.claude-mode.json` in the current directory first, then `~/.config/claude-mode/config.json` as a global fallback. All commands accept `--global` to target the global config.
 
@@ -308,6 +338,8 @@ claude-mode config add-default <name-or-path>        # Add to defaultModifiers
 claude-mode config remove-default <name>             # Remove from defaultModifiers
 claude-mode config add-modifier <name> <path>        # Register named modifier
 claude-mode config remove-modifier <name>            # Unregister named modifier
+claude-mode config add-style <name> <path>           # Register named response style
+claude-mode config remove-style <name>               # Unregister named response style
 claude-mode config add-axis <axis> <name> <path>     # Register custom axis value
 claude-mode config remove-axis <axis> <name>         # Unregister custom axis value
 claude-mode config add-preset <name> [flags]         # Create custom preset

@@ -46,6 +46,14 @@ const EXPECTED_FRAGMENTS = [
   "lean/session-guidance.md",
   "lean/context-management.md",
   "lean/env.md",
+  // Straight base
+  "straight/base.json",
+  "straight/core.md",
+  "straight/pronouns.md",
+  "straight/actions.md",
+  "straight/session-guidance.md",
+  "straight/context-management.md",
+  "straight/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -59,6 +67,7 @@ const EXPECTED_FRAGMENTS = [
   "axis/scope/narrow.md",
   // Style fragments
   "style/declaudified.md",
+  "style/straight.md",
   // Modifiers
   "modifiers/readonly.md",
   "modifiers/context-pacing.md",
@@ -77,8 +86,8 @@ const EXPECTED_FRAGMENTS = [
 ] as const;
 
 describe("EMBEDDED_PROMPTS", () => {
-  test("contains exactly 58 fragments", () => {
-    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(58);
+  test("contains exactly 66 fragments", () => {
+    expect(Object.keys(EMBEDDED_PROMPTS).length).toBe(66);
   });
 
   test("all expected fragment keys are present", () => {
@@ -120,6 +129,11 @@ describe("EMBEDDED_PROMPTS", () => {
     expect(Array.isArray(flowManifest)).toBe(true);
     expect(flowManifest).toContain("axes");
     expect(flowManifest).toContain("modifiers");
+
+    const straightManifest = JSON.parse(EMBEDDED_PROMPTS["straight/base.json"]);
+    expect(Array.isArray(straightManifest)).toBe(true);
+    expect(straightManifest).toContain("axes");
+    expect(straightManifest).toContain("modifiers");
   });
 
   test("all fragment keys used by getFragmentOrder are in EMBEDDED_PROMPTS", () => {
@@ -206,6 +220,13 @@ describe("EMBEDDED_PROMPTS", () => {
         base: "chill",
         axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
         style: "declaudified",
+        modifiers: [],
+      },
+      // straight preset — straight base and response style
+      {
+        base: "straight",
+        axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
+        style: "straight",
         modifiers: [],
       },
     ];

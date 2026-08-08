@@ -31,9 +31,10 @@ Presets:
   flow            autonomous / architect / adjacent (flow base, deep focus — depth not sprawl)
   tinker          autonomous / pragmatic / unrestricted (flow base, loose playful prototyping)
   spark           autonomous / architect / unrestricted (chill base, maximalist creative + wit)
+  straight        autonomous / pragmatic / adjacent (straight base and response style)
 
 Base:
-  --base <name|path>      Built-in: auto (default), standard, chill, flow, lean
+  --base <name|path>      Built-in: auto (default), standard, chill, flow, lean, straight
   "auto" picks the base Claude Code itself would use for the session model:
   lean for Opus 5 / Opus 4.8 / Fable 5, standard otherwise. On Opus 5 it also
   adds the delivering-work, corrections, and tool-restraint modifiers.
@@ -46,7 +47,7 @@ Axis overrides:
   Axis values can also be config-defined names or file paths (.md files).
 
 Style:
-  --style <value>         Writing style for output. Built-in: declaudified
+  --style <value>         Writing style for output. Built-in: declaudified, straight
   Style can also be a config-defined name or a file path (.md file).
   No style is applied unless set via --style, config defaultStyle, or a preset.
 
@@ -71,6 +72,8 @@ Examples:
   claude-mode create --base chill             # use the chill base
   claude-mode create --quality pragmatic
   claude-mode create --style declaudified      # lead-with-the-answer writing, no filler
+  claude-mode create --style straight           # direct judgment in plain technical English
+  claude-mode straight                          # straight base and response style
   claude-mode create --modifier ./my-rules.md
   claude-mode --agency autonomous --quality ./team-quality.md
   claude-mode team-default                    # custom preset from config

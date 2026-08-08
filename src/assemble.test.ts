@@ -239,6 +239,23 @@ describe("getFragmentOrder — chill base", () => {
   });
 });
 
+describe("getFragmentOrder — straight base", () => {
+  const straightMode: ModeConfig = {
+    base: "straight",
+    axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
+    style: "straight",
+    modifiers: [],
+  };
+
+  test("straight base includes its core, axes, style, and environment", () => {
+    const order = getFragmentOrder(straightMode, PROMPTS_DIR);
+    expect(order).toContain("straight/core.md");
+    expect(order).toContain("axis/quality/pragmatic.md");
+    expect(order).toContain("style/straight.md");
+    expect(order[order.length - 1]).toBe("straight/env.md");
+  });
+});
+
 describe("getFragmentOrder — manifest validation", () => {
   test("missing manifest for custom base throws", () => {
     const mode: ModeConfig = {

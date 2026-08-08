@@ -188,9 +188,29 @@ describe("build-prompt CLI", () => {
     expect(styleIdx).toBeGreaterThan(scopeIdx);
   });
 
+  test("straight style includes direct, self-contained communication rules", () => {
+    const output = run("create --style straight --print");
+    expect(output).toContain("# Style: Straight");
+    expect(output).toContain("Do not sugarcoat.");
+    expect(output).toContain("Your prose is the shared record.");
+  });
+
+  test("straight preset selects the straight base and style", () => {
+    const output = run("straight --print");
+    expect(output).toContain("Your job is to help the user reach the correct result");
+    expect(output).toContain("# Style: Straight");
+    expect(output).toContain("# Quality: Pragmatic");
+  });
+
+  test("declaudified style also keeps responses self-contained", () => {
+    const output = run("create --style declaudified --print");
+    expect(output).toContain("Your prose is the shared record.");
+  });
+
   test("no style content without --style", () => {
     const output = run("create --print");
     expect(output).not.toContain("# Style: Declaudified");
+    expect(output).not.toContain("# Style: Straight");
   });
 
   test("none --style declaudified --print includes style without axes", () => {
@@ -207,7 +227,7 @@ describe("build-prompt CLI", () => {
   test("--help shows --style flag", () => {
     const output = run("--help");
     expect(output).toContain("--style");
-    expect(output).toContain("declaudified");
+    expect(output).toContain("declaudified, straight");
   });
 });
 

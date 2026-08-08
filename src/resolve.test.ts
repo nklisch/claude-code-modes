@@ -796,9 +796,11 @@ describe("resolveConfig — style resolution", () => {
     expect(config.style).toBeNull();
   });
 
-  test("--style declaudified resolves to built-in name", () => {
-    const config = resolveConfig({ ...baseParsed, style: "declaudified", preset: "create" }, null);
-    expect(config.style).toBe("declaudified");
+  test("built-in styles resolve by name", () => {
+    const declaudified = resolveConfig({ ...baseParsed, style: "declaudified", preset: "create" }, null);
+    const straight = resolveConfig({ ...baseParsed, style: "straight", preset: "create" }, null);
+    expect(declaudified.style).toBe("declaudified");
+    expect(straight.style).toBe("straight");
   });
 
   test("--style with file path resolves to absolute path", () => {
@@ -847,7 +849,7 @@ describe("resolveConfig — style resolution", () => {
   test("unknown style error mentions built-in names", () => {
     expect(() =>
       resolveConfig({ ...baseParsed, style: "nonexistent-style" }, null)
-    ).toThrow("declaudified");
+    ).toThrow("declaudified, straight");
   });
 
   test("none preset resolves style to null by default", () => {

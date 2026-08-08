@@ -97,6 +97,13 @@ const PRESETS: Record<PresetName, PresetDefinition> = {
     base: "chill",
     modifiers: ["muse", "playful"],
   },
+  "straight": {
+    axes: { agency: "autonomous", quality: "pragmatic", scope: "adjacent" },
+    readonly: false,
+    base: "straight",
+    style: "straight",
+    modifiers: [],
+  },
 };
 
 export function getPreset(name: PresetName): PresetDefinition {

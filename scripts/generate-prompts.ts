@@ -52,6 +52,14 @@ const FRAGMENT_PATHS = [
   "lean/session-guidance.md",
   "lean/context-management.md",
   "lean/env.md",
+  // Straight base manifest and fragments
+  "straight/base.json",
+  "straight/core.md",
+  "straight/pronouns.md",
+  "straight/actions.md",
+  "straight/session-guidance.md",
+  "straight/context-management.md",
+  "straight/env.md",
   // Axis fragments
   "axis/agency/autonomous.md",
   "axis/agency/collaborative.md",
@@ -65,6 +73,7 @@ const FRAGMENT_PATHS = [
   "axis/scope/narrow.md",
   // Style fragments
   "style/declaudified.md",
+  "style/straight.md",
   // Modifiers
   "modifiers/readonly.md",
   "modifiers/context-pacing.md",

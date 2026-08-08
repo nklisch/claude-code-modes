@@ -93,6 +93,14 @@ describe("getPreset", () => {
     expect(p.modifiers).toEqual(["muse"]);
   });
 
+  test("straight uses its base and style with pragmatic adjacent axes", () => {
+    const p = getPreset("straight");
+    expect(p.axes).toEqual({ agency: "autonomous", quality: "pragmatic", scope: "adjacent" });
+    expect(p.base).toBe("straight");
+    expect(p.style).toBe("straight");
+    expect(p.modifiers).toEqual([]);
+  });
+
   test("all PRESET_NAMES have definitions", () => {
     for (const name of PRESET_NAMES) {
       expect(getPreset(name)).toBeDefined();
@@ -120,6 +128,7 @@ describe("isPresetName", () => {
     expect(isPresetName("director")).toBe(true);
     expect(isPresetName("partner")).toBe(true);
     expect(isPresetName("muse")).toBe(true);
+    expect(isPresetName("straight")).toBe(true);
   });
 
   test("returns false for invalid names", () => {

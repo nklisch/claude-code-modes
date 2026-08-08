@@ -8,7 +8,7 @@ export const SCOPE_VALUES = ["unrestricted", "adjacent", "narrow"] as const;
 export type Scope = (typeof SCOPE_VALUES)[number];
 
 // Built-in style names — writing styles applied on top of any base/axes
-export const STYLE_VALUES = ["declaudified"] as const;
+export const STYLE_VALUES = ["declaudified", "straight"] as const;
 export type Style = (typeof STYLE_VALUES)[number];
 export function isBuiltinStyle(value: string): value is Style {
   return (STYLE_VALUES as readonly string[]).includes(value);
@@ -29,6 +29,7 @@ export const PRESET_NAMES = [
   "flow",
   "tinker",
   "spark",
+  "straight",
 ] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 export function isPresetName(value: string): value is PresetName {
@@ -43,8 +44,8 @@ export function isBuiltinModifier(value: string): value is BuiltinModifier {
 }
 
 // Built-in base names — "standard" (upstream-derived), "chill" (calm), "flow" (calm + engaged),
-// "lean" (upstream's lean assembly, sent to models carrying the lean-prompt capability)
-export const BUILTIN_BASE_NAMES = ["standard", "chill", "flow", "lean"] as const;
+// "lean" (upstream's lean assembly), "straight" (direct, anti-sycophantic technical communication)
+export const BUILTIN_BASE_NAMES = ["standard", "chill", "flow", "lean", "straight"] as const;
 export type BuiltinBaseName = (typeof BUILTIN_BASE_NAMES)[number];
 export function isBuiltinBase(value: string): value is BuiltinBaseName {
   return (BUILTIN_BASE_NAMES as readonly string[]).includes(value);

@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { join } from "node:path";
 import { mkdtempSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { createCliRunner, makeTempDir } from "./test-helpers.js";
+import { createCliRunner, makeTempDir, PROJECT_ROOT } from "./test-helpers.js";
 import { PRESET_NAMES } from "./types.js";
 
 const BUILD_PROMPT = `bun run ${join(import.meta.dir, "build-prompt.ts")}`;
@@ -143,6 +143,23 @@ describe("claude-mode e2e", () => {
   test("normal mode outputs claude command", () => {
     const output = run("create");
     expect(output).toMatch(/^claude --system-prompt-file /);
+  });
+
+  // `claude --bg` respawns the session after claude-mode is gone, so the
+  // prompt file must survive the launcher and stay stable across reruns.
+  test("prompt file lives in the state dir and is stable across runs", () => {
+    const stateDir = makeTempDir("e2e-state-");
+    const env = { XDG_STATE_HOME: stateDir };
+    try {
+      const first = run("create", PROJECT_ROOT, env);
+      const second = run("create", PROJECT_ROOT, env);
+      expect(second).toBe(first);
+      const promptPath = first.split(" ")[2];
+      expect(promptPath.startsWith(join(stateDir, "claude-mode", "prompts"))).toBe(true);
+      expect(existsSync(promptPath)).toBe(true);
+    } finally {
+      rmSync(stateDir, { recursive: true, force: true });
+    }
   });
 
   // Passthrough args

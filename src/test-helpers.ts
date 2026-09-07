@@ -22,27 +22,31 @@ const PIPED_STDIO: StdioOptions = ["pipe", "pipe", "pipe"];
 /**
  * Builds a pair of subprocess runners bound to a fixed command. Each runner
  * accepts an optional cwd as its second argument; tests that don't care use
- * PROJECT_ROOT, tests that need a temp directory pass it explicitly.
+ * PROJECT_ROOT, tests that need a temp directory pass it explicitly. An
+ * optional env overlay is merged over process.env — mutating process.env in
+ * the test body is not enough, since execSync snapshots the environment.
  *
  * runExpectFail captures err.stderr first, then err.stdout, then err.message —
  * some CLI errors land on stdout instead of stderr depending on context.
  */
 export function createCliRunner(command: string, timeout = 15000) {
-  function run(args: string, cwd: string = PROJECT_ROOT): string {
+  function run(args: string, cwd: string = PROJECT_ROOT, env: Record<string, string> = {}): string {
     return execSync(`${command} ${args}`, {
       encoding: "utf8",
       timeout,
       cwd,
+      env: { ...process.env, ...env },
       stdio: PIPED_STDIO,
     }).trim();
   }
 
-  function runExpectFail(args: string, cwd: string = PROJECT_ROOT): string {
+  function runExpectFail(args: string, cwd: string = PROJECT_ROOT, env: Record<string, string> = {}): string {
     try {
       execSync(`${command} ${args}`, {
         encoding: "utf8",
         timeout,
         cwd,
+        env: { ...process.env, ...env },
         stdio: PIPED_STDIO,
       });
       throw new Error("Expected command to fail");

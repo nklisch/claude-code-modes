@@ -200,10 +200,12 @@ When you run `claude-mode create`, the tool:
 1. Resolves the preset to axis values (autonomous / architect / unrestricted)
 2. Reads the base infrastructure fragments + the matching axis fragments
 3. Detects your environment (git status, platform, shell)
-4. Writes the assembled prompt to a temp file
-5. Spawns `claude --system-prompt-file /tmp/claude-mode-xxx.md` with inherited stdio
+4. Writes the assembled prompt to `~/.local/state/claude-mode/prompts/<hash>.md` (honors `XDG_STATE_HOME`)
+5. Spawns `claude --system-prompt-file <that path>` with inherited stdio
 
 `Bun.spawn` gives Claude Code direct TTY ownership — no intermediary process sitting in between.
+
+The prompt file is content-addressed and never deleted: Claude Code re-reads it whenever it restarts the session's process, which with background sessions (`claude-mode create -- --bg`) happens after `claude-mode` has already exited — the supervisor respawns sessions after idle stops, updates, and reboots. Identical prompts share one file, so the directory stays small.
 
 ## Customizing
 

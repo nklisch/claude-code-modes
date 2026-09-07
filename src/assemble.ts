@@ -1,6 +1,7 @@
-import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, resolve, isAbsolute } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir } from "node:os";
+import { createHash } from "node:crypto";
 import type { AssembleOptions, TemplateVars, ModeConfig, BaseManifest } from "./types.js";
 import { isBuiltinBase } from "./types.js";
 import { EMBEDDED_PROMPTS } from "./embedded-prompts.js";
@@ -179,12 +180,26 @@ export function assemblePrompt(options: AssembleOptions): string {
   return substituteTemplateVars(joined, templateVars);
 }
 
+// Claude Code re-reads --system-prompt-file every time it starts the session's
+// process, and with `claude --bg` that happens after claude-mode has exited: the
+// background supervisor respawns sessions after idle stops, binary updates, and
+// reboots. A temp file removed at exit breaks every one of those restarts, so
+// prompts live in the state dir instead. Content addressing keeps reruns of the
+// same mode from piling up files.
+function promptStoreDir(): string {
+  const stateHome = process.env.XDG_STATE_HOME || join(homedir(), ".local", "state");
+  return join(stateHome, "claude-mode", "prompts");
+}
+
 /**
- * Writes the assembled prompt to a temp file and returns the file path.
+ * Writes the assembled prompt to a content-addressed file and returns its path.
+ * The file is never cleaned up, because Claude Code may need to read it again
+ * long after claude-mode has exited. Identical prompts share one file.
  */
-export function writeTempPrompt(content: string): string {
-  const tmpDir = mkdtempSync(join(tmpdir(), "claude-mode-"));
-  const filePath = join(tmpDir, "prompt.md");
+export function writePromptFile(content: string, dir: string = promptStoreDir()): string {
+  const hash = createHash("sha256").update(content).digest("hex").slice(0, 16);
+  const filePath = join(dir, `${hash}.md`);
+  mkdirSync(dir, { recursive: true });
   writeFileSync(filePath, content, "utf8");
   return filePath;
 }

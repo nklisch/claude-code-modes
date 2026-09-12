@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { parseCliArgs } from "./args.js";
 import { loadConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
-import { assemblePrompt, writeTempPrompt } from "./assemble.js";
+import { assemblePrompt, writePromptFile } from "./assemble.js";
 import { detectEnv, buildTemplateVars, resolveSessionModel } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
@@ -117,11 +117,11 @@ function main(): void {
     process.exit(0);
   }
 
-  // Write to temp file
-  const tempFile = writeTempPrompt(prompt);
+  // Persist the prompt where claude can re-read it after we exit
+  const promptFile = writePromptFile(prompt);
 
   // Build the claude command
-  const claudeArgs: string[] = ["claude", "--system-prompt-file", tempFile];
+  const claudeArgs: string[] = ["claude", "--system-prompt-file", promptFile];
 
   // Forward append-system-prompt flags
   if (parsed.forwarded.appendSystemPrompt) {

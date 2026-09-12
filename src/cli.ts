@@ -1,10 +1,9 @@
 #!/usr/bin/env bun
 import { join } from "node:path";
-import { rmSync } from "node:fs";
 import { parseCliArgs } from "./args.js";
 import { loadConfig } from "./config.js";
 import { resolveConfig } from "./resolve.js";
-import { assemblePrompt, writeTempPrompt } from "./assemble.js";
+import { assemblePrompt, writePromptFile } from "./assemble.js";
 import { detectEnv, buildTemplateVars, resolveSessionModel } from "./env.js";
 import { runConfigCommand } from "./config-cli.js";
 import { runInspectCommand } from "./inspect.js";
@@ -140,11 +139,11 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Write to temp file
-  const tempFile = writeTempPrompt(prompt);
+  // Persist the prompt where claude can re-read it after we exit
+  const promptFile = writePromptFile(prompt);
 
   // Build claude args
-  const claudeArgs: string[] = ["--system-prompt-file", tempFile];
+  const claudeArgs: string[] = ["--system-prompt-file", promptFile];
 
   // Forward append-system-prompt flags
   if (parsed.forwarded.appendSystemPrompt) {
@@ -173,17 +172,7 @@ async function main(): Promise<void> {
   process.on("SIGINT", () => proc.kill("SIGINT"));
   process.on("SIGTERM", () => proc.kill("SIGTERM"));
 
-  const exitCode = await proc.exited;
-
-  // Clean up temp file after claude exits
-  try {
-    const { dirname } = await import("node:path");
-    rmSync(dirname(tempFile), { recursive: true, force: true });
-  } catch {
-    // Best-effort cleanup; don't fail if temp dir is already gone
-  }
-
-  process.exit(exitCode);
+  process.exit(await proc.exited);
 }
 
 main().catch((err) => {

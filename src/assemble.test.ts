@@ -5,9 +5,9 @@ import {
   substituteTemplateVars,
   getFragmentOrder,
   assemblePrompt,
-  writeTempPrompt,
+  writePromptFile,
 } from "./assemble.js";
-import { existsSync, unlinkSync, rmdirSync, writeFileSync, rmSync } from "node:fs";
+import { existsSync, writeFileSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
 import type { ModeConfig, TemplateVars } from "./types.js";
 import { makeTempDir } from "./test-helpers.js";
@@ -652,26 +652,46 @@ describe("readFragment embedded prompts behavior", () => {
   });
 });
 
-describe("writeTempPrompt", () => {
-  test("writes file to temp directory", () => {
-    const content = "test prompt content";
-    const path = writeTempPrompt(content);
-    expect(existsSync(path)).toBe(true);
-
-    // Cleanup
-    unlinkSync(path);
-    rmdirSync(dirname(path));
+describe("writePromptFile", () => {
+  test("writes the prompt into the given directory, creating it if needed", async () => {
+    const tempDir = makeTempDir("write-prompt-");
+    try {
+      const dir = join(tempDir, "nested", "prompts");
+      const path = writePromptFile("test prompt content", dir);
+      expect(dirname(path)).toBe(dir);
+      expect(await Bun.file(path).text()).toBe("test prompt content");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
-  test("file contains correct content", async () => {
-    const content = "test prompt content";
-    const path = writeTempPrompt(content);
-    const read = await Bun.file(path).text();
+  test("identical content maps to the same file; different content does not", () => {
+    const tempDir = makeTempDir("write-prompt-");
+    try {
+      const first = writePromptFile("same prompt", tempDir);
+      const again = writePromptFile("same prompt", tempDir);
+      const other = writePromptFile("different prompt", tempDir);
+      expect(again).toBe(first);
+      expect(other).not.toBe(first);
+      expect(existsSync(first)).toBe(true);
+      expect(existsSync(other)).toBe(true);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 
-    // Cleanup
-    unlinkSync(path);
-    rmdirSync(dirname(path));
-
-    expect(read).toBe(content);
+  test("defaults to $XDG_STATE_HOME/claude-mode/prompts", () => {
+    const tempDir = makeTempDir("write-prompt-state-");
+    const savedStateHome = process.env.XDG_STATE_HOME;
+    process.env.XDG_STATE_HOME = tempDir;
+    try {
+      const path = writePromptFile("state dir prompt");
+      expect(dirname(path)).toBe(join(tempDir, "claude-mode", "prompts"));
+      expect(existsSync(path)).toBe(true);
+    } finally {
+      if (savedStateHome === undefined) delete process.env.XDG_STATE_HOME;
+      else process.env.XDG_STATE_HOME = savedStateHome;
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 });

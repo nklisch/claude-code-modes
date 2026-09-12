@@ -59,7 +59,7 @@ Parse (args.ts) → Load config (config.ts) → Resolve model (env.ts) → Resol
 - **Resolve model**: `resolveSessionModel` applies Claude Code's own precedence (`--model` → `ANTHROPIC_MODEL` → settings files); runs before Resolve because `--base auto` keys off the result
 - **Resolve**: validates axis and style values, resolves custom names against config, merges presets + overrides, selects the base and response style
 - **Detect env**: shell commands for git, platform, shell
-- **Assemble**: reads fragments, substitutes template vars, writes temp file
+- **Assemble**: reads fragments, substitutes template vars, writes a content-addressed prompt file under `$XDG_STATE_HOME/claude-mode/prompts/` (never deleted — `claude --bg` respawns re-read it after claude-mode exits)
 
 ## Config File
 

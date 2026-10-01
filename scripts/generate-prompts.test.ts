@@ -39,11 +39,11 @@ describe("generate-prompts.ts", () => {
   });
 
   test("generated content preserves special characters correctly", () => {
-    // Verify a fragment with template variables (env.md has {{CWD}} etc.)
+    // Verify a fragment with a template variable, backticks, and em dashes
     const mod = require(join(PROJECT_ROOT, "src/embedded-prompts.ts"));
-    const envContent = mod.EMBEDDED_PROMPTS["base/env.md"];
-    expect(envContent).toContain("{{CWD}}");
-    expect(envContent).toContain("{{PLATFORM}}");
+    const coreContent = mod.EMBEDDED_PROMPTS["lean/core.md"];
+    expect(coreContent).toContain("{{SYSTEM_REMINDER_NOTE}}");
+    expect(coreContent).toContain("`file_path:line_number` — it's clickable");
   });
 });
 

@@ -108,10 +108,11 @@ claude-mode none        # Strip all behavioral opinions, use your own CLAUDE.md
 
 By default the base is chosen for you. `claude-mode` reads which model the session will
 run on and assembles the same *shape* of prompt Claude Code itself would send that model:
-the **lean** base for models that receive upstream's lean assembly (Opus 5, Opus 4.8,
-Fable 5, Mythos 5), and **standard** for everything else. On Opus 5 it also layers on the
-three extra sections upstream sends that model — delivering-work, corrections, and
-tool-restraint.
+the **lean** base for models that receive upstream's lean assembly (Opus 5.5, Opus 5,
+Opus 4.8, Sonnet 5.5, Fable 5.1, Fable 5, Mythos 5.1, Mythos 5), and **standard** for
+everything else. It also layers on the extra sections upstream sends particular models:
+delivering-work, corrections, and tool-restraint on Opus 5, and delivering-work on
+Fable 5.1 and Mythos 5.1.
 
 ```bash
 claude-mode create                     # auto — picks lean or standard from your model
@@ -119,7 +120,7 @@ claude-mode create --base lean         # force the lean base
 claude-mode create --base standard     # force the full upstream-derived base
 ```
 
-Naming a base explicitly opts out of detection entirely, including the Opus 5 extras.
+Naming a base explicitly opts out of detection entirely, including those extra sections.
 The lean base is roughly a sixth the size of standard's head: one `# Harness` block in
 place of the separate System, Doing tasks, Executing actions, Using your tools, and
 Tone and style sections.
@@ -185,21 +186,21 @@ prompts/
   base/         Standard base (derived from upstream Claude Code)
   chill/        Alternative base (emotion-research-informed, leaner)
   flow/         Alternative base (chill's calm + restored engagement)
-  lean/         Upstream's lean assembly (what Opus 5 / 4.8 / Fable 5 actually receive)
+  lean/         Upstream's lean assembly (what Opus 4.8 and most Claude 5 models actually receive)
   straight/     Direct, anti-sycophantic base derived from the lean prompt shape
   axis/         Behavioral prompts organized by three axes
   style/        User-visible writing styles (declaudified, straight)
   modifiers/    Behavioral layers (bold, debug, methodical, director, readonly, context-pacing, speak-plain, tdd, muse, flow, playful, delivering-work, corrections, tool-restraint)
 ```
 
-Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard and lean bases are validated against Claude Code **v2.1.220**.
+Each base has a `base.json` manifest — a flat JSON array declaring fragment order with `"axes"` and `"modifiers"` as reserved insertion points. The standard and lean bases are validated against Claude Code **v2.1.286**.
 
 The behavioral layer is composed from three independent axes — **agency** (how much initiative), **quality** (what code standard), and **scope** (how far beyond the request). Presets are just named combinations of these three values.
 
 When you run `claude-mode create`, the tool:
 1. Resolves the preset to axis values (autonomous / architect / unrestricted)
 2. Reads the base infrastructure fragments + the matching axis fragments
-3. Detects your environment (git status, platform, shell)
+3. Fills in template variables from the session model and your environment
 4. Writes the assembled prompt to `~/.local/state/claude-mode/prompts/<hash>.md` (honors `XDG_STATE_HOME`)
 5. Spawns `claude --system-prompt-file <that path>` with inherited stdio
 
@@ -242,11 +243,11 @@ claude-mode create --append-system-prompt "Use Rust, not TypeScript"
 Pass flags through to Claude Code:
 
 ```bash
-claude-mode create --model sonnet          # model choice also lands in the prompt's environment info
+claude-mode create --model sonnet          # model choice also picks the base and model-specific sections
 claude-mode create -- --verbose            # anything after -- goes to claude verbatim
 ```
 
-The environment section of the assembled prompt reports the model claude will actually run: from `--model` (before or after `--`), else the `ANTHROPIC_MODEL` env var, else Claude settings files (`.claude/settings.local.json`, `.claude/settings.json`, `~/.claude/settings.json`), else the newest known model.
+`claude-mode` resolves the model claude will actually run — from `--model` (before or after `--`), else the `ANTHROPIC_MODEL` env var, else Claude settings files (`.claude/settings.local.json`, `.claude/settings.json`, `~/.claude/settings.json`), else the newest known model — and uses it to pick the base and any model-specific sections. Working directory, platform, and model identity are left to Claude Code, which sends them as separate messages even when the system prompt is replaced.
 
 Debug the assembled prompt:
 
@@ -431,7 +432,7 @@ System prompt instructions create exactly this kind of situational context. When
 
 ## Limitations
 
-- **Environment info is static.** Git status, branch name, and platform info are captured once at launch and baked into the prompt. If you switch branches or stage files mid-session, `/clear` and `/compact` won't refresh this — you'd need to restart `claude-mode`. Stock Claude Code has the same caching behavior for most sections, so this is rarely noticeable.
+- **Print mode has no git status.** Since Claude Code v2.1.286, working directory, platform, model identity, and git status arrive as Claude Code's own conversation messages rather than in the system prompt, so the bases no longer carry them. Interactive sessions get git status from Claude Code's session context, but in print mode (`-p`) Claude Code leaves it out whenever the system prompt is replaced.
 - **Named sub-agents ignore your prompt.** See [Sub-agent behavior](#sub-agent-behavior) below for details.
 - **MCP server instructions work normally.** Claude Code delivers MCP instructions via message attachments, independent of the system prompt. No action needed on your part.
 

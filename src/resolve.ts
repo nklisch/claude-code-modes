@@ -233,9 +233,6 @@ function resolveBase(
   );
 }
 
-// Sections upstream ships alongside the lean assembly for models carrying prompt-bundle
-const PROMPT_BUNDLE_MODIFIERS = ["delivering-work", "corrections", "tool-restraint"];
-
 export function resolveConfig(
   parsed: ParsedArgs,
   loadedConfig: LoadedConfig | null,
@@ -362,8 +359,8 @@ export function resolveConfig(
 
   // When the base was chosen for us, also mirror the extra sections upstream would
   // send this model. An explicit --base means the user picked the shape themselves.
-  if (fromModel && modelHasCapability(model, "prompt-bundle")) {
-    applyModifiers(PROMPT_BUNDLE_MODIFIERS, loadedConfig, modifierPaths, "prepend");
+  if (fromModel && model.promptBundle) {
+    applyModifiers([...model.promptBundle], loadedConfig, modifierPaths, "prepend");
   }
 
   return {

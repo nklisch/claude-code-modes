@@ -180,7 +180,7 @@ describe("cli.ts preset --print", () => {
     expect(output).toContain("Methodical mode");
   });
 
-  test("all presets include environment section with CWD", () => {
+  test("all presets include environment section", () => {
     for (const preset of PRESET_NAMES) {
       const output = run(`${preset} --print`);
       expect(output).toContain("# Environment");

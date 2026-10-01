@@ -26,8 +26,8 @@ describe("full assembly integration", () => {
     // No unreplaced vars
     expect(result).not.toMatch(/\{\{[A-Z_]+\}\}/);
 
-    // Contains actual CWD
-    expect(result).toContain(process.cwd());
+    // Session details arrive as Claude Code's own environment attachments, not from the prompt
+    expect(result).not.toContain(process.cwd());
 
     // Contains all major sections
     expect(result).toContain("# System");

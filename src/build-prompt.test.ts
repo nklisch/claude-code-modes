@@ -54,10 +54,18 @@ describe("build-prompt CLI", () => {
     expect(output).toContain("--model claude-sonnet-5");
   });
 
-  test("--model sets model info in printed prompt", () => {
-    const output = run("create --print --model 'claude-opus-4-8[1m]'");
-    expect(output).toContain("Opus 4.8 (1M context)");
-    expect(output).toContain("claude-opus-4-8[1m]");
+  test("--model picks the lean reminder wording for the session model", () => {
+    const opus48 = run("create --print --model 'claude-opus-4-8[1m]'");
+    const opus5 = run("create --print --model claude-opus-5");
+    expect(opus48).toContain("`<system-reminder>` tags in messages and tool results are injected by the harness");
+    expect(opus5).toContain("via mid-conversation system turns");
+  });
+
+  test("leaves session details to Claude Code's own environment attachments", () => {
+    const output = run("create --print --model claude-opus-5");
+    expect(output).toContain("# Environment");
+    expect(output).not.toContain("Primary working directory");
+    expect(output).not.toContain("You are powered by the model");
   });
 
   test("--system-prompt rejected", () => {
@@ -165,6 +173,16 @@ describe("build-prompt CLI", () => {
     expect(opus5).toContain("# Delivering work");
     expect(opus5).toContain("# Corrections");
     expect(opus48).not.toContain("# Delivering work");
+  });
+
+  test("auto adds only the sections each model's bundle carries", () => {
+    const fable51 = run("create --model claude-fable-5-1 --print");
+    const opus55 = run("create --model claude-opus-5-5 --print");
+    expect(fable51).toContain("# Delivering work");
+    expect(fable51).not.toContain("# Corrections");
+    expect(fable51).not.toContain("# Tool restraint");
+    expect(opus55).toContain("# Harness");
+    expect(opus55).not.toContain("# Delivering work");
   });
 
   test("an explicit --base lean skips the prompt-bundle sections", () => {

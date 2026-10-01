@@ -219,7 +219,7 @@ function extractBacktickString(src: string, marker: string, maxLen = 30_000): st
 // ---------------------------------------------------------------------------
 
 const SECTIONS = [
-  { label: "Intro", marker: "an interactive agent that helps users" },
+  { label: "Intro", marker: "Use the instructions below and the tools available to you to assist the user" },
   { label: "System Rules", marker: "rendered in a monospace font using the CommonMark specification" },
   { label: "Doing Tasks", marker: "primarily request you to perform software engineering tasks" },
   { label: "Executing Actions with Care", marker: "Carefully consider the reversibility and blast radius" },
@@ -227,8 +227,12 @@ const SECTIONS = [
   { label: "Tone and Style", marker: "file_path:line_number to allow the user to easily navigate" },
   { label: "Text Output", marker: "Assume users can't see most tool calls" },
   { label: "Session Guidance", marker: "Session-specific guidance" },
-  { label: "Environment Info", marker: "You have been invoked in the following environment" },
-  { label: "Main Assembler", marker: "CLAUDE_CODE_SIMPLE" },
+  // Since v2.1.286 the working-directory/platform block is a conversation attachment;
+  // the system-prompt section keeps only the model-family, availability, and fast-mode lines
+  { label: "Environment Info", marker: "Claude Code is available as a CLI in the terminal" },
+  { label: "Lean Head", marker: "Reference code as" },
+  { label: "Lean Action Caution", marker: "hard to reverse or outward-facing" },
+  { label: "Main Assembler", marker: `"act_dont_rederive",` },
 ] as const;
 
 // ---------------------------------------------------------------------------

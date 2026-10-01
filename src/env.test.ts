@@ -64,10 +64,23 @@ describe("resolveModel", () => {
   });
 
   test("resolves aliases to the newest model of the family", () => {
-    expect(resolveModel("opus").id).toBe("claude-opus-5");
-    expect(resolveModel("sonnet").id).toBe("claude-sonnet-5");
+    expect(resolveModel("opus").id).toBe("claude-opus-5-5");
+    expect(resolveModel("sonnet").id).toBe("claude-sonnet-5-5");
     expect(resolveModel("haiku").id).toBe("claude-haiku-4-5");
-    expect(resolveModel("opusplan").id).toBe("claude-opus-5");
+    expect(resolveModel("fable").id).toBe("claude-fable-5-1");
+    expect(resolveModel("opusplan").id).toBe("claude-opus-5-5");
+  });
+
+  test("carries the model's prompt bundle", () => {
+    expect(resolveModel("claude-opus-5").promptBundle).toEqual(["delivering-work", "corrections", "tool-restraint"]);
+    expect(resolveModel("claude-fable-5-1").promptBundle).toEqual(["delivering-work"]);
+    expect(resolveModel("claude-opus-5-5").promptBundle).toBeUndefined();
+  });
+
+  test("dated variants of a point release match that release, not its major", () => {
+    const model = resolveModel("claude-opus-5-5-20260601");
+    expect(model.name).toBe("Opus 5.5");
+    expect(model.promptBundle).toBeUndefined();
   });
 
   test("resolves dated model ids by prefix", () => {
@@ -84,12 +97,12 @@ describe("resolveModel", () => {
       cutoff: "January 2026",
       capabilities: ["lean-prompt"],
     });
-    expect(resolveModel("opus[1m]").id).toBe("claude-opus-5[1m]");
+    expect(resolveModel("opus[1m]").id).toBe("claude-opus-5-5[1m]");
   });
 
   test("falls back to the default model for null, empty, and 'default'", () => {
     const fallback = resolveModel(null);
-    expect(fallback.id).toBe("claude-fable-5");
+    expect(fallback.id).toBe("claude-fable-5-1");
     expect(resolveModel(undefined)).toEqual(fallback);
     expect(resolveModel("")).toEqual(fallback);
     expect(resolveModel("default")).toEqual(fallback);
@@ -99,7 +112,8 @@ describe("resolveModel", () => {
     const model = resolveModel("claude-newmodel-6");
     expect(model.name).toBe("claude-newmodel-6");
     expect(model.id).toBe("claude-newmodel-6");
-    expect(model.cutoff).toBe("January 2026");
+    expect(model.cutoff).toBe("June 2026");
+    expect(model.promptBundle).toBeUndefined();
   });
 });
 
@@ -155,5 +169,16 @@ describe("buildTemplateVars", () => {
     const vars = buildTemplateVars({ ...mockEnv, isWorktree: true });
     expect(vars.WORKTREE_NOTICE).toContain("stash stack is shared");
     expect(vars.WORKTREE_NOTICE).toContain("git stash apply <sha>");
+  });
+
+  test("describes reminders as system-reminder tags for a model without mid-conv-system", () => {
+    const vars = buildTemplateVars(mockEnv);
+    expect(vars.SYSTEM_REMINDER_NOTE).toContain("`<system-reminder>` tags");
+  });
+
+  test("describes reminders as mid-conversation system turns for a mid-conv-system model", () => {
+    const model = { ...mockEnv.model, capabilities: ["lean-prompt", "mid-conv-system"] as const };
+    const vars = buildTemplateVars({ ...mockEnv, model });
+    expect(vars.SYSTEM_REMINDER_NOTE).toContain("mid-conversation system turns");
   });
 });

@@ -328,9 +328,9 @@ describe("inspect --print (verbose)", () => {
   });
 
   test("shows raw template variables not substituted", () => {
-    const output = captureStdout(() => runInspectCommand(["create", "--print"], PROMPTS_DIR));
-    // The env.md fragment has {{CWD}} placeholder — should show raw, not substituted
-    expect(output).toContain("{{CWD}}");
+    const output = captureStdout(() => runInspectCommand(["create", "--base", "lean", "--print"], PROMPTS_DIR));
+    // The lean core.md fragment has a {{SYSTEM_REMINDER_NOTE}} placeholder — should show raw, not substituted
+    expect(output).toContain("{{SYSTEM_REMINDER_NOTE}}");
   });
 
   test("shows (file not found) for missing custom fragments", () => {

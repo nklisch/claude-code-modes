@@ -90,7 +90,7 @@ Managed via `claude-mode config` subcommand (init, show, add/remove for defaults
 
 ## Upstream Tracking
 
-**Validated against:** Claude Code v2.1.220
+**Validated against:** Claude Code v2.1.286
 
 Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream prompts for diffing.
 
@@ -106,8 +106,9 @@ Run `bun run scripts/extract-upstream-prompt.ts [version]` to extract upstream p
 - `straight` preset selects the straight base and style with autonomous/pragmatic/adjacent axes; base and style remain independently selectable
 - `--base` flag selects a base; resolution order: `auto` → built-in → config → directory path
 - `--style` selects one response fragment after the axes; resolution order: built-in → config → file path; explicit styles also apply in `none` mode
-- `auto` is the default: it picks the base Claude Code itself would assemble for the session model — "lean" when the model carries the `lean-prompt` capability (Opus 5, Opus 4.8, Fable 5, Mythos 5), "standard" otherwise. Models with `prompt-bundle` (Opus 5) additionally get the delivering-work, corrections, and tool-restraint modifiers. An explicit `--base` opts out of both, since the user has chosen the shape themselves
-- Model prompt capabilities live in `MODEL_TABLE` in `env.ts`, mirroring the binary's `lean_prompt` / `opus_5_prompt_bundle`
+- `auto` is the default: it picks the base Claude Code itself would assemble for the session model — "lean" when the model carries the `lean-prompt` capability (Opus 5.5, Opus 5, Opus 4.8, Sonnet 5.5, Fable 5.1, Fable 5, Mythos 5.1, Mythos 5), "standard" otherwise. A model's `promptBundle` adds the modifiers mirroring its upstream prompt bundle: delivering-work, corrections, and tool-restraint on Opus 5; delivering-work on Fable 5.1 and Mythos 5.1. An explicit `--base` opts out of both, since the user has chosen the shape themselves
+- Model prompt capabilities and bundles live in `MODEL_TABLE` in `env.ts`, mirroring the binary's lean predicate, `mid_conv_system`, and `*_prompt_bundle` capabilities
+- Since v2.1.286 Claude Code sends working directory, platform, model identity, and git status as conversation attachments, even with `--system-prompt-file`, so every base's `env.md` carries only the model-family, availability, and fast-mode lines. The env template variables stay available for custom bases
 - Upstream's shared tail (pronouns, context-management, act-don't-re-derive) is emitted for every model regardless of prompt shape, so all five bases carry it — standard/lean/straight use the lean-compatible fragments, chill/flow rework them into their own voice
 - Config: project-local wins entirely if present (no merging with global)
 - Model metadata resolved dynamically in `env.ts`: `--model` flag (or after-`--` peek) → `ANTHROPIC_MODEL` → Claude settings files, against a model table extracted from the Claude Code binary (fallback: newest model) — update the table on Claude Code releases

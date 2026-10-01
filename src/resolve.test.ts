@@ -16,7 +16,15 @@ const BUNDLE_MODEL: ModelInfo = {
   name: "Opus 5",
   id: "claude-opus-5",
   cutoff: "May 2026",
-  capabilities: ["lean-prompt", "prompt-bundle"],
+  capabilities: ["lean-prompt", "mid-conv-system"],
+  promptBundle: ["delivering-work", "corrections", "tool-restraint"],
+};
+const PARTIAL_BUNDLE_MODEL: ModelInfo = {
+  name: "Fable 5.1",
+  id: "claude-fable-5-1",
+  cutoff: "June 2026",
+  capabilities: ["lean-prompt", "mid-conv-system"],
+  promptBundle: ["delivering-work"],
 };
 
 // Most cases don't care about the model; default to one that keeps the standard base
@@ -960,7 +968,12 @@ describe("resolveConfig — prompt-bundle modifiers", () => {
     ]);
   });
 
-  test("a lean model without the bundle capability gets none of them", () => {
+  test("a model's bundle adds only the modifiers it lists", () => {
+    const config = resolveConfig(baseParsed, null, PARTIAL_BUNDLE_MODEL);
+    expect(config.modifiers).toEqual(["modifiers/delivering-work.md"]);
+  });
+
+  test("a lean model without a bundle gets none of them", () => {
     expect(resolveConfig(baseParsed, null, LEAN_MODEL).modifiers).toEqual([]);
   });
 

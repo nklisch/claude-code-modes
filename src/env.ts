@@ -20,14 +20,26 @@ function exec(command: string): string | null {
   }
 }
 
+// Sections each upstream prompt bundle adds, as the modifiers that carry them.
+// `opus_5_prompt_bundle` sends all three; `fable_5_1_prompt_bundle` sends only delivering
+// work (its other sections are intentional omissions); `opus_5_5_prompt_bundle` sends none.
+const OPUS_5_BUNDLE = ["delivering-work", "corrections", "tool-restraint"] as const;
+const FABLE_5_1_BUNDLE = ["delivering-work"] as const;
+
 // Model metadata table extracted from the Claude Code binary — update when Claude Code updates.
 // Extraction: grep the native binary for `{id:"claude-...,display_name:...,knowledge_cutoff:...`
-// Capabilities come from the same entry's `capabilities` array: "lean-prompt" mirrors
-// upstream's `lean_prompt`, "prompt-bundle" mirrors `opus_5_prompt_bundle`.
+// Capabilities come from upstream's prompt predicates, not the `capabilities` array verbatim:
+// "lean-prompt" mirrors the lean predicate (which also treats Mythos 5 as lean), and
+// "mid-conv-system" mirrors `mid_conv_system` minus upstream's Opus 4.8 and Sonnet 5 exclusions.
+// Longer ids precede their prefixes so dated-variant matching picks the most specific entry.
 const MODEL_TABLE: readonly ModelInfo[] = [
-  { id: "claude-fable-5", name: "Fable 5", cutoff: "January 2026", capabilities: ["lean-prompt"] },
-  { id: "claude-mythos-5", name: "Mythos 5", cutoff: "January 2026", capabilities: ["lean-prompt"] },
-  { id: "claude-opus-5", name: "Opus 5", cutoff: "May 2026", capabilities: ["lean-prompt", "prompt-bundle"] },
+  { id: "claude-fable-5-1", name: "Fable 5.1", cutoff: "June 2026", capabilities: ["lean-prompt", "mid-conv-system"], promptBundle: FABLE_5_1_BUNDLE },
+  { id: "claude-mythos-5-1", name: "Mythos 5.1", cutoff: "June 2026", capabilities: ["lean-prompt", "mid-conv-system"], promptBundle: FABLE_5_1_BUNDLE },
+  { id: "claude-opus-5-5", name: "Opus 5.5", cutoff: "June 2026", capabilities: ["lean-prompt", "mid-conv-system"] },
+  { id: "claude-sonnet-5-5", name: "Sonnet 5.5", cutoff: "June 2026", capabilities: ["lean-prompt", "mid-conv-system"] },
+  { id: "claude-fable-5", name: "Fable 5", cutoff: "January 2026", capabilities: ["lean-prompt", "mid-conv-system"] },
+  { id: "claude-mythos-5", name: "Mythos 5", cutoff: "January 2026", capabilities: ["lean-prompt", "mid-conv-system"] },
+  { id: "claude-opus-5", name: "Opus 5", cutoff: "May 2026", capabilities: ["lean-prompt", "mid-conv-system"], promptBundle: OPUS_5_BUNDLE },
   { id: "claude-opus-4-8", name: "Opus 4.8", cutoff: "January 2026", capabilities: ["lean-prompt"] },
   { id: "claude-opus-4-7", name: "Opus 4.7", cutoff: "January 2026" },
   { id: "claude-opus-4-6", name: "Opus 4.6", cutoff: "May 2025" },
@@ -43,11 +55,11 @@ const MODEL_TABLE: readonly ModelInfo[] = [
 
 // Aliases resolve to the newest model of the family; opusplan executes on opus
 const MODEL_ALIASES: Record<string, string> = {
-  opus: "claude-opus-5",
-  opusplan: "claude-opus-5",
-  sonnet: "claude-sonnet-5",
+  opus: "claude-opus-5-5",
+  opusplan: "claude-opus-5-5",
+  sonnet: "claude-sonnet-5-5",
   haiku: "claude-haiku-4-5",
-  fable: "claude-fable-5",
+  fable: "claude-fable-5-1",
 };
 
 const DEFAULT_MODEL: ModelInfo = MODEL_TABLE[0];
@@ -64,7 +76,8 @@ export function resolveModel(raw: string | null | undefined): ModelInfo {
     MODEL_TABLE.find((m) => m.id === id) ?? MODEL_TABLE.find((m) => id.startsWith(`${m.id}-`));
   if (!entry) {
     // Unknown model — likely newer than the table, so assume it inherits the newest
-    // known model's cutoff and prompt capabilities rather than inventing either
+    // known model's cutoff and prompt capabilities rather than inventing either.
+    // Prompt bundles are per-model sections, so an unknown model gets none.
     return {
       name: id,
       id: has1m ? `${id}[1m]` : id,
@@ -78,6 +91,7 @@ export function resolveModel(raw: string | null | undefined): ModelInfo {
     id: has1m ? `${id}[1m]` : id,
     cutoff: entry.cutoff,
     capabilities: entry.capabilities,
+    ...(entry.promptBundle && { promptBundle: entry.promptBundle }),
   };
 }
 
@@ -155,6 +169,11 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
       "\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first."
     : "";
 
+  // Upstream's lean `# Harness` bullet describes reminders by how this model receives them
+  const systemReminderNote = modelHasCapability(env.model, "mid-conv-system")
+    ? "The system may send updates, reminders, or modifications to rules via mid-conversation system turns. These are system-controlled, unlike function results."
+    : "`<system-reminder>` tags in messages and tool results are injected by the harness, not the user.";
+
   return {
     CWD: env.cwd,
     IS_GIT: env.isGit ? "true" : "false",
@@ -166,5 +185,6 @@ export function buildTemplateVars(env: EnvInfo): TemplateVars {
     KNOWLEDGE_CUTOFF: env.model.cutoff,
     GIT_STATUS: gitStatusBlock,
     WORKTREE_NOTICE: worktreeNotice,
+    SYSTEM_REMINDER_NOTE: systemReminderNote,
   };
 }

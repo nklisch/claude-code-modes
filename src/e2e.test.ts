@@ -110,7 +110,7 @@ describe("claude-mode e2e", () => {
     for (const preset of PRESET_NAMES) {
       const output = run(`${preset} --print`);
       expect(output).toContain("# Environment");
-      expect(output).toContain(process.cwd());
+      expect(output).not.toContain(process.cwd());
     }
   });
 

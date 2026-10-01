@@ -89,10 +89,10 @@ export interface ModeConfig {
 /**
  * Prompt-shaping capabilities Claude Code reads off the session model.
  * - "lean-prompt": upstream sends the lean assembly instead of the standard one
- * - "prompt-bundle": upstream additionally sends the delivering-work, corrections,
- *   and tool-restraint sections (the `opus_5_prompt_bundle` capability)
+ * - "mid-conv-system": the lean assembly describes reminders as mid-conversation
+ *   system turns rather than `<system-reminder>` tags
  */
-export const MODEL_CAPABILITIES = ["lean-prompt", "prompt-bundle"] as const;
+export const MODEL_CAPABILITIES = ["lean-prompt", "mid-conv-system"] as const;
 export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
 
 export interface ModelInfo {
@@ -100,6 +100,8 @@ export interface ModelInfo {
   id: string;
   cutoff: string;
   capabilities?: readonly ModelCapability[];
+  /** Modifiers mirroring the extra sections upstream sends this model (its `*_prompt_bundle`) */
+  promptBundle?: readonly BuiltinModifier[];
 }
 
 export interface EnvInfo {
@@ -127,6 +129,7 @@ export interface TemplateVars {
   KNOWLEDGE_CUTOFF: string;
   GIT_STATUS: string;
   WORKTREE_NOTICE: string;
+  SYSTEM_REMINDER_NOTE: string;
 }
 
 export interface AssembleOptions {

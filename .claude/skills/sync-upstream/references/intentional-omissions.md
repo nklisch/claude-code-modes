@@ -57,41 +57,46 @@ and proposing alternatives, which conflicts with this instruction in the base.
 
 ## text-output.md
 
-### 6. "Communicating with the user" gated variant (v2.1.170+)
+### 6. "Communicating with the user" — the Fable 5 / Mythos 5 variant (gate resolved v2.1.286)
 
-In v2.1.170 the Text Output function (`XM_` as of v2.1.220; was `Ra_` in v2.1.217,
-`kam` in v2.1.197, `O5A` in v2.1.177, `_tf` in v2.1.170, `ExA` earlier) gained a **first branch** gated behind
-`B_e(t)||Iam(t)` (was `Rs(H)||z5A(H)` in v2.1.177, `x8H(H)||yX9(H)` in v2.1.170)
-that returns a longer `# Communicating with the user` block (lead-with-outcome,
-"teammate who stepped away", readable-vs-concise guidance). As of v2.1.197 this
-block also grows an extra paragraph when a sub-condition `n` is true, about text
-between tool calls not being shown to the user and needing to be restated in the
-final message. We continue to track the **default branch** (`# Text output (does
-not apply to tool calls)`, now the third branch), which is unchanged.
+The Text Output function (`Gno` in v2.1.286; `XM_` in v2.1.220, `Ra_` in v2.1.217,
+`kam` in v2.1.197, `O5A` in v2.1.177, `_tf` in v2.1.170, `ExA` earlier) has a branch
+returning a longer `# Communicating with the user` block (lead-with-outcome,
+"teammate who stepped away", readable-vs-concise guidance), plus an extra paragraph
+about restating mid-turn text in the final message when `jno` is true. We track the
+**default branch** (`# Text output (does not apply to tool calls)`), which is unchanged.
+
+Gate resolved during the v2.1.286 sync: `Hno(model)` = `[P0, fLo, gLo].some(…)`, and
+`fLo`/`gLo` return `false` outright, so it reduces to `P0` = the `fable_5_mitigations`
+capability (or Mythos 5 by name), plus `basalt_cove` client data. In practice that is
+**Fable 5 and Mythos 5**. Fable 5.1 and Mythos 5.1 also carry `fable_5_mitigations`,
+but they hit the turn-updates branch first (#21).
+
+v2.1.286 replaced this block's em dashes with colons and commas:
 
 > "# Communicating with the user … Write it for a teammate who stepped away and is
 > catching up, not for a log file: they don't know the codenames or shorthand you
-> created along the way … Lead with the outcome … Being readable and being concise
-> are different things, and readable matters more … Write code that reads like the
-> surrounding code: match its comment density, naming, and idiom. Only write a code
-> comment to state a constraint the code itself can't show …"
+> created along the way … Lead with the outcome. Your first sentence after finishing
+> should answer "what happened" or "what did you find": the thing the user would ask
+> for … Being readable and being concise are different things, and readable matters
+> more … Write code that reads like the surrounding code: match its comment density,
+> naming, and idiom. Only write a code comment to state a constraint the code itself
+> can't show, never to say where it came from …"
 
-**Reason:** It's a feature-flagged/gated variant, not the baseline most models receive
-(verified absent from a live Opus 4.8 session prompt during the v2.1.170 sync, and
-still absent from a live session prompt during the v2.1.197 sync). The chill/flow
-bases already carry their own emotion-research-informed communication guidance.
-Revisit if this branch becomes the default in a later release.
+**Reason:** Model-specific to Fable 5 / Mythos 5. It also carries the comment-density
+and comment-content rules that cap the `architect` quality axis (same call as #7).
+The chill/flow bases carry their own communication guidance.
 
 ### 7. One-line code-comment variant — **this is the lean path** (identified v2.1.220)
 
-The second branch, gated behind `vE(e)` (was `tE` in v2.1.217, `yh` in v2.1.197),
-returns just:
+The lean branch, gated behind `EG(e)` in v2.1.286 (`vE` in v2.1.220, `tE` in
+v2.1.217, `yh` in v2.1.197), returns just:
 
 > "Write code that reads like the surrounding code: match its comment density,
 > naming, and idiom."
 
-`vE` was resolved during the v2.1.220 sync: it is the **lean-prompt predicate**, not
-a terser mode for short conversations. It is true whenever the session model carries
+`vE` (now `EG`) was resolved during the v2.1.220 sync: it is the **lean-prompt
+predicate**, not a terser mode for short conversations. It is true whenever the session model carries
 the `lean_prompt` capability. So this line is what every lean-path session gets in
 place of the whole `# Text output` section.
 
@@ -102,7 +107,7 @@ exported functions and comments that explain WHY. Same call as omissions #1–#4
 
 ## actions.md
 
-### 8. "compact" mode variant (v2.1.197+)
+### 8. "compact" mode variant (v2.1.197–v2.1.220) — **removed upstream in v2.1.286**
 
 A new branch gated behind `G9o(e)==="compact"` (`YNs` in v2.1.217 → `Eqs` in
 v2.1.220) returns a much shorter "Executing actions with care" section:
@@ -120,6 +125,9 @@ So this branch is reachable on exactly one model, in an experiment. We continue 
 track the default (cautious, full-length) branch, which matches `actions.md`
 verbatim.
 
+**v2.1.286:** the branch and its `investigate_first` tail section are gone; `coo` has a
+single branch. Kept here for history.
+
 Note this is *not* the lean action-caution text — that comes from a separate
 lean-only function (`JM_`) and is tracked at `prompts/lean/actions.md`.
 
@@ -131,7 +139,8 @@ A new branch gated behind `$I()` (`uO()` in v2.1.217 → `i1()` in v2.1.220) ret
 task tool only, omitting the Bash-vs-dedicated-tools and parallel-tool-use
 bullets present in the default branch.
 
-**Reason:** Gated variant, not observed in a live session prompt. `i1()` is
+**Reason:** Gated variant, not observed in a live session prompt. In v2.1.286 the
+gate (`v0()`) **returns false outright**, so the branch is dead code. It is
 unrelated to the lean predicate — the lean path drops the tools section entirely in
 favour of one `# Harness` bullet, which `prompts/lean/core.md` carries.
 
@@ -140,7 +149,8 @@ favour of one `# Harness` bullet, which `prompts/lean/core.md` carries.
 ### 10. Sub-agent guidance helper `qam(n)` → `Ka_(r)` (identified in v2.1.217)
 
 The Session Guidance function has a branch gated on the Agent tool being present
-that calls a helper (`qam` in v2.1.197, `Ka_` in v2.1.217, `fO_` in v2.1.220). Resolved during the
+that calls a helper (`qam` in v2.1.197, `Ka_` in v2.1.217, `fO_` in v2.1.220, `poo` in
+v2.1.286). Resolved during the
 v2.1.217 sync by extracting the helper body from the binary: it returns sub-agent
 guidance —
 
@@ -152,7 +162,9 @@ guidance —
 > a subagent, do not also perform the same searches yourself."
 
 — with a fork-mode variant (subagent_type: "fork" inherits full conversation
-context, runs in background) behind a separate gate.
+context, runs in background) behind a separate gate. Since v2.1.286 a third variant
+drops the "Subagents are valuable…" sentence whenever the sub-agent steer isn't
+`"default"`. Opus 5's model floor sets the steer to `"no_nudges"`.
 
 **Reason:** The local session-guidance sub-agent bullet already paraphrases the
 default branch (delegate broad exploration, don't duplicate delegated searches).
@@ -180,7 +192,13 @@ fires in local CLI sessions.
 **Reason:** Environment-gated content not applicable to local sessions.
 Investigate further only if it starts appearing in a local session prompt.
 
-### 12. Gated `<system-reminder>` bullet variant in System Rules (v2.1.217+)
+**v2.1.286:** superseded. The whole environment block moved out of the system prompt
+into the `environment` attachment, which Claude Code sends itself (see
+fragment-map.md, "Session attachments"). That block's optional trailing line is now
+an `agentProxyNote` (helper unresolved). It's not our concern either way, since local
+bases no longer carry the block.
+
+### 12. Gated `<system-reminder>` bullet variant (v2.1.217+) — **tracked on the lean path since v2.1.286**
 
 Since v2.1.217 the `<system-reminder>` bullet in System Rules comes from a helper
 (`Pjd` in v2.1.217 → `Qep` in v2.1.220), called as `(e,"standard")`. The standard branch returns the same text local system.md
@@ -190,8 +208,14 @@ carries. A gated branch (`Djd(e)` → `Jep(e)` in v2.1.220) instead returns:
 > mid-conversation system turns. These are system-controlled, unlike function
 > results."
 
-**Reason:** Gated variant (likely tied to the `mid_conv_system` model
-capability), not the standard path. Revisit if it becomes the default.
+**Resolved in v2.1.286:** the gate is `bAe(model)` = mid-conv system (`q6`) && not
+Sonnet 5 && not Opus 4.8. `q6` follows the `mid_conv_system` capability, but it
+hard-excludes Opus 4.8 and HIPAA orgs and treats Mythos 5 as on. No standard-path
+model passes it, so `prompts/base/system.md` keeps the standard text. On the lean
+path (`Dvt(model,"lean")`) it decides between this wording and "`<system-reminder>`
+tags in messages and tool results are injected by the harness, not the user."
+`prompts/lean/core.md` now renders that choice from `{{SYSTEM_REMINDER_NOTE}}`, which
+is driven by the local `mid-conv-system` capability.
 
 ### 13. Lean prompt path — **now tracked** (resolved v2.1.220)
 
@@ -203,11 +227,13 @@ What it is: upstream assembles two prompt shapes from one function, forking on t
 `# Executing actions with care`, `# Using your tools`, `# Tone and style`) with a
 single intro + security preamble + `# Harness` block, then shares the same tail of
 dynamic sections with the standard path. The predicate reduces to "the model carries
-the `lean_prompt` capability" — Opus 5, Opus 4.8, Fable 5, Mythos 5 as of v2.1.220.
+the `lean_prompt` capability" — Opus 5, Opus 4.8, Fable 5, Mythos 5 as of v2.1.220;
+Opus 5.5, Sonnet 5.5, Fable 5.1, and Mythos 5.1 joined in v2.1.286.
 
 `opus_5_prompt_bundle` is a second capability layered on top (Opus 5 only), adding
-`# Delivering work`, `# Corrections`, and the two tool-restraint bullets. Those ship
-as modifiers.
+`# Delivering work`, `# Corrections`, and tool restraint. Those ship as modifiers. Since
+v2.1.286 there are three bundles (Opus 5, Opus 5.5, Fable 5.1 / Mythos 5.1); each
+model's share is its `promptBundle` in `MODEL_TABLE` — see fragment-map.md.
 
 See fragment-map.md for the per-fragment mapping. The extraction script still does
 not extract these sections — they were mapped by grepping the binary directly.
@@ -262,6 +288,9 @@ ambiguous, ask for clarification rather than interpreting broadly", and
 `agency/partner` says "ask one sharp question rather than picking an interpretation
 silently". Both are the opposite of the omitted default.
 
+Since v2.1.286 `# Delivering work` (`koo`) also goes to Fable 5.1 and Mythos 5.1 (the
+`fable_5_1_prompt_bundle`). Its text is unchanged, so #15 and #16 apply as before.
+
 ## prompts/modifiers/corrections.md
 
 ### 17. No omissions
@@ -273,14 +302,76 @@ isn't governed by any axis.
 
 ### 18. Reworded, not omitted
 
-Upstream's `Kep` is two literal bullets naming Claude Code internals:
+In v2.1.286 upstream's section is `opus5_reduced_delegation`, a single sentence (`Avt`)
+naming the Agent tool:
 
-> "Do not call the AgentTool unless the user requested it"
-> "Do not use workflows or deep-research unless the user requested it"
+> "Do not use the ${Agent} tool, workflows, or deep-research unless the user, a
+> CLAUDE.md file, or a skill asks for it"
 
-Local rewords these to tool-agnostic phrasing ("Do not spawn sub-agents…", "Do not
-launch multi-agent workflows or deep-research runs…") to match the project's
-convention of not hard-coding upstream tool names. Same intent, no content dropped.
+It replaced v2.1.220's two bullets (`Kep`: "Do not call the AgentTool unless the user
+requested it" / "Do not use workflows or deep-research unless the user requested
+it"). The old first bullet survives only as the `ooo` marker that suppresses the
+section when the `heron_brook` text already says it.
+
+Local rewords it to tool-agnostic phrasing ("Do not spawn sub-agents, launch
+multi-agent workflows, or start deep-research runs unless the user, a CLAUDE.md file,
+or a skill asks for it"), matching the project's convention of not hard-coding
+upstream tool names. Same intent, no content dropped.
+
+## Fable / Mythos model-specific sections (v2.1.286)
+
+The v2.1.286 sync gave `--base auto` a per-model `promptBundle`. The user decided it
+carries only `delivering-work` for Fable 5.1 / Mythos 5.1. The other sections those
+models receive are recorded here.
+
+### 19. Autonomy append (all Fable and Mythos models)
+
+`autonomy_append` (`soo` in v2.1.286; `oO_` in v2.1.220, where it already existed but
+was never mapped). Gate: `tengu_amber_sextant` (default **true**) && (`P0` =
+`fable_5_mitigations` / Mythos 5 || `amber_astrolabe` client data). That covers Fable 5,
+Fable 5.1, Mythos 5, and Mythos 5.1.
+
+> "You are operating autonomously. The user is not watching in real time and cannot
+> answer questions mid-task, so asking 'Want me to…?' or 'Shall I…?' will block the
+> work. For reversible actions that follow from the original request, proceed without
+> asking. … Before ending your turn, check your last paragraph. If it is a plan, an
+> analysis, a question, a list of next steps, or a promise about work you have not
+> done …, do that work now with tool calls. …"
+
+**Reason:** Agency axis territory. It directly contradicts `agency/collaborative`
+(check in at decision points) and `agency/surgical`; `agency/autonomous` already
+expresses the same stance for users who want it.
+
+### 20. `# Writing for the user` (Fable 5.1 / Mythos 5.1)
+
+`willow_tern` (`too` in v2.1.286), gated by `vLo`: `CLAUDE_CODE_WILLOW_TERN`, client
+data, or `c_e` (`fable_5_1_prompt_bundle`). Opus 5 gets it only behind the growthbook
+flag (default off).
+
+> "# Writing for the user … Lead with the answer or outcome. … Keep it short by leaving
+> things out, not by packing them in. … No em-dashes, no parentheticals, no arrows. …
+> No headers in a message under about 500 words. … Stop when the content stops. No
+> closing offer, no restating what you did."
+
+**Reason:** Quality axis territory. Output verbosity belongs to the quality axis (see
+#5), and `quality/architect` asks for the opposite: "Don't be unnecessarily terse",
+"Propose alternatives when they exist". This is a candidate for an opt-in modifier if
+anyone wants it.
+
+### 21. Turn-updates line (Fable 5.1 / Mythos 5.1)
+
+The first branch of the Text Output function (`Wno`), gated by `V1("turn_updates")`.
+It is on for `c_e` models and overridable via `CLAUDE_CODE_TURN_UPDATES`. It replaces
+the whole communication section for those models:
+
+> "Before you start, say in a line what you're about to do; brief updates while you
+> work help the user follow along. Close with a short recap that stands on its own —
+> what you found, what you did, and what's next — so a reader who only sees the last
+> message has the full picture."
+
+**Reason:** It's a per-model replacement for a section the lean base omits for every
+model (#7). In the v2.1.286 sync the user chose to keep the Fable 5.1 bundle to
+delivering-work only.
 
 ## How to maintain this file
 
